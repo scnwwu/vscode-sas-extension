@@ -1,0 +1,9 @@
+# generated files
+package-lock.json
+out/
+
+# git files
+.git/
+
+# VSCode history
+.history/

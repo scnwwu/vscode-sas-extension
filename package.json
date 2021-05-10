@@ -23,6 +23,23 @@
         ],
         "configuration": "./language-configuration.json"
       }
+    ],
+    "themes": [
+      {
+        "label": "SAS Illuminate",
+        "uiTheme": "vs",
+        "path": "./themes/sas-illuminate-color-theme.json"
+      },
+      {
+        "label": "SAS Ignite",
+        "uiTheme": "vs-dark",
+        "path": "./themes/sas-ignite-color-theme.json"
+      },
+      {
+        "label": "SAS High Contrast",
+        "uiTheme": "hc-black",
+        "path": "./themes/sas-highcontrast-color-theme.json"
+      }
     ]
   },
   "scripts": {

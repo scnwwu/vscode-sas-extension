@@ -16,6 +16,7 @@ var SyntaxColor = function (model) {
     removedSyntaxTable;
 
   this.blockComment = { start: "/*", end: "*/" };
+  this.lexer = lexer;
 
   // private functions
   function _push(range) {
@@ -297,9 +298,7 @@ var SyntaxColor = function (model) {
                 self.tokens.push({text: lexer.lexer.getWord(token), type: token.type,    // jpnjfk
                     start: {line: token.start.line, column: token.start.column},             // jpnjfk
                     end: {line: token.end.line, column: token.end.column}});                 // jpnjfk
-            }*/ if (
-      self._tokenCallback
-    ) {
+            }*/ if (self._tokenCallback) {
       self._tokenCallback({
         text: model.getText(token),
         type: token.type,

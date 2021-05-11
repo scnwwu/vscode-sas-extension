@@ -23,6 +23,17 @@
     "format": { "foreground": "#0caca4" }
   },
   "colors": {
-    "editor.background": "#021727"
+    "editor.background": "#021727",
+    "editor.selectionBackground": "#024f87",
+    "input.background": "#021727",
+    "editorHoverWidget.background": "#03233a",
+    "editorGroupHeader.tabsBackground": "#03233a",
+    "tab.inactiveBackground": "#03233a",
+    "sideBar.background": "#03233a",
+    "menu.background": "#03233a",
+    "list.hoverBackground": "#024f87",
+    "list.inactiveSelectionBackground": "#042c49",
+    "activityBar.background": "#042c49",
+    "titleBar.activeBackground": "#042c49"
   }
 }

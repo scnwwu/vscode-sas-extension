@@ -7,7 +7,7 @@
     "sec-keyword": { "foreground": "#acd8f9", "bold": true },
     "proc-name": { "foreground": "#acd8f9", "bold": true },
     "comment": { "foreground": "#54e704" },
-    "macro-keyword": { "foreground": "#00f" },
+    "macro-keyword": { "foreground": "#e8b8ff" },
     "macro-comment": { "foreground": "#54e704" },
     "macro-ref": { "foreground": "#fff", "bold": true },
     "macro-sec-keyword": { "foreground": "#e8b8ff", "bold": true },

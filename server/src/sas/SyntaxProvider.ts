@@ -1,6 +1,7 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { SyntaxColor } from "./SyntaxColor";
 import { SasModel } from "./SasModel";
+import { SasAutoCompleter } from "./SasAutoCompleter";
 
 export const legend = {
   tokenTypes: [
@@ -34,10 +35,13 @@ function getType(type: string) {
 export class SyntaxProvider {
   private model;
   private syntaxColor;
+  public autoCompleter;
 
   constructor(doc: TextDocument) {
     this.model = new SasModel(doc);
     this.syntaxColor = new SyntaxColor(this.model);
+    this.autoCompleter = new SasAutoCompleter(this.model, this.syntaxColor);
+
     const lineCount = this.model.getLineCount();
 
     this.syntaxColor.add({

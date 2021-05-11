@@ -27,6 +27,7 @@ connection.onInitialize(() => {
         legend,
         full: true,
       },
+      hoverProvider: true,
     },
   };
   return result;
@@ -36,6 +37,12 @@ connection.onRequest(SemanticTokensRequest.type, (params) => {
   const syntaxProvider = syntaxPool[params.textDocument.uri];
 
   return { data: syntaxProvider.getTokens() };
+});
+
+connection.onHover((params) => {
+  const syntaxProvider = syntaxPool[params.textDocument.uri];
+
+  return syntaxProvider.autoCompleter.getHelp(params.position);
 });
 
 documents.onDidChangeContent((event) => {

@@ -1,5 +1,10 @@
 /*eslint-disable*/
-import { Hover, MarkupKind } from "vscode-languageserver";
+import {
+  CompletionItem,
+  CompletionItemKind,
+  Hover,
+  MarkupKind,
+} from "vscode-languageserver";
 import { Position } from "vscode-languageserver-textdocument";
 import { CodeZoneManager } from "./CodeZoneManager";
 import { SasModel } from "./SasModel";
@@ -77,12 +82,66 @@ function getText(str: string, arg?: any) {
   return str + (arg ?? "");
 }
 
+function _distinctList(list: any) {
+  var newList = [],
+    obj: any = {};
+  for (var i = 0; i < list.length; i++) {
+    var item = list[i].toUpperCase();
+    if (!obj[item]) {
+      newList.push(list[i]);
+      obj[item] = true;
+    }
+  }
+  return newList;
+}
+
 function _notify(cb: any, data: any) {
   if (cb) {
     setTimeout(function () {
       cb(data);
     }, 0);
   }
+}
+
+function _notifyOptValue(cb: any, data: any, optName: any) {
+  if (data) {
+    // if (loader.isColorType(data.type)) {
+    //   _setCurrentZone(ZONE_TYPE.COLOR);
+    // } else if (loader.isDataSetType(data.type)) {
+    //   if (optName !== popupContext.optName) return;
+    //   _setCurrentZone(ZONE_TYPE.LIB);
+    //   if (libref) {
+    //     libref = libref.toUpperCase();
+    //     for (var i = 0; i < data.values.length; i++) {
+    //       if (libref === data.values[i].name.toUpperCase()) {
+    //         loader.getDataSetNames(data.values[i].id, cb);
+    //         break;
+    //       }
+    //     }
+    //   } else {
+    //     _getDatasetNames();
+    //     cb(data.values.concat(datasetList));
+    //   }
+    //   return;
+    // } else if (!loader.isDataSetType(data.type) && libref) {
+    //   // wrong guess, should not popup
+    //   return;
+    // }
+    cb(data.values);
+  } else {
+    cb(null);
+  }
+}
+function _cleanUpODSStmts(oldStmts: any) {
+  var stmts: any = [];
+  if (oldStmts) {
+    oldStmts.forEach(function (item: any) {
+      if (item.indexOf("ODS ") !== -1) {
+        stmts.push(item.replace("ODS ", ""));
+      }
+    });
+  }
+  return stmts;
 }
 
 function _cleanUpODSStmtName(name: any) {
@@ -94,6 +153,14 @@ function _cleanUpODSStmtName(name: any) {
     }
   }
   return name === "" ? "ODS" : "ODS " + name;
+}
+
+function _cleanUpStmtOpts(data: any) {
+  // var stmtName = czMgr.getStmtName();
+  // if (stmtName === "LIBNAME") {
+  //   data = _distinctList(data);
+  // }
+  return data;
 }
 
 function _cleanUpKeyword(keyword: string) {
@@ -165,6 +232,7 @@ function _getContextMain(zone: any, keyword: string) {
 export class SasAutoCompleter {
   private czMgr;
   private loader;
+  private popupContext: any = {};
 
   constructor(private model: SasModel, private syntaxColor: any) {
     this.loader = syntaxColor.lexer.langSrv;
@@ -191,7 +259,7 @@ export class SasAutoCompleter {
         return new Promise((resolve) => {
           this._loadHelp({
             keyword: keyword,
-            type,
+            type: "hint",
             zone,
             procName: this.czMgr.getProcName(),
             stmtName: this.czMgr.getStmtName(),
@@ -213,6 +281,370 @@ export class SasAutoCompleter {
         });
       }
     }
+  }
+
+  getCompleteItems(position: Position): Promise<CompletionItem[]> | undefined {
+    return new Promise((resolve) => {
+      this._loadAutoCompleteItems(
+        this.czMgr.getCurrentZone(position.line, position.character),
+        (data: any) => {
+          resolve(
+            data?.map((item: string) => ({
+              label: item,
+              kind: CompletionItemKind.Keyword,
+            }))
+          );
+        }
+      );
+    });
+  }
+
+  getCompleteItemHelp(item: CompletionItem): Promise<CompletionItem> {
+    return new Promise((resolve) => {
+      this._loadHelp({
+        keyword: item.label,
+        type: "tooltip",
+        ...this.popupContext,
+        cb: (data: any) => {
+          if (data && data.data) {
+            item.documentation = {
+              kind: MarkupKind.Markdown,
+              value: this._addLinkContext(this.popupContext.zone, data),
+            };
+          }
+          resolve(item);
+        },
+      });
+    });
+  }
+
+  private _loadAutoCompleteItems(zone: any, cb: any) {
+    // var cb = (function (prf) {
+    //     return function () {
+    //       if (prf === prefix) {
+    //         _onLoadCompleted.apply(this, arguments);
+    //       }
+    //     };
+    //   })(prefix),
+    var stmtName = _cleanUpKeyword(this.czMgr.getStmtName()),
+      optName = _cleanUpKeyword(this.czMgr.getOptionName()),
+      procName = _cleanUpKeyword(this.czMgr.getProcName());
+
+    this.popupContext.procName = procName;
+    this.popupContext.stmtName = stmtName;
+    this.popupContext.optName = optName;
+    this.popupContext.zone = zone;
+    switch (zone) {
+      case ZONE_TYPE.PROC_DEF:
+        this.loader.getProcedures(cb);
+        break;
+      case ZONE_TYPE.PROC_OPT:
+        this.loader.getProcedureOptions(procName, cb);
+        break;
+      case ZONE_TYPE.PROC_OPT_VALUE:
+        this.loader.getProcedureOptionValues(
+          procName,
+          optName + "=",
+          function (data: any) {
+            _notifyOptValue(cb, data, optName);
+          }
+        );
+        break;
+      case ZONE_TYPE.PROC_SUB_OPT_NAME:
+        this.loader.getProcedureSubOptions(procName, optName, cb);
+        break;
+      case ZONE_TYPE.PROC_STMT:
+        this.loader.getProcedureStatements(procName, function (data: any) {
+          if (procName === "ODS") {
+            cb(_cleanUpODSStmts(data));
+          } else {
+            cb(data);
+          }
+        });
+        break;
+      case ZONE_TYPE.PROC_STMT_OPT:
+      case ZONE_TYPE.PROC_STMT_OPT_REQ:
+        if (procName === "ODS") {
+          stmtName = "ODS " + stmtName;
+        }
+        this.loader.getProcedureStatementOptions(
+          procName,
+          stmtName,
+          function (data: any) {
+            cb(_cleanUpStmtOpts(data));
+          },
+          zone === ZONE_TYPE.PROC_STMT_OPT_REQ
+        );
+        break;
+      case ZONE_TYPE.PROC_STMT_OPT_VALUE:
+        if (procName === "ODS") {
+          stmtName = "ODS " + stmtName;
+        }
+        this.loader.getProcedureStatementOptionValues(
+          procName,
+          stmtName,
+          optName,
+          function (data: any) {
+            _notifyOptValue(cb, data, optName);
+          }
+        );
+        break;
+      case ZONE_TYPE.PROC_STMT_SUB_OPT:
+        if (procName === "ODS") {
+          stmtName = "ODS " + stmtName;
+        }
+        this.loader.getProcedureStatementSubOptions(
+          procName,
+          stmtName,
+          optName,
+          function (data: any) {
+            cb(_distinctList(data));
+          }
+        );
+        break;
+      case ZONE_TYPE.STYLE_ELEMENT:
+        this.loader.getStyleElements(cb);
+        break;
+      case ZONE_TYPE.STYLE_ATTR:
+        this.loader.getStyleAttributes(cb);
+        break;
+      case ZONE_TYPE.STYLE_LOC:
+        this.loader.getStyleLocations(cb);
+        break;
+      case ZONE_TYPE.DATA_STEP_STMT:
+        this.loader.getDSStatements(cb);
+        break;
+      case ZONE_TYPE.DATA_STEP_DEF_OPT:
+        //case ZONE_TYPE.VIEW_OR_DATA_SET_NAME:
+        _notify(cb, ["_NULL_", "VIEW=", "PGM="]);
+        break;
+      case ZONE_TYPE.DATA_SET_OPT_NAME:
+        this.loader.getDSOptions(cb);
+        break;
+      case ZONE_TYPE.DATA_SET_OPT_VALUE:
+        this.loader.getDataSetOptionValues(optName, function (data: any) {
+          cb(data ? data.values : null);
+        });
+        break;
+      case ZONE_TYPE.DATA_STEP_OPT_NAME:
+        _notify(cb, [
+          "DEBUG",
+          "NESTING",
+          "STACK=",
+          "VIEW=",
+          "SOURCE=",
+          "NOLIST",
+          "PGM=",
+        ]);
+        break;
+      case ZONE_TYPE.VIEW_OR_PGM_OPT_NAME:
+        _notify(cb, ["ALTER=", "READ=", "PW=", "SOURCE="]);
+        break;
+      case ZONE_TYPE.VIEW_OR_PGM_OPT_VALUE:
+      case ZONE_TYPE.DATA_STEP_OPT_VALUE:
+        if (optName === "SOURCE") {
+          _notify(cb, ["SAVE", "ENCRYPT", "NOSAVE"]);
+        }
+        break;
+      case ZONE_TYPE.VIEW_OR_PGM_SUB_OPT_NAME:
+        _notify(cb, ["NOLIST"]);
+        break;
+      case ZONE_TYPE.OPT_NAME:
+        break;
+      case ZONE_TYPE.OPT_VALUE:
+        break;
+      case ZONE_TYPE.DATA_STEP_STMT_OPT:
+        // if (stmtName === 'SET' && (firstOptForSET || libref)) {
+        //     this.loader.getLibraryList(function(data){
+        //         if (data.values.length === 0) { // no service
+        //             _notify(function(data){
+        //                 _notifyOptValue(cb, data, optName);
+        //             }, data);
+        //         } else {
+        //             _notifyOptValue(cb, data, optName);
+        //         }
+        //     }, 'DV');
+        // } else {
+        this.loader.getStatementOptions("datastep", stmtName, (data: any) => {
+          if (!data) {
+            this.loader.getProcedureStatementOptions("DATA", stmtName, cb);
+          } else {
+            cb(_cleanUpStmtOpts(data));
+          }
+        });
+        //}
+        break;
+      case ZONE_TYPE.DATA_STEP_STMT_OPT_VALUE:
+        this.loader.getStatementOptionValues(
+          "datastep",
+          stmtName,
+          optName,
+          (data: any) => {
+            if (data) {
+              _notifyOptValue(cb, data, optName);
+            } else {
+              this.loader.getProcedureStatementOptionValues(
+                "DATA",
+                stmtName,
+                optName,
+                function (data: any) {
+                  _notifyOptValue(cb, data, optName);
+                }
+              );
+            }
+          }
+        );
+        break;
+      case ZONE_TYPE.MACRO_STMT:
+        this.loader.getMacroStatements((macroStmts: any) => {
+          this.loader.getARMMacros(function (armMacros: any) {
+            //if (macroDefList) macroStmts = macroStmts.concat(macroDefList);
+            cb(_distinctList(armMacros.concat(macroStmts)));
+          });
+        });
+        //_getMacroDef();
+        break;
+      case ZONE_TYPE.MACRO_DEF:
+        this.loader.getMacroDefinitions(cb);
+        break;
+      case ZONE_TYPE.MACRO_DEF_OPT:
+        this.loader.getProcedureOptions("MACRO", cb);
+        break;
+      case ZONE_TYPE.MACRO_STMT_OPT:
+        this.loader.getStatementOptions("macro", stmtName, cb);
+        break;
+      case ZONE_TYPE.MACRO_STMT_OPT_VALUE:
+        this.loader.getStatementOptionValues(
+          "macro",
+          stmtName,
+          optName,
+          function (data: any) {
+            _notifyOptValue(cb, data, optName);
+          }
+        );
+        break;
+      case ZONE_TYPE.CALL_ROUTINE:
+        this.loader.getCallRoutines(cb);
+        break;
+      case ZONE_TYPE.GBL_STMT:
+        this.loader.getGlobalStatements(function (data: any) {
+          if (!data) {
+            // if (prefix.startsWith('%')) {
+            //     _setCurrentZone(ZONE_TYPE.MACRO_STMT);
+            //     this.loader.getMacroStatements(cb);
+            // }
+          } else {
+            cb(data);
+          }
+        });
+        break;
+      case ZONE_TYPE.GBL_STMT_OPT:
+        this.loader.getStatementOptions("global", stmtName, (data: any) => {
+          if (!data) {
+            this.loader.getStatementOptions(
+              "standalone",
+              stmtName,
+              function (data: any) {
+                cb(_cleanUpStmtOpts(data));
+              }
+            );
+          } else {
+            cb(_cleanUpStmtOpts(data));
+          }
+        });
+        break;
+      case ZONE_TYPE.GBL_STMT_OPT_VALUE:
+        this.loader.getStatementOptionValues(
+          "global",
+          stmtName,
+          optName,
+          function (data: any) {
+            _notifyOptValue(cb, data, optName);
+          }
+        );
+        break;
+      case ZONE_TYPE.GBL_STMT_SUB_OPT_NAME:
+        this.loader.getStatementSubOptions(
+          "global",
+          stmtName,
+          optName,
+          (data: any) => {
+            if (!data) {
+              this.loader.getStatementSubOptions(
+                "standalone",
+                stmtName,
+                optName,
+                cb
+              );
+            } else {
+              cb(data);
+            }
+          }
+        );
+        break;
+      case ZONE_TYPE.COLOR:
+        this.loader.getSasColors(cb);
+        break;
+      case ZONE_TYPE.DATA_SET_NAME:
+        //TODO:
+        break;
+      case ZONE_TYPE.FORMAT:
+        this.loader.getFormats(cb);
+        break;
+      case ZONE_TYPE.INFORMAT:
+        this.loader.getInformats(cb);
+        break;
+      case ZONE_TYPE.TAGSETS_NAME:
+        this.loader.getODSTagsets(cb);
+        break;
+      case ZONE_TYPE.ODS_STMT:
+        this.loader.getGlobalStatements(function (data: any) {
+          cb(_cleanUpODSStmts(data));
+        });
+        break;
+      case ZONE_TYPE.ODS_STMT_OPT:
+        this.loader.getStatementOptions(
+          "global",
+          _cleanUpODSStmtName(stmtName),
+          cb
+        );
+        break;
+      case ZONE_TYPE.ODS_STMT_OPT_VALUE:
+        this.loader.getStatementOptionValues(
+          "global",
+          _cleanUpODSStmtName(stmtName),
+          optName,
+          function (data: any) {
+            _notifyOptValue(cb, data, optName);
+          }
+        );
+        break;
+      case ZONE_TYPE.LIB:
+        //TODO:
+        break;
+      case ZONE_TYPE.MACRO_FUNC:
+        this.loader.getMacroFunctions(cb);
+        break;
+      case ZONE_TYPE.SAS_FUNC:
+        this.loader.getFunctions(cb);
+        break;
+      case ZONE_TYPE.STAT_KW:
+        this.loader.getStatisticsKeywords(cb);
+        break;
+      case ZONE_TYPE.AUTO_MACRO_VAR:
+        this.loader.getAutoVariables(cb);
+        break;
+      case ZONE_TYPE.MACRO_VAR:
+        this.loader.getAutoVariables(function (autoVar: any) {
+          //if (macroVarList) autoVar = _distinctList(autoVar.concat(macroVarList));
+          cb(autoVar);
+        });
+        //_getMacroVar();
+        break;
+      default:
+        return false;
+    }
+    return true;
   }
 
   private _loadHelp(context: any) {

@@ -1274,7 +1274,7 @@ export class SasAutoCompleter {
         help = "";
         if (content.syntax) {
           help =
-            "```" +
+            "```\n" +
             getText("ce_ac_syntax_txt") +
             " " +
             content.syntax +

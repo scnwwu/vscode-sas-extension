@@ -2,6 +2,7 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import { SyntaxColor } from "./SyntaxColor";
 import { SasModel } from "./SasModel";
 import { SasAutoCompleter } from "./SasAutoCompleter";
+import { DocumentSymbol, SymbolKind } from "vscode-languageserver-types";
 
 export const legend = {
   tokenTypes: [
@@ -97,5 +98,61 @@ export class SyntaxProvider {
     }
 
     return data;
+  }
+
+  getFoldingBlocks(): DocumentSymbol[] {
+    const lineCount = this.model.getLineCount();
+    const result = [];
+    let customBlock;
+
+    for (let i = 0; i < lineCount; i++) {
+      const block = this.syntaxColor.getFoldingBlock(i);
+
+      if (block && block.startLine === i) {
+        const range = {
+          start: { line: block.startLine, character: block.startCol },
+          end: { line: block.endFoldingLine, character: block.endFoldingCol },
+        };
+        result.push({
+          name: block.name,
+          kind: SymbolKind.Module,
+          range,
+          selectionRange: range,
+        });
+        i = block.endFoldingLine;
+        continue;
+      }
+      let token = this.syntaxColor.getSyntax(i)[0];
+      if (token && token.style === "text") {
+        token = this.syntaxColor.getSyntax(i)[1];
+      }
+      if (token && /comment/.test(token.style)) {
+        if (/^\s*[%/]?\*\s*region\b/i.test(this.model.getLine(i))) {
+          customBlock = {
+            start: { line: i, character: 0 },
+            end: {
+              line: this.model.getLineCount(),
+              character: 0,
+            },
+          };
+        } else if (
+          customBlock &&
+          /^\s*[%/]?\*\s*endregion\b/i.test(this.model.getLine(i))
+        ) {
+          customBlock.end = {
+            line: i,
+            character: this.model.getColumnCount(i),
+          };
+          result.push({
+            name: "User-defined region",
+            kind: SymbolKind.Module,
+            range: customBlock,
+            selectionRange: customBlock,
+          });
+          customBlock = undefined;
+        }
+      }
+    }
+    return result;
   }
 }

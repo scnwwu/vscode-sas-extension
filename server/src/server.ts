@@ -30,6 +30,8 @@ connection.onInitialize(() => {
         legend,
         full: true,
       },
+      documentSymbolProvider: true,
+      foldingRangeProvider: true,
       hoverProvider: true,
       completionProvider: {
         triggerCharacters: [" "],
@@ -61,6 +63,19 @@ connection.onCompletion((params) => {
 
 connection.onCompletionResolve((params) => {
   return autoCompleter.getCompleteItemHelp(params);
+});
+
+connection.onDocumentSymbol((params) => {
+  const syntaxProvider = syntaxPool[params.textDocument.uri];
+  return syntaxProvider.getFoldingBlocks();
+});
+
+connection.onFoldingRanges((params) => {
+  const syntaxProvider = syntaxPool[params.textDocument.uri];
+  return syntaxProvider.getFoldingBlocks().map((block) => ({
+    startLine: block.range.start.line,
+    endLine: block.range.end.line,
+  }));
 });
 
 documents.onDidChangeContent((event) => {

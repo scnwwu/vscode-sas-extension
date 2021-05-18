@@ -67,7 +67,9 @@ connection.onCompletionResolve((params) => {
 
 connection.onDocumentSymbol((params) => {
   const syntaxProvider = syntaxPool[params.textDocument.uri];
-  return syntaxProvider.getFoldingBlocks();
+  return syntaxProvider
+    .getFoldingBlocks()
+    .filter((symbol) => symbol.name !== "custom");
 });
 
 connection.onFoldingRanges((params) => {

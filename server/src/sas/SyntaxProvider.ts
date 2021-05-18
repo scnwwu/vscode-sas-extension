@@ -33,6 +33,9 @@ function getType(type: string) {
   return legend.tokenTypes.indexOf(type);
 }
 
+// DATA, PROC, MACRO
+const SymbolKinds = [SymbolKind.Struct, SymbolKind.Function, SymbolKind.Module];
+
 export class SyntaxProvider {
   private model;
   private syntaxColor;
@@ -114,8 +117,9 @@ export class SyntaxProvider {
           end: { line: block.endFoldingLine, character: block.endFoldingCol },
         };
         result.push({
-          name: block.name,
-          kind: SymbolKind.Module,
+          name:
+            block.type === 1 ? this._getProcName(block.startLine) : block.name,
+          kind: SymbolKinds[block.type],
           range,
           selectionRange: range,
         });
@@ -144,8 +148,8 @@ export class SyntaxProvider {
             character: this.model.getColumnCount(i),
           };
           result.push({
-            name: "User-defined region",
-            kind: SymbolKind.Module,
+            name: "custom",
+            kind: SymbolKind.Namespace,
             range: customBlock,
             selectionRange: customBlock,
           });
@@ -154,5 +158,27 @@ export class SyntaxProvider {
       }
     }
     return result;
+  }
+
+  private _getProcName(line: number) {
+    const tokens = this.syntaxColor.getSyntax(line);
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
+      if (token.style === "proc-name") {
+        const end =
+          i === tokens.length - 1
+            ? this.model.getColumnCount(line)
+            : tokens[i + 1].start;
+        return (
+          "PROC " +
+          this.model
+            .getText({
+              start: { line, character: token.start },
+              end: { line, character: end },
+            })
+            .toUpperCase()
+        );
+      }
+    }
   }
 }

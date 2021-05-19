@@ -149,7 +149,7 @@ export class SyntaxProvider {
           };
           result.push({
             name: "custom",
-            kind: SymbolKind.Namespace,
+            kind: SymbolKind.Module,
             range: customBlock,
             selectionRange: customBlock,
           });

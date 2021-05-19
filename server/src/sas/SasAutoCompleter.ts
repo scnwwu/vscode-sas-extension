@@ -1273,12 +1273,17 @@ export class SasAutoCompleter {
       if (content.supportSite) {
         help = "";
         if (content.syntax) {
-          help =
-            "```\n" +
-            getText("ce_ac_syntax_txt") +
-            " " +
-            content.syntax +
-            "\n```\n\n";
+          if (content.syntax.indexOf("\n") !== -1) {
+            // multi-lines
+            help =
+              "```\n" +
+              getText("ce_ac_syntax_txt") +
+              " " +
+              content.syntax +
+              "\n```\n\n";
+          } else {
+            help = getText("ce_ac_syntax_txt") + " " + content.syntax + "\n\n";
+          }
         }
         help +=
           '<span style="white-space:pre-wrap;">' + content.data + "</span>";

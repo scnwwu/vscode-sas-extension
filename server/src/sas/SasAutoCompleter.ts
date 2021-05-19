@@ -8,7 +8,7 @@ import {
 import { Position } from "vscode-languageserver-textdocument";
 import { CodeZoneManager } from "./CodeZoneManager";
 import { SasModel } from "./SasModel";
-import { arrayToMap } from "./utils";
+import { arrayToMap, getText } from "./utils";
 
 const ZONE_TYPE = CodeZoneManager.ZONE_TYPE;
 
@@ -77,10 +77,6 @@ function _buildKwMap() {
   return map;
 }
 const KW_MAP = _buildKwMap();
-
-function getText(str: string, arg?: any) {
-  return str + (arg ?? "");
-}
 
 function _distinctList(list: any) {
   var newList = [],
@@ -290,7 +286,7 @@ export class SasAutoCompleter {
         (data: any) => {
           resolve(
             data?.map((item: string) => ({
-              label: item,
+              label: item.toLowerCase(),
               kind: CompletionItemKind.Keyword,
             }))
           );
@@ -1216,6 +1212,8 @@ export class SasAutoCompleter {
           addr += "#" + content.supportSite.supportSiteTargetFragment;
         }
       }
+    } else {
+      addr = addr.replace(/\s/g, "%20");
     }
     keyword =
       // "<a href = '" +
@@ -1253,20 +1251,22 @@ export class SasAutoCompleter {
       contextText = "\n\n";
     } else {
       contextText =
-        "<b>" +
+        "**" +
         getText("ce_ac_context_txt") +
         " [" +
         contextText +
         "] " +
         _getContextMain(
           zone,
-          _cleanUpKeyword(/*_getOptionName(tmpHintInfo)*/ keyword)
+          _cleanUpKeyword(
+            /*_getOptionName(tmpHintInfo)*/ content.key.toUpperCase()
+          )
         ) +
-        "</b>\n\n";
+        "**\n\n";
     }
     if (content.alias && content.alias.length) {
       alias =
-        getText("ce_ac_alias_txt") + " " + content.alias.join(", ") + "\n\n";
+        getText("ce_ac_alias_txt") + " " + content.alias.join(", ") + "\\\n";
     }
     help = "&lt;no help>";
     if (content.data) {
@@ -1295,7 +1295,7 @@ export class SasAutoCompleter {
       getText("ce_ac_keyword_txt") +
       "  " +
       keyword +
-      "\n\n" +
+      "\\\n" +
       alias +
       contextText +
       help

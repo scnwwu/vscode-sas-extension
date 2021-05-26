@@ -99,35 +99,6 @@ function _notify(cb: any, data: any) {
   }
 }
 
-function _notifyOptValue(cb: any, data: any, optName: any) {
-  if (data) {
-    // if (loader.isColorType(data.type)) {
-    //   _setCurrentZone(ZONE_TYPE.COLOR);
-    // } else if (loader.isDataSetType(data.type)) {
-    //   if (optName !== popupContext.optName) return;
-    //   _setCurrentZone(ZONE_TYPE.LIB);
-    //   if (libref) {
-    //     libref = libref.toUpperCase();
-    //     for (var i = 0; i < data.values.length; i++) {
-    //       if (libref === data.values[i].name.toUpperCase()) {
-    //         loader.getDataSetNames(data.values[i].id, cb);
-    //         break;
-    //       }
-    //     }
-    //   } else {
-    //     _getDatasetNames();
-    //     cb(data.values.concat(datasetList));
-    //   }
-    //   return;
-    // } else if (!loader.isDataSetType(data.type) && libref) {
-    //   // wrong guess, should not popup
-    //   return;
-    // }
-    cb(data.values);
-  } else {
-    cb(null);
-  }
-}
 function _cleanUpODSStmts(oldStmts: any) {
   var stmts: any = [];
   if (oldStmts) {
@@ -225,6 +196,13 @@ function _getContextMain(zone: any, keyword: string) {
   return context;
 }
 
+function getItemKind(zone: any) {
+  if (zone === ZONE_TYPE.COLOR) {
+    return CompletionItemKind.Color;
+  }
+  return CompletionItemKind.Keyword;
+}
+
 export class SasAutoCompleter {
   private czMgr;
   private loader;
@@ -281,17 +259,15 @@ export class SasAutoCompleter {
 
   getCompleteItems(position: Position): Promise<CompletionItem[]> | undefined {
     return new Promise((resolve) => {
-      this._loadAutoCompleteItems(
-        this.czMgr.getCurrentZone(position.line, position.character),
-        (data: any) => {
-          resolve(
-            data?.map((item: string) => ({
-              label: item.toLowerCase(),
-              kind: CompletionItemKind.Keyword,
-            }))
-          );
-        }
-      );
+      this._getZone(position);
+      this._loadAutoCompleteItems(this.popupContext.zone, (data: any) => {
+        resolve(
+          data?.map((item: string) => ({
+            label: item.toLowerCase(),
+            kind: getItemKind(this.popupContext.zone),
+          }))
+        );
+      });
     });
   }
 
@@ -341,8 +317,8 @@ export class SasAutoCompleter {
         this.loader.getProcedureOptionValues(
           procName,
           optName + "=",
-          function (data: any) {
-            _notifyOptValue(cb, data, optName);
+          (data: any) => {
+            this._notifyOptValue(cb, data, optName);
           }
         );
         break;
@@ -380,8 +356,8 @@ export class SasAutoCompleter {
           procName,
           stmtName,
           optName,
-          function (data: any) {
-            _notifyOptValue(cb, data, optName);
+          (data: any) => {
+            this._notifyOptValue(cb, data, optName);
           }
         );
         break;
@@ -477,14 +453,14 @@ export class SasAutoCompleter {
           optName,
           (data: any) => {
             if (data) {
-              _notifyOptValue(cb, data, optName);
+              this._notifyOptValue(cb, data, optName);
             } else {
               this.loader.getProcedureStatementOptionValues(
                 "DATA",
                 stmtName,
                 optName,
-                function (data: any) {
-                  _notifyOptValue(cb, data, optName);
+                (data: any) => {
+                  this._notifyOptValue(cb, data, optName);
                 }
               );
             }
@@ -514,8 +490,8 @@ export class SasAutoCompleter {
           "macro",
           stmtName,
           optName,
-          function (data: any) {
-            _notifyOptValue(cb, data, optName);
+          (data: any) => {
+            this._notifyOptValue(cb, data, optName);
           }
         );
         break;
@@ -523,12 +499,12 @@ export class SasAutoCompleter {
         this.loader.getCallRoutines(cb);
         break;
       case ZONE_TYPE.GBL_STMT:
-        this.loader.getGlobalStatements(function (data: any) {
-          if (!data) {
-            // if (prefix.startsWith('%')) {
-            //     _setCurrentZone(ZONE_TYPE.MACRO_STMT);
-            //     this.loader.getMacroStatements(cb);
-            // }
+        this.loader.getGlobalStatements((data: any) => {
+          if (this.popupContext.prefix === "%") {
+            //_setCurrentZone(ZONE_TYPE.MACRO_STMT);
+            this.loader.getMacroStatements((macroStmt: any) => {
+              cb(_distinctList(macroStmt.concat(data)));
+            });
           } else {
             cb(data);
           }
@@ -554,8 +530,8 @@ export class SasAutoCompleter {
           "global",
           stmtName,
           optName,
-          function (data: any) {
-            _notifyOptValue(cb, data, optName);
+          (data: any) => {
+            this._notifyOptValue(cb, data, optName);
           }
         );
         break;
@@ -610,8 +586,8 @@ export class SasAutoCompleter {
           "global",
           _cleanUpODSStmtName(stmtName),
           optName,
-          function (data: any) {
-            _notifyOptValue(cb, data, optName);
+          (data: any) => {
+            this._notifyOptValue(cb, data, optName);
           }
         );
         break;
@@ -745,8 +721,7 @@ export class SasAutoCompleter {
         help = this.loader.getStatementOptionHelp(
           "global",
           _cleanUpKeyword(context.stmtName),
-          keyword,
-          cb
+          keyword
         );
         if (help) {
           _notify(cb, help);
@@ -1308,5 +1283,56 @@ export class SasAutoCompleter {
       // "     " +
       // papers
     );
+  }
+
+  private _notifyOptValue(cb: any, data: any, optName: any) {
+    if (data) {
+      if (this.loader.isColorType(data.type)) {
+        this.popupContext.zone = ZONE_TYPE.COLOR;
+        data.values = data.values.map((value: string) => value.slice(0, -9));
+      }
+      // if (loader.isColorType(data.type)) {
+      //   _setCurrentZone(ZONE_TYPE.COLOR);
+      // } else if (loader.isDataSetType(data.type)) {
+      //   if (optName !== popupContext.optName) return;
+      //   _setCurrentZone(ZONE_TYPE.LIB);
+      //   if (libref) {
+      //     libref = libref.toUpperCase();
+      //     for (var i = 0; i < data.values.length; i++) {
+      //       if (libref === data.values[i].name.toUpperCase()) {
+      //         loader.getDataSetNames(data.values[i].id, cb);
+      //         break;
+      //       }
+      //     }
+      //   } else {
+      //     _getDatasetNames();
+      //     cb(data.values.concat(datasetList));
+      //   }
+      //   return;
+      // } else if (!loader.isDataSetType(data.type) && libref) {
+      //   // wrong guess, should not popup
+      //   return;
+      // }
+      cb(data.values);
+    } else {
+      cb(null);
+    }
+  }
+
+  private _getZone(position: Position) {
+    this.popupContext.prefix =
+      position.character > 0
+        ? this.model.getText({
+            start: position,
+            end: { line: position.line, character: position.character - 1 },
+          })
+        : "";
+    const zone = this.czMgr.getCurrentZone(position.line, position.character);
+    this.popupContext.zone =
+      this.popupContext.prefix === "&" &&
+      zone !== ZONE_TYPE.COMMENT &&
+      zone !== ZONE_TYPE.DATALINES
+        ? ZONE_TYPE.MACRO_VAR
+        : zone;
   }
 }

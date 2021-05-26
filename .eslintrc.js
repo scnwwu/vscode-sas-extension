@@ -12,5 +12,6 @@ module.exports = {
   extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   rules: {
     eqeqeq: "error",
+    "prefer-const": "error",
   },
 };

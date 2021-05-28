@@ -1,4 +1,3 @@
-/*eslint-disable*/
 import {
   CompletionItem,
   CompletionItemKind,
@@ -70,7 +69,7 @@ function _buildKwMap() {
     [ZONE_TYPE.DATA_SET_OPT_VALUE, "ds-option"],
     [ZONE_TYPE.TAGSETS_NAME, "ods-tagsets"],
   ];
-  var map: any = {};
+  const map: any = {};
   KW_MAP.forEach(function (item) {
     map[item[0]] = item[1];
   });
@@ -79,10 +78,10 @@ function _buildKwMap() {
 const KW_MAP = _buildKwMap();
 
 function _distinctList(list: any) {
-  var newList = [],
+  const newList = [],
     obj: any = {};
-  for (var i = 0; i < list.length; i++) {
-    var item = list[i].toUpperCase();
+  for (let i = 0; i < list.length; i++) {
+    const item = list[i].toUpperCase();
     if (!obj[item]) {
       newList.push(list[i]);
       obj[item] = true;
@@ -99,10 +98,10 @@ function _notify(cb: any, data: any) {
   }
 }
 
-function _cleanUpODSStmts(oldStmts: any) {
-  var stmts: any = [];
+function _cleanUpODSStmts(oldStmts: string[]) {
+  const stmts: string[] = [];
   if (oldStmts) {
-    oldStmts.forEach(function (item: any) {
+    oldStmts.forEach(function (item) {
       if (item.indexOf("ODS ") !== -1) {
         stmts.push(item.replace("ODS ", ""));
       }
@@ -111,7 +110,7 @@ function _cleanUpODSStmts(oldStmts: any) {
   return stmts;
 }
 
-function _cleanUpODSStmtName(name: any) {
+function _cleanUpODSStmtName(name: string) {
   name = name.replace(/(ODS\s*)/gi, "");
   if (name.indexOf("TAGSETS.") !== -1 && name.indexOf("TAGSETS.RTF") === -1) {
     name = name.replace("TAGSETS.", "");
@@ -137,10 +136,11 @@ function _cleanUpKeyword(keyword: string) {
   }
   keyword = keyword.replace(/(^\s+|\s+$)/g, "");
   if (/^(TITLE|FOOTNOTE|AXIS|LEGEND|PATTERN|SYMBOL)\d{0,}$/i.test(keyword)) {
-    var results = keyword.match(
-        /^(TITLE|FOOTNOTE|AXIS|LEGEND|PATTERN|SYMBOL)|\d{0,}$/gi
-      )!,
-      nbr = 0,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const results = keyword.match(
+      /^(TITLE|FOOTNOTE|AXIS|LEGEND|PATTERN|SYMBOL)|\d{0,}$/gi
+    )!;
+    let nbr = 0,
       upperLimit = 0;
     nbr = parseInt(results[1], 10);
     switch (results[0].toUpperCase()) {
@@ -165,8 +165,8 @@ function _cleanUpKeyword(keyword: string) {
 }
 
 function _getContextMain(zone: any, keyword: string) {
-  var context,
-    wd = keyword.toUpperCase();
+  let context;
+  const wd = keyword.toUpperCase();
   switch (zone) {
     case ZONE_TYPE.GBL_STMT:
     case ZONE_TYPE.DATA_STEP_STMT:
@@ -220,7 +220,6 @@ export class SasAutoCompleter {
     const line = this.model.getLine(position.line);
     const tokens = this.syntaxColor.getSyntax(position.line);
     for (let j = 0; j < tokens.length; j++) {
-      const type = tokens[j].style;
       const start = tokens[j].start;
       const end = j === tokens.length - 1 ? line.length : tokens[j + 1].start;
       if (end >= position.character) {
@@ -301,8 +300,8 @@ export class SasAutoCompleter {
     //       }
     //     };
     //   })(prefix),
-    var stmtName = _cleanUpKeyword(this.czMgr.getStmtName()),
-      optName = _cleanUpKeyword(this.czMgr.getOptionName()),
+    let stmtName = _cleanUpKeyword(this.czMgr.getStmtName());
+    const optName = _cleanUpKeyword(this.czMgr.getOptionName()),
       procName = _cleanUpKeyword(this.czMgr.getProcName());
 
     this.popupContext.procName = procName;
@@ -624,9 +623,9 @@ export class SasAutoCompleter {
   }
 
   private _loadHelp(context: any) {
-    var keyword = _cleanUpKeyword(context.keyword),
-      help = null,
-      zone = context.zone,
+    let keyword = _cleanUpKeyword(context.keyword),
+      help = null;
+    const zone = context.zone,
       cb = context.cb,
       type = context.type;
 
@@ -890,10 +889,9 @@ export class SasAutoCompleter {
         help = this.loader.getKeywordHelp(keyword, cb, "gbl-proc-stmt");
         break;
       case ZONE_TYPE.ODS_STMT_OPT:
-        var stmtName = _cleanUpODSStmtName(context.stmtName);
         help = this.loader.getStatementOptionHelp(
           "global",
-          stmtName,
+          _cleanUpODSStmtName(context.stmtName),
           keyword,
           cb
         );
@@ -901,10 +899,9 @@ export class SasAutoCompleter {
         //this.loader.getProcedureStatementOptionHelp('ODS', stmtName, keyword, cb);
         break;
       case ZONE_TYPE.ODS_STMT_OPT_VALUE:
-        var stmtName = _cleanUpODSStmtName(context.stmtName);
         help = this.loader.getStatementOptionValueHelp(
           "global",
-          stmtName,
+          _cleanUpODSStmtName(context.stmtName),
           context.optName,
           keyword,
           cb
@@ -924,17 +921,17 @@ export class SasAutoCompleter {
   }
 
   private _addLinkContext(zone: any, content: any) {
-    var context: any = {},
-      contextText,
+    const context: any = {},
+      sasReleaseParam = "fq=releasesystem%3AViya&";
+    let contextText,
       linkTail,
       keyword,
-      productDocumentation,
-      sasNote,
-      papers,
-      tmpHintInfo,
+      // productDocumentation,
+      // sasNote,
+      // papers,
+      // tmpHintInfo,
       help,
-      alias = "",
-      sasReleaseParam = "fq=releasesystem%3AViya&";
+      alias = "";
     keyword = _cleanUpKeyword(content.key);
     // tmpHintInfo = {
     //   text: keyword,
@@ -1167,7 +1164,7 @@ export class SasAutoCompleter {
         contextText = ""; //zone;
         linkTail = keyword.replace("%", "");
     }
-    var addr =
+    let addr =
       "https://support.sas.com/en/search.html?" +
       sasReleaseParam +
       "q=" +
@@ -1201,30 +1198,30 @@ export class SasAutoCompleter {
       // _cleanUpKeyword(content.key.toUpperCase()) +
       // "</a>";
       "[" + _cleanUpKeyword(content.key.toUpperCase()) + "](" + addr + ")";
-    productDocumentation =
-      "<a href = 'https://support.sas.com/en/search.html?" +
-      sasReleaseParam +
-      "fq=siteArea%3ADocumentation&q=" +
-      linkTail +
-      "' target = '_blank'>" +
-      getText("ce_ac_product_documentation_txt") +
-      "</a>";
-    sasNote =
-      "<a href = 'https://support.sas.com/en/search.html?" +
-      sasReleaseParam +
-      "fq=siteArea%3A%22Samples%20%26%20SAS%20Notes%22&q=" +
-      linkTail +
-      "' target = '_blank'>" +
-      getText("ce_ac_samples_and_sas_notes_txt") +
-      "</a>";
-    papers =
-      "<a href = 'https://support.sas.com/en/search.html?" +
-      sasReleaseParam +
-      "fq=siteArea%3A%22Papers%20%26%20Proceedings%22&q=" +
-      linkTail +
-      "' target = '_blank'>" +
-      getText("ce_ac_papers_txt") +
-      "</a>";
+    // productDocumentation =
+    //   "<a href = 'https://support.sas.com/en/search.html?" +
+    //   sasReleaseParam +
+    //   "fq=siteArea%3ADocumentation&q=" +
+    //   linkTail +
+    //   "' target = '_blank'>" +
+    //   getText("ce_ac_product_documentation_txt") +
+    //   "</a>";
+    // sasNote =
+    //   "<a href = 'https://support.sas.com/en/search.html?" +
+    //   sasReleaseParam +
+    //   "fq=siteArea%3A%22Samples%20%26%20SAS%20Notes%22&q=" +
+    //   linkTail +
+    //   "' target = '_blank'>" +
+    //   getText("ce_ac_samples_and_sas_notes_txt") +
+    //   "</a>";
+    // papers =
+    //   "<a href = 'https://support.sas.com/en/search.html?" +
+    //   sasReleaseParam +
+    //   "fq=siteArea%3A%22Papers%20%26%20Proceedings%22&q=" +
+    //   linkTail +
+    //   "' target = '_blank'>" +
+    //   getText("ce_ac_papers_txt") +
+    //   "</a>";
     contextText = contextText.toUpperCase();
     if (contextText === "") {
       contextText = "\n\n";
@@ -1267,7 +1264,7 @@ export class SasAutoCompleter {
         help +=
           '<span style="white-space:pre-wrap;">' + content.data + "</span>";
       } else {
-        help = content.data.replace(/\</g, "&lt;");
+        help = content.data.replace(/</g, "&lt;");
       }
     }
     return (
@@ -1335,12 +1332,12 @@ export class SasAutoCompleter {
   }
 
   private _getPrefix(position: Position) {
-    var textBeforeCaret = this.model
+    const textBeforeCaret = this.model
         .getLine(position.line)
         .substring(0, position.character),
       lastWorldStart = textBeforeCaret.search(
-        /[%&](\w|[^\x00-\xff])*$|(\w|[^\x00-\xff])+$/
-      ); // eslint-disable-line no-control-regex
+        /[%&](\w|[^\x00-\xff])*$|(\w|[^\x00-\xff])+$/ // eslint-disable-line no-control-regex
+      );
     return lastWorldStart === -1
       ? ""
       : textBeforeCaret.substring(lastWorldStart);
@@ -1348,14 +1345,14 @@ export class SasAutoCompleter {
 
   private _getMacroVar() {
     const macroVarList = [];
-    var flag = 0,
+    let flag = 0,
       varName = "";
-    for (var line = 0; line < this.model.getLineCount(); line++) {
-      var syntax = this.syntaxColor.getSyntax(line),
+    for (let line = 0; line < this.model.getLineCount(); line++) {
+      const syntax = this.syntaxColor.getSyntax(line),
         lineText = this.model.getLine(line),
         count = syntax.length;
-      for (var i = 0; i < count; i++) {
-        var token =
+      for (let i = 0; i < count; i++) {
+        const token =
           i + 1 < count
             ? lineText.slice(syntax[i].start, syntax[i + 1].start)
             : lineText.slice(syntax[i].start);

@@ -200,6 +200,9 @@ function getItemKind(zone: any) {
   if (zone === ZONE_TYPE.COLOR) {
     return CompletionItemKind.Color;
   }
+  if (zone === ZONE_TYPE.MACRO_VAR) {
+    return CompletionItemKind.Variable;
+  }
   return CompletionItemKind.Keyword;
 }
 
@@ -500,14 +503,14 @@ export class SasAutoCompleter {
         break;
       case ZONE_TYPE.GBL_STMT:
         this.loader.getGlobalStatements((data: any) => {
-          if (this.popupContext.prefix === "%") {
-            //_setCurrentZone(ZONE_TYPE.MACRO_STMT);
-            this.loader.getMacroStatements((macroStmt: any) => {
-              cb(_distinctList(macroStmt.concat(data)));
-            });
-          } else {
-            cb(data);
-          }
+          // if (this.popupContext.prefix.startsWith("%")) {
+          //   //_setCurrentZone(ZONE_TYPE.MACRO_STMT);
+          //   this.loader.getMacroStatements((macroStmt: any) => {
+          //     cb(_distinctList(macroStmt.concat(data)));
+          //   });
+          // } else {
+          cb(data);
+          // }
         });
         break;
       case ZONE_TYPE.GBL_STMT_OPT:
@@ -607,11 +610,12 @@ export class SasAutoCompleter {
         this.loader.getAutoVariables(cb);
         break;
       case ZONE_TYPE.MACRO_VAR:
-        this.loader.getAutoVariables(function (autoVar: any) {
-          //if (macroVarList) autoVar = _distinctList(autoVar.concat(macroVarList));
+        this.loader.getAutoVariables((autoVar: any) => {
+          const macroVarList = this._getMacroVar();
+          if (macroVarList.length)
+            autoVar = _distinctList(autoVar.concat(macroVarList));
           cb(autoVar);
         });
-        //_getMacroVar();
         break;
       default:
         return false;
@@ -1320,19 +1324,106 @@ export class SasAutoCompleter {
   }
 
   private _getZone(position: Position) {
-    this.popupContext.prefix =
-      position.character > 0
-        ? this.model.getText({
-            start: position,
-            end: { line: position.line, character: position.character - 1 },
-          })
-        : "";
+    this.popupContext.prefix = this._getPrefix(position);
     const zone = this.czMgr.getCurrentZone(position.line, position.character);
     this.popupContext.zone =
-      this.popupContext.prefix === "&" &&
+      this.popupContext.prefix.startsWith("&") &&
       zone !== ZONE_TYPE.COMMENT &&
       zone !== ZONE_TYPE.DATALINES
         ? ZONE_TYPE.MACRO_VAR
         : zone;
+  }
+
+  private _getPrefix(position: Position) {
+    var textBeforeCaret = this.model
+        .getLine(position.line)
+        .substring(0, position.character),
+      lastWorldStart = textBeforeCaret.search(
+        /[%&](\w|[^\x00-\xff])*$|(\w|[^\x00-\xff])+$/
+      ); // eslint-disable-line no-control-regex
+    return lastWorldStart === -1
+      ? ""
+      : textBeforeCaret.substring(lastWorldStart);
+  }
+
+  private _getMacroVar() {
+    const macroVarList = [];
+    var flag = 0,
+      varName = "";
+    for (var line = 0; line < this.model.getLineCount(); line++) {
+      var syntax = this.syntaxColor.getSyntax(line),
+        lineText = this.model.getLine(line),
+        count = syntax.length;
+      for (var i = 0; i < count; i++) {
+        var token =
+          i + 1 < count
+            ? lineText.slice(syntax[i].start, syntax[i + 1].start)
+            : lineText.slice(syntax[i].start);
+        if (
+          syntax[i].style === "comment" ||
+          syntax[i].style === "macro-comment" || // just comment, do nothing
+          (syntax[i].style === "text" &&
+            (token === "" || token.search(/\s/) !== -1))
+        ) {
+          // just blanks, do nothing
+        } else if (
+          flag === 0 &&
+          syntax[i].style === "macro-keyword" &&
+          token.toUpperCase() === "%LET"
+        ) {
+          flag = 1; // Found %let
+        } else if (flag === 1 && syntax[i].style === "text") {
+          varName = token;
+          flag = 2; // found variable name
+        } else if (flag === 2 && syntax[i].style === "sep" && token === "=") {
+          flag = 3; // wait for ;
+        } else if (flag === 3) {
+          // anything between = and ; are considered as macro variable value
+          if (syntax[i].style === "sep" && token === ";") {
+            macroVarList.push(varName);
+            flag = 0;
+          }
+        } else if (
+          flag === 0 &&
+          syntax[i].style === "keyword" &&
+          token.toUpperCase() === "CALL"
+        ) {
+          flag = 4; // found call
+        } else if (
+          flag === 4 &&
+          syntax[i].style === "text" &&
+          token.toUpperCase() === "SYMPUT"
+        ) {
+          flag = 5; // found symput
+        } else if (flag === 5 && syntax[i].style === "sep" && token === "(") {
+          flag = 6; // found (
+        } else if (flag === 6 && syntax[i].style === "string") {
+          varName = token.replace(/['"]/g, "");
+          flag = 7; // found variable name
+        } else if (
+          flag === 7 &&
+          syntax[i].style === "sep" &&
+          token === "," &&
+          varName
+        ) {
+          flag = 3; // wait fot ;
+        } else {
+          flag = 0;
+        }
+      }
+    }
+    return macroVarList;
+    /*var re = textarea.value.match(/%let\s+\w+(?=\s*=)/mgi);
+        if (re) {
+            re.forEach(function(item) {
+                macroVarList.push(item.match(/%let\s+(\w+)/mi)[1]);
+            });
+        }
+        re = textarea.value.match(/call\s+symput\s*\(\s*('\w+'|"\w+")(?=\s*,)/mgi);
+        if (re) {
+            re.forEach(function(item) {
+                macroVarList.push(item.match(/call\s+symput\s*\(\s*['"](\w+)['"]/mi)[1]);
+            });
+        }*/
   }
 }

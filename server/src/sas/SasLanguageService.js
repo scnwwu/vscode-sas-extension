@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { arrayToMap } from "./utils";
 
-const getBaseUrl = () => "../..";
+const getBaseUrl = () => "..";
 
 // ResLoader
 var ResLoader = (function () {

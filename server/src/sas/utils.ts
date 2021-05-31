@@ -12,7 +12,7 @@ let bundle: Record<string, string>;
 export function getText(key: string, arg?: string): string {
   if (!bundle) {
     bundle = {};
-    readFileSync(__dirname + "/../../messagebundle.properties")
+    readFileSync(__dirname + "/../messagebundle.properties")
       .toString()
       .split("\n")
       .forEach((pair) => {

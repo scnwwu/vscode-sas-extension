@@ -1,6 +1,7 @@
 # generated files
 package-lock.json
 out/
+dist/
 
 # git files
 .git/

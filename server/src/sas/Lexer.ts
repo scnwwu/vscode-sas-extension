@@ -1,8 +1,108 @@
-import { arrayToMap } from "./utils";
+import { Model } from "./Model";
+import { TextPosition, arrayToMap } from "./utils";
 
-let macroKwMap: Record<string, 1> | null = null;
-let wordReg: RegExp | null = null;
-const DAYS: any = {
+const macroKwMap = arrayToMap([
+  "BQUOTE",
+  "BY",
+  "CMS",
+  "DISPLAY",
+  "DO",
+  "ELSE",
+  "END",
+  "EVAL",
+  "GLOBAL",
+  "GO",
+  "IF",
+  "INC",
+  "INCLUDE",
+  "INDEX",
+  "INPUT",
+  "KEYDEF",
+  "LENGTH",
+  "LET",
+  "LOCAL",
+  "MACRO",
+  "MEND",
+  "NRBQUOTE",
+  "NRQUOTE",
+  "NRSTR",
+  "PUT",
+  "QSCAN",
+  "QSUBSTR",
+  "QSYSFUNC",
+  "QUOTE",
+  "QUPCASE",
+  "SCAN",
+  "STR",
+  "SUBSTR",
+  "SUPERQ",
+  "SYSCALL",
+  "SYSEVALF",
+  "SYSEXEC",
+  "SYSFUNC",
+  "SYSGET",
+  "SYSPROD",
+  "SYSRPUT",
+  "THEN",
+  "TO",
+  "TSO",
+  "UNQUOTE",
+  "UNTIL",
+  "UPCASE",
+  "WHILE",
+  "WINDOW", //from SasKeywordManager.java
+  "DEQUOTE",
+  "SYMEXIST",
+  "SYMGLOBL",
+  "SYMLOCAL",
+  "LOWCASE",
+  "QLOWCASE",
+  "TPLOT",
+  "SYSMACEXEC",
+  "SYSMACEXIST",
+  "SYSMEXECDEPTH",
+  "SYSMEXECNAME",
+  "CMPRES",
+  "QCMPRES",
+  "QCMPRES",
+  "COMPSTOR",
+  "DATATYP",
+  "LEFT",
+  "QLEFT",
+  "SYSRC",
+  "TRIM",
+  "QTRIM",
+  "VERIFY",
+  "DQLOAD",
+  "DQPUTLOC",
+  "DQUNLOAD",
+  "KLOWCASE",
+  "QKLOWCAS",
+  "KTRIM",
+  "QKTRIM",
+  "KVERIFY", // from SASMacroFunctions.xml
+  "ABORT",
+  "COPY" /*"DISPLAY","DO","UNTIL","WHILE","END","GLOBAL",*/,
+  "GOTO" /*"IF","THEN","ELSE","INPUT","LET","LOCAL","MACRO","MEND","PUT",*/,
+  "RETURN",
+  "SYMDEL" /*"SYSCALL","SYSEXEC","WHILE","UNTIL",*/,
+  "SYSLPUT" /*"SYSRPUT","WINDOW","INCLUDE",*/,
+  "LIST",
+  "RUN",
+  "SYSMSTORECLEAR",
+  "SYSMACDELETE",
+]); // from SASMacroStatements.xml
+
+//TODO
+// var unicode = window.ace.require('ace/unicode');
+// wordReg = new RegExp("["
+//     + unicode.packages.L
+//     + unicode.packages.Mn + unicode.packages.Mc
+//     + unicode.packages.Nd
+//     + unicode.packages.Pc + "\\$_]+$");
+const wordReg = /[$\w]+$/;
+
+const DAYS = {
   JAN: 31,
   FEB: 29,
   MAR: 31,
@@ -19,7 +119,7 @@ const DAYS: any = {
 const DATE_DDMMMYY_YYQ_REG =
   /\d{2}(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(\d{2}|\d{4})|\d{2}q[1234]\b/i;
 
-function checkQuote(current: number, isHead: any, text: string) {
+function checkQuote(current: number, isHead: boolean, text: string) {
   if (current === -1 && isHead) {
     return 0;
   } else if (current === 0 && text !== "(") {
@@ -36,281 +136,183 @@ function checkQuote(current: number, isHead: any, text: string) {
   return current;
 }
 
-export const Lexer: any = function (this: any, model: any) {
-  if (!wordReg) {
-    // var unicode = window.ace.require('ace/unicode');
-    // wordReg = new RegExp("["
-    //     + unicode.packages.L
-    //     + unicode.packages.Mn + unicode.packages.Mc
-    //     + unicode.packages.Nd
-    //     + unicode.packages.Pc + "\\$_]+$");
-    //TODO
-    wordReg = /[$\w]+$/;
-  }
+export interface Token {
+  type:
+    | "sep"
+    | "keyword"
+    | "sec-keyword"
+    | "proc-name"
+    | "comment"
+    | "macro-keyword"
+    | "macro-comment"
+    | "macro-ref"
+    | "macro-sec-keyword"
+    | "cards-data"
+    | "string"
+    | "date"
+    | "time"
+    | "dt"
+    | "bitmask"
+    | "namelit"
+    | "hex"
+    | "numeric"
+    | "text"
+    | "format"
+    | "blank";
+  start: TextPosition;
+  end: TextPosition;
+  text: string;
+}
 
-  //'private' properties
-  this.model = model;
-  this.start = { line: 0, column: 0 };
-  this.curr = { line: 0, column: 0 };
-  this.quoting = -1;
-  this.bquoting = -1;
-  this.ignoreFormat = false;
-  /*if (keywordMap === null) {
-            keywordMap = Utils.arrayToMap(SasKeywords);//need to be optimized
-        }*/
-  this.context = {};
-  /*
-         this.keywordMap = Utils.arrayToMap([
-         "ALL","ANY","CHARACTER","NUMERIC","ADDHIER","ADMINLIBS","AGE","ALL",
-         "ALLOCATE","ALTER","AND","APPEND","ASCENDING","ATTRIB","BOUNDS","BY",
-         "BYLINE","CALL","CATNAME","CCOPY","CDEF","CDELETE","CDFPLOT","CHART",
-         "CHANGE","CLASS","CLASSES","CLASSLEV","CMAP","COLUMN","COMPUTE","CONTENTS",
-         "CONTRAST","COORD","COORDINATES","COPY","DATASETS","DEFINE","DESCENDING",
-         "DESCRIBE","DEVICE","DISCRIM","DROP","ELSE","ENDCOMP","EQ","ERROR",
-         "EXCHANGE","EXCLUDE","FACTORS","FS","GE","GO","GOTO","GOUT","GROUPFORMAT",
-         "GT","HIERARCHY","HIGH","HISTOGRAM","ID","IGOUT","IN","INDEX","INFORMAT",
-         "INPUT","INSET","INTERVALS","KEEP","KEYLABEL","LE","LENGTH","LINEQS",
-         "LINK","LOSTCARD","LOW","LSMEANS","LT","MATINGS","MEAN","MEANS","MERGE",
-         "MODEL","MODIFY","MOVE","N","NE","NOBYLINE","NODUPKEY","NOT","NOTE",
-         "NOTSORTED","OR","OTHER","OTHERWISE","OUTPUT","PAGEBY","PARMS","PARTIAL",
-         "PCT","PCTN","PCTSUM","PICTURE","PPPLOT","PREDICT","PREFIX","PREVIEW",
-         "PRISM","PROBPLOT","PROGLIBS","QQPLOT","RANDOM","RANGE","REMOVE",
-         "REMOVEHIER","RENAME","REPEATED","REPLACE","REPLAY","REQUEST","RESET",
-         "RESPONSE","RETAIN","S2","SAVE","SCATTER","SESSION","SET","SIM","SKIP",
-         "SOURCE2","STARTSAS","STD","STRATA","SUM","SUMBY","SUPVAR","TABLE","TABLES",
-         "TC","TCOPY","TDEF","TDELETE","TEMPLATE","TEST","TIME","TO","TPLAY",
-         "TRANSFORM","TREPLAY","VALUE","VAR","VARIABLES","WEIGHT","WHEN",
-         "WINDOW","WITH"
-         ]); //from SasKeywordManager.java
-         */
-  if (macroKwMap === null) {
-    macroKwMap = arrayToMap([
-      "BQUOTE",
-      "BY",
-      "CMS",
-      "DISPLAY",
-      "DO",
-      "ELSE",
-      "END",
-      "EVAL",
-      "GLOBAL",
-      "GO",
-      "IF",
-      "INC",
-      "INCLUDE",
-      "INDEX",
-      "INPUT",
-      "KEYDEF",
-      "LENGTH",
-      "LET",
-      "LOCAL",
-      "MACRO",
-      "MEND",
-      "NRBQUOTE",
-      "NRQUOTE",
-      "NRSTR",
-      "PUT",
-      "QSCAN",
-      "QSUBSTR",
-      "QSYSFUNC",
-      "QUOTE",
-      "QUPCASE",
-      "SCAN",
-      "STR",
-      "SUBSTR",
-      "SUPERQ",
-      "SYSCALL",
-      "SYSEVALF",
-      "SYSEXEC",
-      "SYSFUNC",
-      "SYSGET",
-      "SYSPROD",
-      "SYSRPUT",
-      "THEN",
-      "TO",
-      "TSO",
-      "UNQUOTE",
-      "UNTIL",
-      "UPCASE",
-      "WHILE",
-      "WINDOW", //from SasKeywordManager.java
-      "DEQUOTE",
-      "SYMEXIST",
-      "SYMGLOBL",
-      "SYMLOCAL",
-      "LOWCASE",
-      "QLOWCASE",
-      "TPLOT",
-      "SYSMACEXEC",
-      "SYSMACEXIST",
-      "SYSMEXECDEPTH",
-      "SYSMEXECNAME",
-      "CMPRES",
-      "QCMPRES",
-      "QCMPRES",
-      "COMPSTOR",
-      "DATATYP",
-      "LEFT",
-      "QLEFT",
-      "SYSRC",
-      "TRIM",
-      "QTRIM",
-      "VERIFY",
-      "DQLOAD",
-      "DQPUTLOC",
-      "DQUNLOAD",
-      "KLOWCASE",
-      "QKLOWCAS",
-      "KTRIM",
-      "QKTRIM",
-      "KVERIFY", // from SASMacroFunctions.xml
-      "ABORT",
-      "COPY" /*"DISPLAY","DO","UNTIL","WHILE","END","GLOBAL",*/,
-      "GOTO" /*"IF","THEN","ELSE","INPUT","LET","LOCAL","MACRO","MEND","PUT",*/,
-      "RETURN",
-      "SYMDEL" /*"SYSCALL","SYSEXEC","WHILE","UNTIL",*/,
-      "SYSLPUT" /*"SYSRPUT","WINDOW","INCLUDE",*/,
-      "LIST",
-      "RUN",
-      "SYSMSTORECLEAR",
-      "SYSMACDELETE",
-    ]); // from SASMacroStatements.xml
-  }
-};
-Lexer.TOKEN_TYPES = {
-  SEP: "sep",
-  KEYWORD: "keyword",
-  SKEYWORD: "sec-keyword",
-  PROCNAME: "proc-name",
-  COMMENT: "comment",
-  MKEYWORD: "macro-keyword",
-  MCOMMENT: "macro-comment",
-  MREF: "macro-ref",
-  MSKEYWORD: "macro-sec-keyword",
-  CARDSDATA: "cards-data",
-  STR: "string",
-  DATE: "date",
-  TIME: "time",
-  DT: "dt",
-  BM: "bitmask",
-  NL: "namelit",
-  HEX: "hex",
-  NUM: "numeric",
-  WORD: "text",
-  FORMAT: "format",
-  BLANK: "blank",
-};
-Lexer.notSyntaxToken = arrayToMap(["comment", "macro-comment", "blank"]);
-Lexer.isComment = arrayToMap(["comment", "macro-comment"]);
-Lexer.isLiteral = arrayToMap([
-  "string",
-  "date",
-  "time",
-  "dt",
-  "bitmask",
-  "namelit",
-  "hex",
-  "numeric",
-  "cards-data",
-]);
-Lexer.isWord = arrayToMap([
-  "keyword",
-  "sec-keyword",
-  "macro-sec-keyword",
-  "macro-ref",
-  "macro-keyword",
-  "text",
-]);
-Lexer.isConst = arrayToMap([
-  "string",
-  "date",
-  "time",
-  "dt",
-  "bitmask",
-  "namelit",
-  "hex",
-  "numeric",
-  "format",
-]);
-Lexer.isCards = arrayToMap([
-  "CARDS",
-  "LINES",
-  "DATALINES",
-  "DATALINES4",
-  "CARDS4",
-  "LINES4",
-]);
-Lexer.isCards4 = arrayToMap(["DATALINES4", "CARDS4", "LINES4"]);
-Lexer.isParmcards = arrayToMap(["PARMCARDS", "PARMCARDS4"]);
-Lexer.isParmcards4 = arrayToMap(["PARMCARDS4"]);
-Lexer.isQuoting = arrayToMap(["%STR", "%NRSTR", "%QUOTE", "%NRQUOTE"]);
-Lexer.isBQuoting = arrayToMap(["%SUPERQ", "%BQUOTE", "%NRBQUOTE"]);
-Lexer.isBinaryOpr = arrayToMap([
-  "**",
-  "+",
-  "-",
-  "*",
-  "/", //arithmetic operators
-  "&",
-  "|",
-  "!",
-  "\u00A6",
-  "AND",
-  "OR",
-  //'\u00AC','\u00B0','~','NOT',//boolean operators
-  "||", //contatenation operators
-  "<>",
-  "><", //min and max operators
-  "=",
-  "EQ",
-  "^=",
-  "\u00AC=",
-  "~=",
-  "NE",
-  ">",
-  "GT",
-  "<",
-  "LT",
-  ">=",
-  "GE",
-  "<=",
-  "LE",
-  "=:",
-  ">:",
-  "<:",
-  "^=:",
-  "\u00AC=:",
-  "~=:",
-  ">=:",
-  "<=:", //,//comparison
-  //'IN' // disable this for HTMLCOMMONS-3847 (height=0.75in ctext=red)
-]); // operators
-Lexer.isUnaryOpr = arrayToMap(["\u00AC", "\u00B0", "~", "NOT", "+", "-"]); //boolean operators
+export class Lexer {
+  private start = { line: 0, column: 0 };
+  private curr = { line: 0, column: 0 };
+  private quoting = -1;
+  private bquoting = -1;
+  private ignoreFormat = false;
+  private context: {
+    lastNoncommentToken?: Token | null;
+  } = {};
 
-Lexer.longBiOprs =
-  /^(\^=:|\u00AC=:|~=:|>=:|<=:|\*\*|<>|\^=|\u00AC=|~=|>=|<=|\|\||=:|>:|<:)/;
-//'**','<>','><','^=','\u00AC=','~=','>=','<=','||','=:','>:','<:',  //len 2
-//'^=:','\u00AC=:','~=:','>=:','<=:'   //len 3
-/**
- * SasLexer public methods
- */
+  constructor(private model: Model) {}
 
-Lexer.prototype = {
-  getNext: function () {
-    const token = this.getNext_();
+  static readonly TOKEN_TYPES = {
+    SEP: "sep",
+    KEYWORD: "keyword",
+    SKEYWORD: "sec-keyword",
+    PROCNAME: "proc-name",
+    COMMENT: "comment",
+    MKEYWORD: "macro-keyword",
+    MCOMMENT: "macro-comment",
+    MREF: "macro-ref",
+    MSKEYWORD: "macro-sec-keyword",
+    CARDSDATA: "cards-data",
+    STR: "string",
+    DATE: "date",
+    TIME: "time",
+    DT: "dt",
+    BM: "bitmask",
+    NL: "namelit",
+    HEX: "hex",
+    NUM: "numeric",
+    WORD: "text",
+    FORMAT: "format",
+    BLANK: "blank",
+  };
+
+  static readonly notSyntaxToken = arrayToMap([
+    "comment",
+    "macro-comment",
+    "blank",
+  ]);
+  static readonly isComment = arrayToMap(["comment", "macro-comment"]);
+  static readonly isLiteral = arrayToMap([
+    "string",
+    "date",
+    "time",
+    "dt",
+    "bitmask",
+    "namelit",
+    "hex",
+    "numeric",
+    "cards-data",
+  ]);
+  static readonly isWord = arrayToMap([
+    "keyword",
+    "sec-keyword",
+    "macro-sec-keyword",
+    "macro-ref",
+    "macro-keyword",
+    "text",
+  ]);
+  static readonly isConst = arrayToMap([
+    "string",
+    "date",
+    "time",
+    "dt",
+    "bitmask",
+    "namelit",
+    "hex",
+    "numeric",
+    "format",
+  ]);
+  static readonly isCards = arrayToMap([
+    "CARDS",
+    "LINES",
+    "DATALINES",
+    "DATALINES4",
+    "CARDS4",
+    "LINES4",
+  ]);
+  static readonly isCards4 = arrayToMap(["DATALINES4", "CARDS4", "LINES4"]);
+  static readonly isParmcards = arrayToMap(["PARMCARDS", "PARMCARDS4"]);
+  static readonly isParmcards4 = arrayToMap(["PARMCARDS4"]);
+  static readonly isQuoting = arrayToMap([
+    "%STR",
+    "%NRSTR",
+    "%QUOTE",
+    "%NRQUOTE",
+  ]);
+  static readonly isBQuoting = arrayToMap(["%SUPERQ", "%BQUOTE", "%NRBQUOTE"]);
+  static readonly isBinaryOpr = arrayToMap([
+    "**",
+    "+",
+    "-",
+    "*",
+    "/", //arithmetic operators
+    "&",
+    "|",
+    "!",
+    "\u00A6",
+    "AND",
+    "OR",
+    //'\u00AC','\u00B0','~','NOT',//boolean operators
+    "||", //contatenation operators
+    "<>",
+    "><", //min and max operators
+    "=",
+    "EQ",
+    "^=",
+    "\u00AC=",
+    "~=",
+    "NE",
+    ">",
+    "GT",
+    "<",
+    "LT",
+    ">=",
+    "GE",
+    "<=",
+    "LE",
+    "=:",
+    ">:",
+    "<:",
+    "^=:",
+    "\u00AC=:",
+    "~=:",
+    ">=:",
+    "<=:", //,//comparison
+    //'IN' // disable this for HTMLCOMMONS-3847 (height=0.75in ctext=red)
+  ]); // operators
+  static readonly isUnaryOpr = arrayToMap([
+    "\u00AC",
+    "\u00B0",
+    "~",
+    "NOT",
+    "+",
+    "-",
+  ]); //boolean operators
+
+  static readonly longBiOprs =
+    /^(\^=:|\u00AC=:|~=:|>=:|<=:|\*\*|<>|\^=|\u00AC=|~=|>=|<=|\|\||=:|>:|<:)/;
+  //'**','<>','><','^=','\u00AC=','~=','>=','<=','||','=:','>:','<:',  //len 2
+  //'^=:','\u00AC=:','~=:','>=:','<=:'   //len 3
+
+  getNext(): Token | undefined {
+    const token = this.getNext_() as Token | undefined;
     if (token) {
       if (Lexer.isComment[token.type] === undefined) {
-        this.context.lastNoncommentToken = {
-          type: token.type,
-          start: {
-            line: token.start.line,
-            column: token.start.column,
-          },
-          end: {
-            line: token.end.line,
-            column: token.end.column,
-          },
-        };
+        this.context.lastNoncommentToken = { ...token };
       }
       if (Lexer.isLiteral[token.type]) {
         token.text = this.getText(token);
@@ -320,12 +322,12 @@ Lexer.prototype = {
       if (Lexer.isComment[token.type] === undefined) {
         this.quoting = checkQuote(
           this.quoting,
-          Lexer.isQuoting[token.text],
+          !!Lexer.isQuoting[token.text],
           token.text
         );
         this.bquoting = checkQuote(
           this.bquoting,
-          Lexer.isBQuoting[token.text],
+          !!Lexer.isBQuoting[token.text],
           token.text
         );
         if (this.quoting === -1 && this.bquoting === -1) {
@@ -338,7 +340,7 @@ Lexer.prototype = {
       }
     }
     return token;
-  },
+  }
   /**
    * @returns {object}
    * type: 'sep', 'comment', 'keyword', 'date', 'time', 'dt', 'normaltext',
@@ -348,9 +350,9 @@ Lexer.prototype = {
    * end: end position
    *
    */
-  getNext_: function () {
+  private getNext_(): Omit<Token, "text"> | undefined {
     let j = 0,
-      type,
+      type: Token["type"],
       i,
       text,
       qm,
@@ -391,14 +393,14 @@ Lexer.prototype = {
             }
             //this.curr.column++;
             return {
-              type: Lexer.TOKEN_TYPES.COMMENT,
+              type: "comment",
               start: this.start,
               end: this.curr,
             };
           } else {
             this.curr.column = i;
             return {
-              type: Lexer.TOKEN_TYPES.SEP,
+              type: "sep",
               start: this.start,
               end: this.curr,
             }; //
@@ -414,15 +416,15 @@ Lexer.prototype = {
             }
             this.curr.column = i;
             //check macro section keyword
-            type = Lexer.TOKEN_TYPES.WORD;
+            type = "text";
             if (
               this.isMacroKeyword(
                 text.substr(this.start.column + 1, i - this.start.column - 1)
               )
             ) {
-              type = Lexer.TOKEN_TYPES.MKEYWORD;
+              type = "macro-keyword";
             } else {
-              type = Lexer.TOKEN_TYPES.MREF;
+              type = "macro-ref";
             }
             return {
               type: type, //SasLexer.TOKEN_TYPES.MKEYWORD,
@@ -452,7 +454,7 @@ Lexer.prototype = {
             }
 
             return {
-              type: Lexer.TOKEN_TYPES.MCOMMENT,
+              type: "macro-comment",
               start: this.start,
               end: this.curr,
             };
@@ -468,7 +470,7 @@ Lexer.prototype = {
           }
           this.curr.column++;
           return {
-            type: Lexer.TOKEN_TYPES.SEP,
+            type: "sep",
             start: this.start,
             end: this.curr,
           };
@@ -480,7 +482,7 @@ Lexer.prototype = {
             break;
           }
           qm = text[i]; //qm = qutation mark
-          type = Lexer.TOKEN_TYPES.STR;
+          type = "string";
           //over multi lines
           //escape??
           i++;
@@ -497,31 +499,31 @@ Lexer.prototype = {
                     switch (text[i]) {
                       case "d":
                       case "D":
-                        type = Lexer.TOKEN_TYPES.DATE;
+                        type = "date";
                         i++;
                         if (i < len && (text[i] === "t" || text[i] === "T")) {
-                          type = Lexer.TOKEN_TYPES.DT;
+                          type = "dt";
                           i++;
                         }
                         break;
                       case "t":
                       case "T":
-                        type = Lexer.TOKEN_TYPES.TIME;
+                        type = "time";
                         i++;
                         break;
                       case "b":
                       case "B":
-                        type = Lexer.TOKEN_TYPES.BM;
+                        type = "bitmask";
                         i++;
                         break; //bit mask
                       case "n":
                       case "N":
-                        type = Lexer.TOKEN_TYPES.NL;
+                        type = "namelit";
                         i++;
                         break; //name literal
                       case "x":
                       case "X":
-                        type = Lexer.TOKEN_TYPES.HEX;
+                        type = "hex";
                         i++;
                         break; //hexadecimal notation
                     }
@@ -569,9 +571,9 @@ Lexer.prototype = {
           this.curr.column = this.readNum(i, 10);
           if (this.curr.column === i) {
             this.curr.column++;
-            type = Lexer.TOKEN_TYPES.SEP;
+            type = "sep";
           } else {
-            type = Lexer.TOKEN_TYPES.NUM;
+            type = "numeric";
           }
           return {
             type: type,
@@ -581,7 +583,7 @@ Lexer.prototype = {
         //break;
         case "$":
           this.curr.column++;
-          type = Lexer.TOKEN_TYPES.SEP;
+          type = "sep";
           i++;
           if (i < len) {
             ch = text[i];
@@ -596,7 +598,7 @@ Lexer.prototype = {
                 if (this.curr.column === i) {
                   this.curr.column++;
                 }
-                type = Lexer.TOKEN_TYPES.FORMAT;
+                type = "format";
               }
             }
           }
@@ -616,7 +618,7 @@ Lexer.prototype = {
             i++;
             this.curr.column = i;
             return {
-              type: Lexer.TOKEN_TYPES.SEP,
+              type: "sep",
               start: this.start,
               end: this.curr,
             };
@@ -641,7 +643,7 @@ Lexer.prototype = {
           }
           this.curr.column = i + 1;
           return {
-            type: Lexer.TOKEN_TYPES.COMMENT,
+            type: "comment",
             start: this.start,
             end: this.curr,
           };
@@ -661,13 +663,13 @@ Lexer.prototype = {
           break;
         //return null;
         default: {
-          type = Lexer.TOKEN_TYPES.WORD;
+          type = "text";
           //word = '';
           ch = text[i];
-          if (wordReg!.test(ch) && !/\d/.test(ch)) {
+          if (wordReg.test(ch) && !/\d/.test(ch)) {
             //the first char
             i++;
-            while (i < len && wordReg!.test(text[i])) {
+            while (i < len && wordReg.test(text[i])) {
               i++;
             }
             //format or informat
@@ -689,7 +691,7 @@ Lexer.prototype = {
               ) {
                 //format is the end of line
                 return {
-                  type: Lexer.TOKEN_TYPES.FORMAT,
+                  type: "format",
                   start: this.start,
                   end: this.curr,
                 };
@@ -724,7 +726,7 @@ Lexer.prototype = {
           ) {
             // numeric
             i++;
-            type = Lexer.TOKEN_TYPES.NUM;
+            type = "numeric";
             //FIXID S1300279
             //REFERENCE: http://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/viewer.htm#p1wj0wt2ebe2a0n1lv4lem9hdc0v.htm
             DATE_DDMMMYY_YYQ_REG.lastIndex = 0;
@@ -737,7 +739,10 @@ Lexer.prototype = {
               if (q !== "q" && q !== "Q") {
                 //not check YYQ
                 const day = parseInt(matched[0].substr(0, 2));
-                if (day < 1 || day > DAYS[matched[1].toUpperCase()]) {
+                if (
+                  day < 1 ||
+                  day > DAYS[matched[1].toUpperCase() as keyof typeof DAYS]
+                ) {
                   matched = null;
                 }
               }
@@ -750,14 +755,14 @@ Lexer.prototype = {
                 //seperator
                 this.curr.column = i;
                 return {
-                  type: Lexer.TOKEN_TYPES.SEP,
+                  type: "sep",
                   start: this.start,
                   end: this.curr,
                 };
               }
             } else if (matched) {
               i = matched[0].length + this.curr.column;
-              type = Lexer.TOKEN_TYPES.DATE; //same as normal SAS date
+              type = "date"; //same as normal SAS date
             } else {
               i = this.readNum(this.curr.column);
             }
@@ -778,7 +783,7 @@ Lexer.prototype = {
               this.curr.column++;
             }
             return {
-              type: Lexer.TOKEN_TYPES.SEP,
+              type: "sep",
               start: this.start,
               end: this.curr,
             };
@@ -786,26 +791,26 @@ Lexer.prototype = {
         } //end default
       } //end switch
     } //end while(1)
-  },
-  end: function () {
+  }
+  end(): boolean {
     if (this.curr.line < this.model.getLineCount()) {
       return false;
     }
     return true;
-  },
-  reset: function () {
+  }
+  reset(): void {
     this.curr.line = 0;
     this.curr.column = 0;
-  },
-  startFrom: function (line: any, col: any) {
+  }
+  startFrom(line: number, col: number): void {
     this.curr.line = line;
     this.curr.column = col;
     this.context.lastNoncommentToken = null;
     this.quoting = -1;
     this.bquoting = -1;
     this.ignoreFormat = false;
-  },
-  readNum: function (col: number, radix: number) {
+  }
+  readNum(col: number, radix?: number): number {
     const text = this.model.getLine(this.curr.line);
     let end = col,
       reg =
@@ -822,45 +827,29 @@ Lexer.prototype = {
       end = matched[0].length + col;
     }
     return end;
-  } /*
-        isKeyword : function(word){
-            var key = word.toUpperCase();
-            if (keywordMap[key]) {
-                return true;
-            } else if (/^(TITLE|FOOTNOTE|AXIS|LEGEND|PATTERN|SYMBOL)\d{0,}$/.test(key)){
-                var results = key.match(/(^(TITLE|FOOTNOTE|AXIS|LEGEND|PATTERN|SYMBOL)|\d{0,}$)/g),
-                    nbr = parseInt(results[1],10);
-                switch(results[0]){
-                        case 'TITLE':
-                        case 'FOOTNOTE':
-                            return (nbr<11 && nbr>0);
-                        case 'AXIS':
-                        case 'LEGEND':
-                            return (nbr<100 && nbr>0);
-                        case 'PATTERN':
-                        case 'SYMBOL':
-                            return (nbr<256 && nbr>0);
-                }
-            }
-            return false;
-    },*/,
-  isMacroKeyword: function (word: string) {
-    return macroKwMap![word.toUpperCase()] ? true : false;
-  },
-  getWord: function (token: {
-    end: { line: any; column: number };
-    start: { column: number };
-  }) {
+  }
+  isMacroKeyword(word: string): boolean {
+    return macroKwMap[word.toUpperCase()] ? true : false;
+  }
+  getWord(token: Token | undefined): string {
     //token must be related to a word
-    let str = "";
     if (token) {
-      str = this.model
+      return this.model
         .getLine(token.end.line)
         .substr(token.start.column, token.end.column - token.start.column);
     }
-    return str;
-  },
-  getText: function (token: any) {
-    return this.model.getText(token);
-  },
-};
+    return "";
+  }
+  getText(token: Token): string {
+    return this.model.getText({
+      start: {
+        line: token.start.line,
+        character: token.start.column,
+      },
+      end: {
+        line: token.end.line,
+        character: token.end.column,
+      },
+    });
+  }
+}

@@ -8,16 +8,16 @@ import {
 } from "vscode-languageserver/node";
 
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { SyntaxProvider, legend } from "./sas/SyntaxProvider";
-import { SasAutoCompleter } from "./sas/SasAutoCompleter";
+import { LanguageServiceProvider, legend } from "./sas/LanguageServiceProvider";
+import { CompletionProvider } from "./sas/CompletionProvider";
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
 const connection = createConnection(ProposedFeatures.all);
 
-const syntaxPool: Record<string, SyntaxProvider> = {};
+const servicePool: Record<string, LanguageServiceProvider> = {};
 
-let autoCompleter: SasAutoCompleter;
+let completionProvider: CompletionProvider;
 
 // Create a simple text document manager.
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
@@ -43,45 +43,45 @@ connection.onInitialize(() => {
 });
 
 connection.onRequest(SemanticTokensRequest.type, (params) => {
-  const syntaxProvider = syntaxPool[params.textDocument.uri];
+  const languageService = servicePool[params.textDocument.uri];
 
-  return { data: syntaxProvider.getTokens() };
+  return { data: languageService.getTokens() };
 });
 
 connection.onHover((params) => {
-  const syntaxProvider = syntaxPool[params.textDocument.uri];
+  const languageService = servicePool[params.textDocument.uri];
 
-  return syntaxProvider.autoCompleter.getHelp(params.position);
+  return languageService.completionProvider.getHelp(params.position);
 });
 
 connection.onCompletion((params) => {
-  const syntaxProvider = syntaxPool[params.textDocument.uri];
-  autoCompleter = syntaxProvider.autoCompleter;
+  const languageService = servicePool[params.textDocument.uri];
+  completionProvider = languageService.completionProvider;
 
-  return autoCompleter.getCompleteItems(params.position);
+  return completionProvider.getCompleteItems(params.position);
 });
 
 connection.onCompletionResolve((params) => {
-  return autoCompleter.getCompleteItemHelp(params);
+  return completionProvider.getCompleteItemHelp(params);
 });
 
 connection.onDocumentSymbol((params) => {
-  const syntaxProvider = syntaxPool[params.textDocument.uri];
-  return syntaxProvider
+  const languageService = servicePool[params.textDocument.uri];
+  return languageService
     .getFoldingBlocks()
     .filter((symbol) => symbol.name !== "custom");
 });
 
 connection.onFoldingRanges((params) => {
-  const syntaxProvider = syntaxPool[params.textDocument.uri];
-  return syntaxProvider.getFoldingBlocks().map((block) => ({
+  const languageService = servicePool[params.textDocument.uri];
+  return languageService.getFoldingBlocks().map((block) => ({
     startLine: block.range.start.line,
     endLine: block.range.end.line,
   }));
 });
 
 documents.onDidChangeContent((event) => {
-  syntaxPool[event.document.uri] = new SyntaxProvider(event.document);
+  servicePool[event.document.uri] = new LanguageServiceProvider(event.document);
 });
 
 // Make the text document manager listen on the connection

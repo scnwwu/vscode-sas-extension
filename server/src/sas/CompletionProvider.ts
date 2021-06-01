@@ -6,7 +6,7 @@ import {
 } from "vscode-languageserver";
 import { Position } from "vscode-languageserver-textdocument";
 import { CodeZoneManager } from "./CodeZoneManager";
-import { SasModel } from "./SasModel";
+import { Model } from "./Model";
 import { arrayToMap, getText } from "./utils";
 
 const ZONE_TYPE = CodeZoneManager.ZONE_TYPE;
@@ -206,12 +206,12 @@ function getItemKind(zone: any) {
   return CompletionItemKind.Keyword;
 }
 
-export class SasAutoCompleter {
+export class CompletionProvider {
   private czMgr;
   private loader;
   private popupContext: any = {};
 
-  constructor(private model: SasModel, private syntaxColor: any) {
+  constructor(private model: Model, private syntaxColor: any) {
     this.loader = syntaxColor.lexer.langSrv;
     this.czMgr = new CodeZoneManager(model, this.loader, syntaxColor);
   }

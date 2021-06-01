@@ -1,15 +1,15 @@
 /* eslint-disable */
-const { arrayToMap } = require("./utils");
+import { arrayToMap } from "./utils";
+import { LexerEx } from "./LexerEx";
+import { Lexer } from "./Lexer";
 
-var SasLexerEx = require("./SasLexerEx").SasLexerEx,
-  SasLexer = require("./SasLexer").SasLexer;
 var CodeZoneManager = function (model, syntaxDb, langServ) {
   var ZONE_TYPE = CodeZoneManager.ZONE_TYPE,
-    SEC_TYPE = SasLexerEx.SEC_TYPE,
+    SEC_TYPE = LexerEx.SEC_TYPE,
     _langServ = langServ,
     _model = model,
     _syntaxDb = syntaxDb,
-    _lexer = new SasLexer(model),
+    _lexer = new Lexer(model),
     _isBlockEnd = { RUN: 1, QUIT: 1, "%MEND": 1 },
     _secStarts = { PROC: 1, DATA: 1 },
     _secEnds = { "%MACRO": 1, RUN: 1, QUIT: 1 },
@@ -180,7 +180,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
     if (end.length <= 2) line += end;
     else line += end.substr(end.length - 2, 2);
 
-    if (SasLexer.isComment[token.type] || SasLexer.isLiteral[token.type]) {
+    if (Lexer.isComment[token.type] || Lexer.isLiteral[token.type]) {
       reg = regs[token.type];
       if (reg && !reg.test(line)) {
         ret = false;
@@ -207,7 +207,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
       }
     }
 
-    if (SasLexer.isComment[type] || SasLexer.isLiteral[type]) {
+    if (Lexer.isComment[type] || Lexer.isLiteral[type]) {
       while (currLine >= 0) {
         if (syntax[j].state instanceof Object) {
           return {
@@ -333,7 +333,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
       }
     } while (/^\s*$/.test(text));
 
-    if (SasLexer.isComment[type] || SasLexer.isLiteral[type]) {
+    if (Lexer.isComment[type] || Lexer.isLiteral[type]) {
       token = _token(context.line, col + 1);
       if (
         token.endLine &&
@@ -343,7 +343,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
         context.line = token.line;
         context.syntaxIdx = -1;
       }
-      if (SasLexer.isComment[type]) {
+      if (Lexer.isComment[type]) {
         return _getPrev(context);
       }
       return token;
@@ -382,11 +382,11 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
         tmpToken = _transToken(token);
       }
     }
-    while (tmpToken && SasLexer.isComment[tmpToken.type]) {
+    while (tmpToken && Lexer.isComment[tmpToken.type]) {
       //skip comments
       tmpToken = _getNext(context);
     }
-    if (tmpToken && tmpToken.type === SasLexer.TOKEN_TYPES.MREF) {
+    if (tmpToken && tmpToken.type === Lexer.TOKEN_TYPES.MREF) {
       // skip macro-ref S1405245
       var mRefToken = tmpToken;
       tmpToken = _getNext(context);
@@ -416,7 +416,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
     if (token && token.text === "&") {
       tmpContext = _cloneContext(context);
       next = _getNext(tmpContext);
-      if (next && next.text !== "" && SasLexer.isWord[next.type]) {
+      if (next && next.text !== "" && Lexer.isWord[next.type]) {
         //macro variables
         token.text = "&" + next.text;
         token.type = "text";
@@ -617,7 +617,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
     len = tokens.length;
     if (
       len > 3 &&
-      SasLexer.isWord[tokens[len - 2].type] &&
+      Lexer.isWord[tokens[len - 2].type] &&
       tokens[len - 3].text === ":"
     ) {
       _getNext(context);
@@ -772,7 +772,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
       inBlock = false;
     _skipToStmtStart(context, true);
     token = _getNextEx(context);
-    if (SasLexer.isWord[token.type]) {
+    if (Lexer.isWord[token.type]) {
       text = token.text.toUpperCase();
       if (token.pos >= 0) {
         //the token has been right side of the cursor
@@ -1003,7 +1003,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
     } else if (zone.type === ZONE_TYPE.OPT_VALUE) {
       type = ZONE_TYPE.PROC_STMT_OPT_VALUE;
     } else if (zone.type === ZONE_TYPE.SUB_OPT_NAME) {
-      var stmtWithDatasetOption = SasLexerEx.prototype.stmtWithDatasetOption_;
+      var stmtWithDatasetOption = LexerEx.prototype.stmtWithDatasetOption_;
       if (stmtWithDatasetOption[_procName + "/" + stmt.text]) {
         type = ZONE_TYPE.DATA_SET_OPT_NAME;
       } else if (
@@ -1035,7 +1035,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
   }
   function _emit3(context, tree, type) {
     _traverse(tree, function (i) {
-      if (SasLexer.isWord[i.type] || i.type === "text") {
+      if (Lexer.isWord[i.type] || i.type === "text") {
         _emit(i, type);
       }
     });
@@ -1192,7 +1192,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
     if (ret.token.text === "/") {
       //
       _copyContext(ret.context, context); //ignore '/'
-    } else if (SasLexer.isBinaryOpr[ret.token.text]) {
+    } else if (Lexer.isBinaryOpr[ret.token.text]) {
       //This statement is only a expression.
       _copyContext(ret.context, context);
       if (!_isNormalStmt(stmt)) {
@@ -1566,7 +1566,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
       //item = {'op': token1,'op1':_argList(context,null)};// complicated expression
       item = _argList(context, null);
       //return item; //not return
-    } else if (SasLexer.isUnaryOpr[token1.text]) {
+    } else if (Lexer.isUnaryOpr[token1.text]) {
       _copyContext(tmpContext, context);
       item = { op: token1, op1: _expr(context, ends, true) }; //not return
     } else {
@@ -1580,7 +1580,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
     for (;;) {
       ret = _tryGetOpr(context);
       text = ret.token.text;
-      if (SasLexer.isBinaryOpr[text] && !one /*|| SasLexer.isUnaryOpr[text]*/) {
+      if (Lexer.isBinaryOpr[text] && !one /*|| SasLexer.isUnaryOpr[text]*/) {
         //ATTENTION: not concern the priority
         _copyContext(ret.context, context);
         item = { op: ret.token, op1: item, op2: _expr(context, ends) };
@@ -1602,7 +1602,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
     _skipToStmtStart(context, true);
     token = _getNextEx(context);
 
-    if (SasLexer.isWord[token.type]) {
+    if (Lexer.isWord[token.type]) {
       text = token.text.toUpperCase();
       if (token.pos >= 0) {
         inBlock = _inBlock(context.block, token) >= 0;
@@ -1654,7 +1654,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
     token1 = _getNextEx(context);
     tmpContext = _cloneContext(context);
     token2 = _getNextEx(tmpContext);
-    if (SasLexer.isWord[token1.type] || token1.type === "string") {
+    if (Lexer.isWord[token1.type] || token1.type === "string") {
       switch (token2.text) {
         case "/": //data step option
           _emit(
@@ -1680,7 +1680,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
           _copyContext(tmpContext, context);
           token1 = _getNextEx(context); // view name or program name
           viewOrPrg["op2"] = token1;
-          if (SasLexer.isWord[token1.type]) {
+          if (Lexer.isWord[token1.type]) {
             _emit(token1, ZONE_TYPE.VIEW_OR_PGM_NAME);
             tmpContext = _cloneContext(context);
             token2 = _getNextEx(tmpContext);
@@ -1698,7 +1698,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
               token2 = _getNextEx(context);
             }
             if (
-              (token2.text === ";" || SasLexer.isWord[token2.type]) &&
+              (token2.text === ";" || Lexer.isWord[token2.type]) &&
               (name === "VIEW" || name === "PGM")
             ) {
               _emit(token2, ZONE_TYPE.VIEW_OR_PGM_SUB_OPT_NAME); //NOLIST
@@ -1796,7 +1796,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
           _copyContext(tmpContext, context);
           return opts;
         default:
-          if (SasLexer.isWord[token1.type] === undefined) {
+          if (Lexer.isWord[token1.type] === undefined) {
             return opts;
           }
       }
@@ -1938,7 +1938,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
           _emit(item, ZONE_TYPE.DATA_STEP_STMT_OPT);
         }
         exit = true;
-      } else if (SasLexer.isWord[item.type]) {
+      } else if (Lexer.isWord[item.type]) {
         tmpContext = _cloneContext(context);
         next = _getNextEx(tmpContext);
         if (next.text === "(") {
@@ -1978,7 +1978,7 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
     _skipToStmtStart(context, true);
     token = _getNextEx(context);
     _stmtName = token.text;
-    if (SasLexer.isWord[token.type]) {
+    if (Lexer.isWord[token.type]) {
       text = token.text;
       if (token.pos >= 0) {
         if (_inBlock(context.block, token) >= 0) {
@@ -2165,10 +2165,10 @@ var CodeZoneManager = function (model, syntaxDb, langServ) {
       //&& (SasLexer.isComment[type] || SasLexer.isLiteral[type])
       ///*|| SasLexer.isComment[type] || SasLexer.isLiteral[type]*/) {
       //return ZONE_TYPE.RESTRCITED;
-      if (SasLexer.isComment[type]) return ZONE_TYPE.COMMENT;
+      if (Lexer.isComment[type]) return ZONE_TYPE.COMMENT;
       if (type === "string") return ZONE_TYPE.QUOTED_STR;
       if (type === "cards-data") return ZONE_TYPE.DATALINES;
-      if (SasLexer.isLiteral[type]) return ZONE_TYPE.LITERAL;
+      if (Lexer.isLiteral[type]) return ZONE_TYPE.LITERAL;
     }
     context = {
       block: block,
@@ -2307,4 +2307,5 @@ CodeZoneManager.ZONE_TYPE = {
   ODS_STMT_OPT: 706,
   ODS_STMT_OPT_VALUE: 707,
 };
-exports.CodeZoneManager = CodeZoneManager;
+const _CodeZoneManager = CodeZoneManager;
+export { _CodeZoneManager as CodeZoneManager };

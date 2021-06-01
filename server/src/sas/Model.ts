@@ -1,6 +1,6 @@
 import { Range, TextDocument } from "vscode-languageserver-textdocument";
 
-export class SasModel {
+export class Model {
   constructor(private doc: TextDocument) {}
 
   getLine(line: number): string {

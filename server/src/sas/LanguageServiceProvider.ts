@@ -1,7 +1,7 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { SyntaxColor } from "./SyntaxColor";
-import { SasModel } from "./SasModel";
-import { SasAutoCompleter } from "./SasAutoCompleter";
+import { SyntaxProvider } from "./SyntaxProvider";
+import { Model } from "./Model";
+import { CompletionProvider } from "./CompletionProvider";
 import { DocumentSymbol, SymbolKind } from "vscode-languageserver-types";
 
 export const legend = {
@@ -36,19 +36,22 @@ function getType(type: string) {
 // DATA, PROC, MACRO
 const SymbolKinds = [SymbolKind.Struct, SymbolKind.Function, SymbolKind.Module];
 
-export class SyntaxProvider {
+export class LanguageServiceProvider {
   private model;
-  private syntaxColor;
-  public autoCompleter;
+  private syntaxProvider;
+  public completionProvider;
 
   constructor(doc: TextDocument) {
-    this.model = new SasModel(doc);
-    this.syntaxColor = new SyntaxColor(this.model);
-    this.autoCompleter = new SasAutoCompleter(this.model, this.syntaxColor);
+    this.model = new Model(doc);
+    this.syntaxProvider = new SyntaxProvider(this.model);
+    this.completionProvider = new CompletionProvider(
+      this.model,
+      this.syntaxProvider
+    );
 
     const lineCount = this.model.getLineCount();
 
-    this.syntaxColor.add({
+    this.syntaxProvider.add({
       text: "",
       removedText: "",
       oldRange: {
@@ -83,7 +86,7 @@ export class SyntaxProvider {
 
     for (let i = 0; i < lineCount; i++) {
       const line = this.model.getLine(i);
-      const tokens = this.syntaxColor.getSyntax(i);
+      const tokens = this.syntaxProvider.getSyntax(i);
       for (let j = 0; j < tokens.length; j++) {
         const type = getType(tokens[j].style);
         const end = j === tokens.length - 1 ? line.length : tokens[j + 1].start;
@@ -109,7 +112,7 @@ export class SyntaxProvider {
     let customBlock;
 
     for (let i = 0; i < lineCount; i++) {
-      const block = this.syntaxColor.getFoldingBlock(i);
+      const block = this.syntaxProvider.getFoldingBlock(i);
 
       if (block && block.startLine === i) {
         const range = {
@@ -126,9 +129,9 @@ export class SyntaxProvider {
         i = block.endFoldingLine;
         continue;
       }
-      let token = this.syntaxColor.getSyntax(i)[0];
+      let token = this.syntaxProvider.getSyntax(i)[0];
       if (token && token.style === "text") {
-        token = this.syntaxColor.getSyntax(i)[1];
+        token = this.syntaxProvider.getSyntax(i)[1];
       }
       if (token && /comment/.test(token.style)) {
         if (/^\s*[%/]?\*\s*region\b/i.test(this.model.getLine(i))) {
@@ -161,7 +164,7 @@ export class SyntaxProvider {
   }
 
   private _getProcName(line: number) {
-    const tokens = this.syntaxColor.getSyntax(line);
+    const tokens = this.syntaxProvider.getSyntax(line);
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i];
       if (token.style === "proc-name") {

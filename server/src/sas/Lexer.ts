@@ -1,9 +1,8 @@
-/* eslint-disable */
 import { arrayToMap } from "./utils";
 
-var macroKwMap = null;
-var wordReg = null;
-var DAYS = {
+let macroKwMap: Record<string, 1> | null = null;
+let wordReg: RegExp | null = null;
+const DAYS: any = {
   JAN: 31,
   FEB: 29,
   MAR: 31,
@@ -17,9 +16,10 @@ var DAYS = {
   NOV: 30,
   DEC: 31,
 };
-var DATE_DDMMMYY_YYQ_REG = /\d{2}(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(\d{2}|\d{4})|\d{2}q[1234]\b/i;
+const DATE_DDMMMYY_YYQ_REG =
+  /\d{2}(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(\d{2}|\d{4})|\d{2}q[1234]\b/i;
 
-function checkQuote(current, isHead, text) {
+function checkQuote(current: number, isHead: any, text: string) {
   if (current === -1 && isHead) {
     return 0;
   } else if (current === 0 && text !== "(") {
@@ -36,7 +36,7 @@ function checkQuote(current, isHead, text) {
   return current;
 }
 
-var SasLexer = function (model) {
+export const Lexer: any = function (this: any, model: any) {
   if (!wordReg) {
     // var unicode = window.ace.require('ace/unicode');
     // wordReg = new RegExp("["
@@ -177,7 +177,7 @@ var SasLexer = function (model) {
     ]); // from SASMacroStatements.xml
   }
 };
-SasLexer.TOKEN_TYPES = {
+Lexer.TOKEN_TYPES = {
   SEP: "sep",
   KEYWORD: "keyword",
   SKEYWORD: "sec-keyword",
@@ -200,9 +200,9 @@ SasLexer.TOKEN_TYPES = {
   FORMAT: "format",
   BLANK: "blank",
 };
-SasLexer.notSyntaxToken = arrayToMap(["comment", "macro-comment", "blank"]);
-SasLexer.isComment = arrayToMap(["comment", "macro-comment"]);
-SasLexer.isLiteral = arrayToMap([
+Lexer.notSyntaxToken = arrayToMap(["comment", "macro-comment", "blank"]);
+Lexer.isComment = arrayToMap(["comment", "macro-comment"]);
+Lexer.isLiteral = arrayToMap([
   "string",
   "date",
   "time",
@@ -213,7 +213,7 @@ SasLexer.isLiteral = arrayToMap([
   "numeric",
   "cards-data",
 ]);
-SasLexer.isWord = arrayToMap([
+Lexer.isWord = arrayToMap([
   "keyword",
   "sec-keyword",
   "macro-sec-keyword",
@@ -221,7 +221,7 @@ SasLexer.isWord = arrayToMap([
   "macro-keyword",
   "text",
 ]);
-SasLexer.isConst = arrayToMap([
+Lexer.isConst = arrayToMap([
   "string",
   "date",
   "time",
@@ -232,7 +232,7 @@ SasLexer.isConst = arrayToMap([
   "numeric",
   "format",
 ]);
-SasLexer.isCards = arrayToMap([
+Lexer.isCards = arrayToMap([
   "CARDS",
   "LINES",
   "DATALINES",
@@ -240,12 +240,12 @@ SasLexer.isCards = arrayToMap([
   "CARDS4",
   "LINES4",
 ]);
-SasLexer.isCards4 = arrayToMap(["DATALINES4", "CARDS4", "LINES4"]);
-SasLexer.isParmcards = arrayToMap(["PARMCARDS", "PARMCARDS4"]);
-SasLexer.isParmcards4 = arrayToMap(["PARMCARDS4"]);
-SasLexer.isQuoting = arrayToMap(["%STR", "%NRSTR", "%QUOTE", "%NRQUOTE"]);
-SasLexer.isBQuoting = arrayToMap(["%SUPERQ", "%BQUOTE", "%NRBQUOTE"]);
-SasLexer.isBinaryOpr = arrayToMap([
+Lexer.isCards4 = arrayToMap(["DATALINES4", "CARDS4", "LINES4"]);
+Lexer.isParmcards = arrayToMap(["PARMCARDS", "PARMCARDS4"]);
+Lexer.isParmcards4 = arrayToMap(["PARMCARDS4"]);
+Lexer.isQuoting = arrayToMap(["%STR", "%NRSTR", "%QUOTE", "%NRQUOTE"]);
+Lexer.isBQuoting = arrayToMap(["%SUPERQ", "%BQUOTE", "%NRBQUOTE"]);
+Lexer.isBinaryOpr = arrayToMap([
   "**",
   "+",
   "-",
@@ -285,20 +285,21 @@ SasLexer.isBinaryOpr = arrayToMap([
   "<=:", //,//comparison
   //'IN' // disable this for HTMLCOMMONS-3847 (height=0.75in ctext=red)
 ]); // operators
-SasLexer.isUnaryOpr = arrayToMap(["\u00AC", "\u00B0", "~", "NOT", "+", "-"]); //boolean operators
+Lexer.isUnaryOpr = arrayToMap(["\u00AC", "\u00B0", "~", "NOT", "+", "-"]); //boolean operators
 
-SasLexer.longBiOprs = /^(\^=:|\u00AC=:|~=:|>=:|<=:|\*\*|<>|\^=|\u00AC=|~=|>=|<=|\|\||=:|>:|<:)/;
+Lexer.longBiOprs =
+  /^(\^=:|\u00AC=:|~=:|>=:|<=:|\*\*|<>|\^=|\u00AC=|~=|>=|<=|\|\||=:|>:|<:)/;
 //'**','<>','><','^=','\u00AC=','~=','>=','<=','||','=:','>:','<:',  //len 2
 //'^=:','\u00AC=:','~=:','>=:','<=:'   //len 3
 /**
  * SasLexer public methods
  */
 
-SasLexer.prototype = {
+Lexer.prototype = {
   getNext: function () {
-    var token = this.getNext_();
+    const token = this.getNext_();
     if (token) {
-      if (SasLexer.isComment[token.type] === undefined) {
+      if (Lexer.isComment[token.type] === undefined) {
         this.context.lastNoncommentToken = {
           type: token.type,
           start: {
@@ -311,20 +312,20 @@ SasLexer.prototype = {
           },
         };
       }
-      if (SasLexer.isLiteral[token.type]) {
+      if (Lexer.isLiteral[token.type]) {
         token.text = this.getText(token);
       } else {
         token.text = this.getWord(token).toUpperCase();
       }
-      if (SasLexer.isComment[token.type] === undefined) {
+      if (Lexer.isComment[token.type] === undefined) {
         this.quoting = checkQuote(
           this.quoting,
-          SasLexer.isQuoting[token.text],
+          Lexer.isQuoting[token.text],
           token.text
         );
         this.bquoting = checkQuote(
           this.bquoting,
-          SasLexer.isBQuoting[token.text],
+          Lexer.isBQuoting[token.text],
           token.text
         );
         if (this.quoting === -1 && this.bquoting === -1) {
@@ -348,15 +349,15 @@ SasLexer.prototype = {
    *
    */
   getNext_: function () {
-    var j = 0,
+    let j = 0,
       type,
       i,
       text,
       qm,
       //word,
       ch,
-      totalLines = this.model.getLineCount(),
       len;
+    const totalLines = this.model.getLineCount();
     //loop1:
     while (this.curr.line < totalLines) {
       this.start.line = this.curr.line;
@@ -390,14 +391,14 @@ SasLexer.prototype = {
             }
             //this.curr.column++;
             return {
-              type: SasLexer.TOKEN_TYPES.COMMENT,
+              type: Lexer.TOKEN_TYPES.COMMENT,
               start: this.start,
               end: this.curr,
             };
           } else {
             this.curr.column = i;
             return {
-              type: SasLexer.TOKEN_TYPES.SEP,
+              type: Lexer.TOKEN_TYPES.SEP,
               start: this.start,
               end: this.curr,
             }; //
@@ -413,15 +414,15 @@ SasLexer.prototype = {
             }
             this.curr.column = i;
             //check macro section keyword
-            type = SasLexer.TOKEN_TYPES.WORD;
+            type = Lexer.TOKEN_TYPES.WORD;
             if (
               this.isMacroKeyword(
                 text.substr(this.start.column + 1, i - this.start.column - 1)
               )
             ) {
-              type = SasLexer.TOKEN_TYPES.MKEYWORD;
+              type = Lexer.TOKEN_TYPES.MKEYWORD;
             } else {
-              type = SasLexer.TOKEN_TYPES.MREF;
+              type = Lexer.TOKEN_TYPES.MREF;
             }
             return {
               type: type, //SasLexer.TOKEN_TYPES.MKEYWORD,
@@ -451,7 +452,7 @@ SasLexer.prototype = {
             }
 
             return {
-              type: SasLexer.TOKEN_TYPES.MCOMMENT,
+              type: Lexer.TOKEN_TYPES.MCOMMENT,
               start: this.start,
               end: this.curr,
             };
@@ -467,7 +468,7 @@ SasLexer.prototype = {
           }
           this.curr.column++;
           return {
-            type: SasLexer.TOKEN_TYPES.SEP,
+            type: Lexer.TOKEN_TYPES.SEP,
             start: this.start,
             end: this.curr,
           };
@@ -479,7 +480,7 @@ SasLexer.prototype = {
             break;
           }
           qm = text[i]; //qm = qutation mark
-          type = SasLexer.TOKEN_TYPES.STR;
+          type = Lexer.TOKEN_TYPES.STR;
           //over multi lines
           //escape??
           i++;
@@ -496,31 +497,31 @@ SasLexer.prototype = {
                     switch (text[i]) {
                       case "d":
                       case "D":
-                        type = SasLexer.TOKEN_TYPES.DATE;
+                        type = Lexer.TOKEN_TYPES.DATE;
                         i++;
                         if (i < len && (text[i] === "t" || text[i] === "T")) {
-                          type = SasLexer.TOKEN_TYPES.DT;
+                          type = Lexer.TOKEN_TYPES.DT;
                           i++;
                         }
                         break;
                       case "t":
                       case "T":
-                        type = SasLexer.TOKEN_TYPES.TIME;
+                        type = Lexer.TOKEN_TYPES.TIME;
                         i++;
                         break;
                       case "b":
                       case "B":
-                        type = SasLexer.TOKEN_TYPES.BM;
+                        type = Lexer.TOKEN_TYPES.BM;
                         i++;
                         break; //bit mask
                       case "n":
                       case "N":
-                        type = SasLexer.TOKEN_TYPES.NL;
+                        type = Lexer.TOKEN_TYPES.NL;
                         i++;
                         break; //name literal
                       case "x":
                       case "X":
-                        type = SasLexer.TOKEN_TYPES.HEX;
+                        type = Lexer.TOKEN_TYPES.HEX;
                         i++;
                         break; //hexadecimal notation
                     }
@@ -559,6 +560,7 @@ SasLexer.prototype = {
                      start: this.start,
                      end: this.curr
                      };*/
+        // eslint-disable-next-line no-fallthrough
         case " ": //space
         case "\u00a0":
           this.curr.column++;
@@ -567,9 +569,9 @@ SasLexer.prototype = {
           this.curr.column = this.readNum(i, 10);
           if (this.curr.column === i) {
             this.curr.column++;
-            type = SasLexer.TOKEN_TYPES.SEP;
+            type = Lexer.TOKEN_TYPES.SEP;
           } else {
-            type = SasLexer.TOKEN_TYPES.NUM;
+            type = Lexer.TOKEN_TYPES.NUM;
           }
           return {
             type: type,
@@ -579,7 +581,7 @@ SasLexer.prototype = {
         //break;
         case "$":
           this.curr.column++;
-          type = SasLexer.TOKEN_TYPES.SEP;
+          type = Lexer.TOKEN_TYPES.SEP;
           i++;
           if (i < len) {
             ch = text[i];
@@ -594,7 +596,7 @@ SasLexer.prototype = {
                 if (this.curr.column === i) {
                   this.curr.column++;
                 }
-                type = SasLexer.TOKEN_TYPES.FORMAT;
+                type = Lexer.TOKEN_TYPES.FORMAT;
               }
             }
           }
@@ -614,7 +616,7 @@ SasLexer.prototype = {
             i++;
             this.curr.column = i;
             return {
-              type: SasLexer.TOKEN_TYPES.SEP,
+              type: Lexer.TOKEN_TYPES.SEP,
               start: this.start,
               end: this.curr,
             };
@@ -639,7 +641,7 @@ SasLexer.prototype = {
           }
           this.curr.column = i + 1;
           return {
-            type: SasLexer.TOKEN_TYPES.COMMENT,
+            type: Lexer.TOKEN_TYPES.COMMENT,
             start: this.start,
             end: this.curr,
           };
@@ -659,13 +661,13 @@ SasLexer.prototype = {
           break;
         //return null;
         default: {
-          type = SasLexer.TOKEN_TYPES.WORD;
+          type = Lexer.TOKEN_TYPES.WORD;
           //word = '';
           ch = text[i];
-          if (wordReg.test(ch) && !/\d/.test(ch)) {
+          if (wordReg!.test(ch) && !/\d/.test(ch)) {
             //the first char
             i++;
-            while (i < len && wordReg.test(text[i])) {
+            while (i < len && wordReg!.test(text[i])) {
               i++;
             }
             //format or informat
@@ -687,7 +689,7 @@ SasLexer.prototype = {
               ) {
                 //format is the end of line
                 return {
-                  type: SasLexer.TOKEN_TYPES.FORMAT,
+                  type: Lexer.TOKEN_TYPES.FORMAT,
                   start: this.start,
                   end: this.curr,
                 };
@@ -722,19 +724,19 @@ SasLexer.prototype = {
           ) {
             // numeric
             i++;
-            type = SasLexer.TOKEN_TYPES.NUM;
+            type = Lexer.TOKEN_TYPES.NUM;
             //FIXID S1300279
             //REFERENCE: http://support.sas.com/documentation/cdl/en/lrcon/65287/HTML/default/viewer.htm#p1wj0wt2ebe2a0n1lv4lem9hdc0v.htm
             DATE_DDMMMYY_YYQ_REG.lastIndex = 0;
-            var text = this.model.getLine(this.curr.line),
-              matched = DATE_DDMMMYY_YYQ_REG.exec(
-                text.substring(this.curr.column)
-              );
+            text = this.model.getLine(this.curr.line);
+            let matched = DATE_DDMMMYY_YYQ_REG.exec(
+              text.substring(this.curr.column)
+            );
             if (matched) {
-              var q = matched[0][2];
+              const q = matched[0][2];
               if (q !== "q" && q !== "Q") {
                 //not check YYQ
-                var day = parseInt(matched[0].substr(0, 2));
+                const day = parseInt(matched[0].substr(0, 2));
                 if (day < 1 || day > DAYS[matched[1].toUpperCase()]) {
                   matched = null;
                 }
@@ -748,14 +750,14 @@ SasLexer.prototype = {
                 //seperator
                 this.curr.column = i;
                 return {
-                  type: SasLexer.TOKEN_TYPES.SEP,
+                  type: Lexer.TOKEN_TYPES.SEP,
                   start: this.start,
                   end: this.curr,
                 };
               }
             } else if (matched) {
               i = matched[0].length + this.curr.column;
-              type = SasLexer.TOKEN_TYPES.DATE; //same as normal SAS date
+              type = Lexer.TOKEN_TYPES.DATE; //same as normal SAS date
             } else {
               i = this.readNum(this.curr.column);
             }
@@ -767,7 +769,7 @@ SasLexer.prototype = {
               end: this.curr,
             };
           } else {
-            var matches = SasLexer.longBiOprs.exec(
+            const matches = Lexer.longBiOprs.exec(
               text.substring(this.curr.column)
             );
             if (matches) {
@@ -776,7 +778,7 @@ SasLexer.prototype = {
               this.curr.column++;
             }
             return {
-              type: SasLexer.TOKEN_TYPES.SEP,
+              type: Lexer.TOKEN_TYPES.SEP,
               start: this.start,
               end: this.curr,
             };
@@ -795,7 +797,7 @@ SasLexer.prototype = {
     this.curr.line = 0;
     this.curr.column = 0;
   },
-  startFrom: function (line, col) {
+  startFrom: function (line: any, col: any) {
     this.curr.line = line;
     this.curr.column = col;
     this.context.lastNoncommentToken = null;
@@ -803,11 +805,11 @@ SasLexer.prototype = {
     this.bquoting = -1;
     this.ignoreFormat = false;
   },
-  readNum: function (col, radix) {
-    var text = this.model.getLine(this.curr.line),
-      matched,
-      end = col,
-      reg = /^\b0?[0-9a-fA-F]+[xX]\b|^(?!0\d)\d+(\.\d{1,})(E([-+])?(\d+)?)?|^\d+\.|^(?!0\d)\d+(\.\d{1,})?(E([-+])?(\d+)?)?|^\d+\.?\d*|\.\d+/gi;
+  readNum: function (col: number, radix: number) {
+    const text = this.model.getLine(this.curr.line);
+    let end = col,
+      reg =
+        /^\b0?[0-9a-fA-F]+[xX]\b|^(?!0\d)\d+(\.\d{1,})(E([-+])?(\d+)?)?|^\d+\.|^(?!0\d)\d+(\.\d{1,})?(E([-+])?(\d+)?)?|^\d+\.?\d*|\.\d+/gi;
     // Pay attention to the duplication, it is necessary.
     if (radix === 10) {
       reg = /^\d+\.?\d*|^\.\d+/;
@@ -815,7 +817,7 @@ SasLexer.prototype = {
 
     //reg.lastIndex = col;
     //matched = reg.exec(text);
-    matched = reg.exec(text.substring(col));
+    const matched = reg.exec(text.substring(col));
     if (matched) {
       end = matched[0].length + col;
     }
@@ -842,12 +844,15 @@ SasLexer.prototype = {
             }
             return false;
     },*/,
-  isMacroKeyword: function (word) {
-    return macroKwMap[word.toUpperCase()] ? true : false;
+  isMacroKeyword: function (word: string) {
+    return macroKwMap![word.toUpperCase()] ? true : false;
   },
-  getWord: function (token) {
+  getWord: function (token: {
+    end: { line: any; column: number };
+    start: { column: number };
+  }) {
     //token must be related to a word
-    var str = "";
+    let str = "";
     if (token) {
       str = this.model
         .getLine(token.end.line)
@@ -855,8 +860,7 @@ SasLexer.prototype = {
     }
     return str;
   },
-  getText: function (token) {
+  getText: function (token: any) {
     return this.model.getText(token);
   },
 };
-exports.SasLexer = SasLexer;

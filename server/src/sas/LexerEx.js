@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { arrayToMap } from "./utils";
-var SasLexer = require("./SasLexer").SasLexer,
-  SasLanguageService = require("./SasLanguageService").SasLanguageService;
+import { Lexer } from "./Lexer";
+import { SyntaxDataProvider } from "./SyntaxDataProvider";
 
 /**
  * SasLexerEx constructor
@@ -42,7 +42,7 @@ var FoldingBlock = function () {
 //var StmtBlock = FoldingBlock;
 var TknBlock = FoldingBlock;
 
-var SasLexerEx = function (model) {
+export var LexerEx = function (model) {
   var blockDepth = 0,
     sections = [],
     tailSections = [],
@@ -56,10 +56,10 @@ var SasLexerEx = function (model) {
     changedLineCount = 0,
     changedColCount = 0;
   this.model = model;
-  this.lexer = new SasLexer(model);
+  this.lexer = new Lexer(model);
   this.expr = new Expression(this);
-  this.langSrv = new SasLanguageService();
-  this.SEC_TYPE = SasLexerEx.SEC_TYPE;
+  this.langSrv = new SyntaxDataProvider();
+  this.SEC_TYPE = LexerEx.SEC_TYPE;
   this.PARSING_STATE = {
     IN_GBL: 0,
     IN_MACRO: 1,
@@ -532,8 +532,8 @@ var SasLexerEx = function (model) {
     var i = _getNextValidTknBlkIdx(startIndex);
     while (
       tknBlks[i] &&
-      !SasLexer.isCards4[tknBlks[i].name] &&
-      !SasLexer.isParmcards4[tknBlks[i].name]
+      !Lexer.isCards4[tknBlks[i].name] &&
+      !Lexer.isParmcards4[tknBlks[i].name]
     ) {
       i++;
     }
@@ -605,13 +605,15 @@ var SasLexerEx = function (model) {
     } while (!done);
     return text;
   }
-  var regComment = /(\/\*[\s\S]*?\*\/)|(^\s*\*[\s\S]*?;)|(;\s*\*[\s\S]*?;)|(%\*[\s\S]*?;)/i,
+  var regComment =
+      /(\/\*[\s\S]*?\*\/)|(^\s*\*[\s\S]*?;)|(;\s*\*[\s\S]*?;)|(%\*[\s\S]*?;)/i,
     regConst = /('|")([\s\S]*?)(\1)/i,
     regMacro = /%macro\b(?!.+%mend;)/i,
     regCardsStart = /(^\s*|;\s*)(data)(;|[\s]+[^;]*;)/i, //first ;
     regCards = /(;[\s]*)(cards|lines|datalines)(;|[\s]+[^;]*;)/i, //TODO: for the code having label
     regCards4 = /(;[\s]*)(cards4|lines4|datalines4)(;|[\s]+[^;]*;)/i,
-    regParmcardsStart = /(^\s*|;\s*)(proc)(\s*\/\*[\s\S]+\*\/\s*|\s+)(explode)(;|[\s]+[^;]*;)/i,
+    regParmcardsStart =
+      /(^\s*|;\s*)(proc)(\s*\/\*[\s\S]+\*\/\s*|\s+)(explode)(;|[\s]+[^;]*;)/i,
     regParmcards = /(;[\s]*)(parmcards)(;|[\s]+[^;]*;)/i,
     regParmcards4 = /(;[\s]*)(parmcards4)(;|[\s]+[^;]*;)/i,
     regCardsEnd = /([^;]*;)/im,
@@ -795,7 +797,7 @@ var SasLexerEx = function (model) {
     var oldRange = change.oldRange;
     if (
       !_isBefore(oldRange.end, _endPos(block)) ||
-      (block.type !== SasLexerEx.SEC_TYPE.GBL &&
+      (block.type !== LexerEx.SEC_TYPE.GBL &&
         block.explicitEnd &&
         _isBefore(block.explicitEndStmt.start, oldRange.end))
     ) {
@@ -1242,9 +1244,9 @@ var SasLexerEx = function (model) {
       change.oldRange.start.line;
   }
   var isSection = arrayToMap([
-    SasLexerEx.SEC_TYPE.DATA,
-    SasLexerEx.SEC_TYPE.PROC,
-    SasLexerEx.SEC_TYPE.MACRO,
+    LexerEx.SEC_TYPE.DATA,
+    LexerEx.SEC_TYPE.PROC,
+    LexerEx.SEC_TYPE.MACRO,
   ]);
   function _adjustBlocksCoord(blocks, change, parseRange) {
     var len = blocks.length,
@@ -1280,7 +1282,7 @@ var SasLexerEx = function (model) {
     //assert(token, "Token must be valid.");
     //assert(SasLexer.isWord[token.type], "Token must be word type.");
     if (isKeyword && token.type === "text") {
-      token.type = SasLexer.TOKEN_TYPES.KEYWORD;
+      token.type = Lexer.TOKEN_TYPES.KEYWORD;
       token.notCheckKeyword = true;
     }
     return token;
@@ -1314,7 +1316,7 @@ var SasLexerEx = function (model) {
     }
   };
   this.tryToAddCardsBlock_ = function (token) {
-    if (token && token.type === SasLexer.TOKEN_TYPES.CARDSDATA) {
+    if (token && token.type === Lexer.TOKEN_TYPES.CARDSDATA) {
       var block = new TknBlock(
         token.start.line,
         token.start.column,
@@ -1361,7 +1363,7 @@ var SasLexerEx = function (model) {
         };*/
 };
 
-SasLexerEx.prototype = {
+LexerEx.prototype = {
   /*
    * public method definitions
    */
@@ -1444,7 +1446,7 @@ SasLexerEx.prototype = {
     do {
       next = this.prefetch0_(it.pos);
       it.pos++;
-    } while (next && SasLexer.isComment[next.type]);
+    } while (next && Lexer.isComment[next.type]);
 
     return next;
   },
@@ -1488,7 +1490,7 @@ SasLexerEx.prototype = {
       isAssignment;
 
     if (!token) return null;
-    if (SasLexer.isWord[token.type]) {
+    if (Lexer.isWord[token.type]) {
       isLabel = this.isLabel_(token);
       isAssignment = this.isAssignment_(token);
       if (!isLabel && !isAssignment) {
@@ -1497,7 +1499,7 @@ SasLexerEx.prototype = {
           case "PROC":
           case "PROCEDURE":
             this.startFoldingBlock_(this.SEC_TYPE.PROC, token.start, word);
-            token.type = SasLexer.TOKEN_TYPES.SKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.SKEYWORD;
             var procName = this.handleProcName_();
             this.stack.push({
               parse: this.readProc_,
@@ -1513,7 +1515,7 @@ SasLexerEx.prototype = {
             break;
           case "%MACRO":
             this.startFoldingBlock_(this.SEC_TYPE.MACRO, token.start, word);
-            token.type = SasLexer.TOKEN_TYPES.MSKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.MSKEYWORD;
             this.stack.push({
               parse: this.readMacro_,
               state: this.PARSING_STATE.IN_MACRO,
@@ -1526,7 +1528,7 @@ SasLexerEx.prototype = {
             break;
           case "DATA":
             this.startFoldingBlock_(this.SEC_TYPE.DATA, token.start, word);
-            token.type = SasLexer.TOKEN_TYPES.SKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.SKEYWORD;
             this.stack.push({
               parse: this.readData_,
               state: this.PARSING_STATE.IN_DATA,
@@ -1552,9 +1554,9 @@ SasLexerEx.prototype = {
           parse: this.readLabel_,
           state: this.PARSING_STATE.IN_GBL,
         });
-      } else if (token.type === SasLexer.TOKEN_TYPES.MREF) {
+      } else if (token.type === Lexer.TOKEN_TYPES.MREF) {
         this.handleMref_(this.PARSING_STATE.IN_GBL);
-      } else if (!SasLexer.isComment[token.type] && token.text !== ";") {
+      } else if (!Lexer.isComment[token.type] && token.text !== ";") {
         // not the start of a statement
         var validName = this._cleanKeyword(word);
         var state = {
@@ -1565,7 +1567,7 @@ SasLexerEx.prototype = {
         this.stack.push(state);
         if (
           !isAssignment &&
-          SasLexer.isWord[token.type] &&
+          Lexer.isWord[token.type] &&
           !this.tryToHandleSectionEnd_(token)
         ) {
           //this.setKeyword_(token, this.langSrv.isStatementKeyword(this._cleanKeyword(word)));
@@ -1916,7 +1918,7 @@ SasLexerEx.prototype = {
       name = "";
     if (token) {
       name = token.text;
-      token.type = SasLexer.TOKEN_TYPES.PROCNAME; // procedure name
+      token.type = Lexer.TOKEN_TYPES.PROCNAME; // procedure name
       token.notCheckKeyword = true;
     }
     return name;
@@ -1976,13 +1978,13 @@ SasLexerEx.prototype = {
       it = { pos: 1 };
 
     next1 = this.prefetch_(it);
-    if (next1 && SasLexer.isWord[next1.type]) {
+    if (next1 && Lexer.isWord[next1.type]) {
       name2 = name1 + " " + next1.text; // the keyword has 2 words
       next2 = this.prefetch_(it);
-      if (next2 && SasLexer.isWord[next2.type]) {
+      if (next2 && Lexer.isWord[next2.type]) {
         name3 = name2 + " " + next2.text; // the keyword has 3 words
         next3 = this.prefetch_(it);
-        if (next3 && SasLexer.isWord[next3.type]) {
+        if (next3 && Lexer.isWord[next3.type]) {
           name4 = name3 + " " + next3.text;
         }
       }
@@ -2079,7 +2081,7 @@ SasLexerEx.prototype = {
       it.pos = context.pos + 1;
     }
     next = this.prefetch_(it);
-    if (next && SasLexer.isWord[next.type]) {
+    if (next && Lexer.isWord[next.type]) {
       name2 = name1 + " " + next.text; // The keyword has 2 words
     }
 
@@ -2108,10 +2110,10 @@ SasLexerEx.prototype = {
   tryToHandleSectionEnd_: function (token) {
     var ret = false;
     if (this.sectionEndStmts_[token.text]) {
-      token.type = SasLexer.TOKEN_TYPES.SKEYWORD;
+      token.type = Lexer.TOKEN_TYPES.SKEYWORD;
       var next = this.prefetch_({ pos: 1 });
       if (next && next.text === "CANCEL") {
-        next.type = SasLexer.TOKEN_TYPES.SKEYWORD;
+        next.type = Lexer.TOKEN_TYPES.SKEYWORD;
       }
       ret = true;
     }
@@ -2132,7 +2134,7 @@ SasLexerEx.prototype = {
     if (!this.curr.exprTokenCount) {
       var needToHandleExpr = false,
         startPos = 0;
-      if (SasLexer.isWord[token.type]) {
+      if (Lexer.isWord[token.type]) {
         var next = this.prefetch_({ pos: 1 }),
           exprBeg = { "=": 1, "(": 1 };
         if (next && exprBeg[next.text]) {
@@ -2186,7 +2188,7 @@ SasLexerEx.prototype = {
     var token = this.handleStatement_(this.OptionCheckers_["proc-stmt"]);
     if (
       token &&
-      SasLexer.isWord[token.type] &&
+      Lexer.isWord[token.type] &&
       this.specialStmts_[this.curr.procName + "/" + this.curr.name]
     ) {
       //A ugly but simple way to handle this condition :)
@@ -2228,7 +2230,7 @@ SasLexerEx.prototype = {
       token = this.getNext_();
     if (!token) return null;
 
-    if (SasLexer.isWord[token.type]) {
+    if (Lexer.isWord[token.type]) {
       if (this.isLabel_()) {
         this.stack.push({
           parse: this.readLabel_,
@@ -2241,7 +2243,7 @@ SasLexerEx.prototype = {
         switch (word) {
           case "RUN":
           case "QUIT":
-            token.type = SasLexer.TOKEN_TYPES.SKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.SKEYWORD;
             this.popSMTo_(2);
             this.stack.push({
               parse: this.readEnd_,
@@ -2254,7 +2256,7 @@ SasLexerEx.prototype = {
           case "PROCEDURE":
             this.endFoldingBlock_(this.SEC_TYPE.PROC, this.lastToken.end);
             this.startFoldingBlock_(this.SEC_TYPE.PROC, token.start, word);
-            token.type = SasLexer.TOKEN_TYPES.SKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.SKEYWORD;
             this.popSMTo_(1);
             var procName = this.handleProcName_();
             this.stack.push({
@@ -2271,7 +2273,7 @@ SasLexerEx.prototype = {
           case "DATA":
             this.endFoldingBlock_(this.SEC_TYPE.PROC, this.lastToken.end);
             this.startFoldingBlock_(this.SEC_TYPE.DATA, token.start, word);
-            token.type = SasLexer.TOKEN_TYPES.SKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.SKEYWORD;
             this.popSMTo_(1);
             this.stack.push({
               parse: this.readData_,
@@ -2285,7 +2287,7 @@ SasLexerEx.prototype = {
           case "%MACRO":
             this.endFoldingBlock_(this.SEC_TYPE.PROC, this.lastToken.end);
             this.startFoldingBlock_(this.SEC_TYPE.MACRO, token.start, word);
-            token.type = SasLexer.TOKEN_TYPES.MSKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.MSKEYWORD;
             this.popSMTo_(1);
             this.stack.push({
               parse: this.readMacro_,
@@ -2317,7 +2319,7 @@ SasLexerEx.prototype = {
       if (token.text === ";") {
         //statement ends
         this.stack.pop();
-      } else if (SasLexer.isWord[token.type] && !token.notCheckKeyword) {
+      } else if (Lexer.isWord[token.type] && !token.notCheckKeyword) {
         if (this.curr.name === "ODS") {
           this.handleODSStmt_(token);
         } else {
@@ -2557,7 +2559,7 @@ SasLexerEx.prototype = {
 
     if (!token) return;
 
-    if (SasLexer.isWord[token.type]) {
+    if (Lexer.isWord[token.type]) {
       if (this.isLabel_()) {
         this.stack.push({
           parse: this.readLabel_,
@@ -2577,7 +2579,7 @@ SasLexerEx.prototype = {
           case this.langSrv.isInteractiveProc(procName) ? "QUIT" : "RUN":
           case "QUIT":
             //normal section end
-            token.type = SasLexer.TOKEN_TYPES.SKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.SKEYWORD;
             this.stack.push({
               parse: this.readEnd_,
               state: this.PARSING_STATE.IN_PROC,
@@ -2587,7 +2589,7 @@ SasLexerEx.prototype = {
             break;
           case "%MEND":
             //error:
-            token.type = SasLexer.TOKEN_TYPES.MSKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.MSKEYWORD;
             if (
               this.stack.length > 2 &&
               this.stack[this.stack.length - 2].state ===
@@ -2611,7 +2613,7 @@ SasLexerEx.prototype = {
             this.endFoldingBlock_(this.SEC_TYPE.PROC, this.lastToken.end);
             this.startFoldingBlock_(this.SEC_TYPE.PROC, token.start, word);
 
-            token.type = SasLexer.TOKEN_TYPES.SKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.SKEYWORD;
             this.stack.pop();
             procName = this.handleProcName_();
             this.stack.push({
@@ -2629,7 +2631,7 @@ SasLexerEx.prototype = {
             this.endFoldingBlock_(this.SEC_TYPE.PROC, this.lastToken.end);
             this.startFoldingBlock_(this.SEC_TYPE.MACRO, token.start, word);
 
-            token.type = SasLexer.TOKEN_TYPES.MSKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.MSKEYWORD;
             this.stack.pop();
             this.stack.push({
               parse: this.readMacro_,
@@ -2645,7 +2647,7 @@ SasLexerEx.prototype = {
               this.endFoldingBlock_(this.SEC_TYPE.PROC, this.lastToken.end);
               this.startFoldingBlock_(this.SEC_TYPE.DATA, token.start, word);
 
-              token.type = SasLexer.TOKEN_TYPES.SKEYWORD;
+              token.type = Lexer.TOKEN_TYPES.SKEYWORD;
               this.stack.pop();
               this.stack.push({
                 parse: this.readData_,
@@ -2690,7 +2692,7 @@ SasLexerEx.prototype = {
               }
             } else if (procName === "EXPLODE") {
               // TODO: we must modify block merging algorithm to support this.
-              if (SasLexer.isParmcards[word]) {
+              if (Lexer.isParmcards[word]) {
                 this.cardsState = this.CARDS_STATE.IN_CMD;
                 this.stack.push({
                   parse: this.readCards_,
@@ -2701,7 +2703,7 @@ SasLexerEx.prototype = {
                 this.setKeyword_(token, true);
                 generalProcStmt = false;
               }
-            } else if (token.type === SasLexer.TOKEN_TYPES.MREF) {
+            } else if (token.type === Lexer.TOKEN_TYPES.MREF) {
               this.handleMref_(this.PARSING_STATE.IN_PROC);
               generalProcStmt = false;
             }
@@ -2740,7 +2742,7 @@ SasLexerEx.prototype = {
       next2 = this.prefetch_(it);
 
       if (next1 && next2) {
-        if (SasLexer.isWord[next1.type] && next2.text === ":") {
+        if (Lexer.isWord[next1.type] && next2.text === ":") {
           // label
           next1 = this.prefetch_(it);
           next2 = this.prefetch_(it);
@@ -2763,7 +2765,7 @@ SasLexerEx.prototype = {
 
     if (!token) return;
 
-    if (SasLexer.isWord[token.type]) {
+    if (Lexer.isWord[token.type]) {
       if (this.isLabel_()) {
         this.stack.push({
           parse: this.readLabel_,
@@ -2781,7 +2783,7 @@ SasLexerEx.prototype = {
         switch (word) {
           case "%MEND":
             //error
-            token.type = SasLexer.TOKEN_TYPES.MSKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.MSKEYWORD;
             if (
               this.stack.length > 2 &&
               this.stack[this.stack.length - 2].state ===
@@ -2804,7 +2806,7 @@ SasLexerEx.prototype = {
             this.endFoldingBlock_(this.SEC_TYPE.DATA, this.lastToken.end);
             this.startFoldingBlock_(this.SEC_TYPE.DATA, token.start, word);
 
-            token.type = SasLexer.TOKEN_TYPES.SKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.SKEYWORD;
             this.stack.push({
               parse: this.readDataDef_,
               state: this.PARSING_STATE.IN_DATA,
@@ -2815,7 +2817,7 @@ SasLexerEx.prototype = {
             this.endFoldingBlock_(this.SEC_TYPE.DATA, this.lastToken.end);
             this.startFoldingBlock_(this.SEC_TYPE.PROC, token.start, word);
 
-            token.type = SasLexer.TOKEN_TYPES.SKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.SKEYWORD;
             this.stack.pop(); //end data section
             var procName = this.handleProcName_();
             this.stack.push({
@@ -2833,7 +2835,7 @@ SasLexerEx.prototype = {
             this.endFoldingBlock_(this.SEC_TYPE.DATA, this.lastToken.end);
             this.startFoldingBlock_(this.SEC_TYPE.MACRO, token.start, word);
 
-            token.type = SasLexer.TOKEN_TYPES.MSKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.MSKEYWORD;
             this.stack.pop(); //end data section
             this.stack.push({
               parse: this.readMacro_,
@@ -2847,7 +2849,7 @@ SasLexerEx.prototype = {
           case "RUN":
           case "QUIT":
             //normal section end
-            token.type = SasLexer.TOKEN_TYPES.SKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.SKEYWORD;
             if (!this.hasRunCancelFollowed_()) {
               this.tryToHandleSectionEnd_(token);
               this.stack.push({
@@ -2859,7 +2861,7 @@ SasLexerEx.prototype = {
               break;
             } // attention: not break here
           default:
-            if (SasLexer.isCards[word]) {
+            if (Lexer.isCards[word]) {
               this.cardsState = this.CARDS_STATE.IN_CMD;
               this.stack.push({
                 parse: this.readCards_,
@@ -2871,7 +2873,7 @@ SasLexerEx.prototype = {
                 token,
                 this.langSrv.isProcedureStatementKeyword("DATA", word)
               );
-            } else if (token.type === SasLexer.TOKEN_TYPES.MREF) {
+            } else if (token.type === Lexer.TOKEN_TYPES.MREF) {
               this.handleMref_(this.PARSING_STATE.IN_DATA);
             } else {
               //handle the statements in data section
@@ -2908,7 +2910,7 @@ SasLexerEx.prototype = {
 
     if (!token) return;
 
-    if (SasLexer.isWord[token.type]) {
+    if (Lexer.isWord[token.type]) {
       if (this.isLabel_()) {
         this.stack.push({
           parse: this.readLabel_,
@@ -2926,7 +2928,7 @@ SasLexerEx.prototype = {
         switch (word) {
           case "%MEND":
             //normal section end
-            token.type = SasLexer.TOKEN_TYPES.MSKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.MSKEYWORD;
             this.stack.push({
               parse: this.readMend_,
               state: this.PARSING_STATE.IN_MACRO,
@@ -2938,7 +2940,7 @@ SasLexerEx.prototype = {
             //no normal end, and another proc meet, there are syntax errors
             // ignore
             this.startFoldingBlock_(this.SEC_TYPE.MACRO, token.start, word);
-            token.type = SasLexer.TOKEN_TYPES.MSKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.MSKEYWORD;
             this.stack.push({
               parse: this.readMacro_,
               state: this.PARSING_STATE.IN_MACRO,
@@ -2951,7 +2953,7 @@ SasLexerEx.prototype = {
           case "PROC":
           case "PROCEDURE":
             this.startFoldingBlock_(this.SEC_TYPE.PROC, token.start, word);
-            token.type = SasLexer.TOKEN_TYPES.SKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.SKEYWORD;
             var procName = this.handleProcName_();
             this.stack.push({
               parse: this.readProc_,
@@ -2966,7 +2968,7 @@ SasLexerEx.prototype = {
             break;
           case "DATA":
             this.startFoldingBlock_(this.SEC_TYPE.DATA, token.start, word);
-            token.type = SasLexer.TOKEN_TYPES.SKEYWORD;
+            token.type = Lexer.TOKEN_TYPES.SKEYWORD;
             this.stack.push({
               parse: this.readData_,
               state: this.PARSING_STATE.IN_DATA,
@@ -3004,7 +3006,7 @@ SasLexerEx.prototype = {
 
     if (!token) return;
 
-    if (SasLexer.isWord[token.type]) {
+    if (Lexer.isWord[token.type]) {
       if (this.isLabel_()) {
         this.stack.push({
           parse: this.readLabel_,
@@ -3022,7 +3024,7 @@ SasLexerEx.prototype = {
         if (word === "PROC" || word === "PROCEDURE") {
           this.endFoldingBlock_(this.SEC_TYPE.GBL, this.lastToken.end);
           this.startFoldingBlock_(this.SEC_TYPE.PROC, token.start, word);
-          token.type = SasLexer.TOKEN_TYPES.SKEYWORD;
+          token.type = Lexer.TOKEN_TYPES.SKEYWORD;
           this.stack.pop();
           var procName = this.handleProcName_();
           this.stack.push({
@@ -3038,7 +3040,7 @@ SasLexerEx.prototype = {
         } else if (word === "%MACRO") {
           this.endFoldingBlock_(this.SEC_TYPE.GBL, this.lastToken.end);
           this.startFoldingBlock_(this.SEC_TYPE.MACRO, token.start, word);
-          token.type = SasLexer.TOKEN_TYPES.MSKEYWORD;
+          token.type = Lexer.TOKEN_TYPES.MSKEYWORD;
           this.stack.pop();
           this.stack.push({
             parse: this.readMacro_,
@@ -3051,7 +3053,7 @@ SasLexerEx.prototype = {
         } else if (word === "DATA") {
           this.endFoldingBlock_(this.SEC_TYPE.GBL, this.lastToken.end);
           this.startFoldingBlock_(this.SEC_TYPE.DATA, token.start, word);
-          token.type = SasLexer.TOKEN_TYPES.SKEYWORD;
+          token.type = Lexer.TOKEN_TYPES.SKEYWORD;
           this.stack.pop();
           this.stack.push({
             parse: this.readData_,
@@ -3061,7 +3063,7 @@ SasLexerEx.prototype = {
             parse: this.readDataDef_,
             state: this.PARSING_STATE.IN_DATA,
           });
-        } else if (token.type === SasLexer.TOKEN_TYPES.MREF) {
+        } else if (token.type === Lexer.TOKEN_TYPES.MREF) {
           this.handleMref_(this.PARSING_STATE.IN_GBL);
         } else {
           var validName = this._cleanKeyword(word);
@@ -3092,15 +3094,14 @@ SasLexerEx.prototype = {
       line,
       text,
       endExp =
-        SasLexer.isCards4[this.curr.name] ||
-        SasLexer.isParmcards4[this.curr.name]
+        Lexer.isCards4[this.curr.name] || Lexer.isParmcards4[this.curr.name]
           ? /^;;;;/
           : /;/,
       token = null;
 
     if (this.cardsState === this.CARDS_STATE.IN_CMD) {
       token = this.getNext_();
-      if (token && token.type === SasLexer.TOKEN_TYPES.SEP) {
+      if (token && token.type === Lexer.TOKEN_TYPES.SEP) {
         word = token.text;
         if (word === ";") {
           //the data will start from the next line
@@ -3138,7 +3139,7 @@ SasLexerEx.prototype = {
         this.lexer.curr.column = this.model.getLine(line).length;
         //TODO: IMPROVE
         return this._changeCardsDataToken({
-          type: SasLexer.TOKEN_TYPES.CARDSDATA,
+          type: Lexer.TOKEN_TYPES.CARDSDATA,
           start: this._clonePos(this.lexer.start),
           end: this._clonePos(this.lexer.curr),
         });
@@ -3234,7 +3235,7 @@ var Expression = function (parser) {
     var token;
     do {
       token = _next0(context);
-    } while (SasLexer.isComment[token.type]);
+    } while (Lexer.isComment[token.type]);
     return token;
   }
 
@@ -3261,12 +3262,12 @@ var Expression = function (parser) {
     } else if (isScopeBeginMark[token.text]) {
       // not consume this mark
       _argList(context, ends);
-    } else if (SasLexer.isUnaryOpr[token.text]) {
+    } else if (Lexer.isUnaryOpr[token.text]) {
       _copyContext(tmpContext, context); // consume this operator
       _expr(context, ends);
     } else {
       _copyContext(tmpContext, context); // consume this token
-      if (optionNameCandidate && SasLexer.isWord[token.type]) {
+      if (optionNameCandidate && Lexer.isWord[token.type]) {
         context.onMeetTarget(token, context.pos);
       }
     }
@@ -3274,15 +3275,15 @@ var Expression = function (parser) {
     for (;;) {
       ret = _tryGetOpr(context);
       text = ret.token.text;
-      if (SasLexer.isBinaryOpr[text]) {
+      if (Lexer.isBinaryOpr[text]) {
         _copyContext(ret.context, context);
-        if (SasLexer.isWord[ret.token.type]) {
+        if (Lexer.isWord[ret.token.type]) {
           //may always be keyword, but we take the general flow (HTMLCOMMONS-3812)
           context.onMeetTarget(ret.token, context.pos);
         }
         _expr(context, ends);
       } else if (isScopeBeginMark[text]) {
-        if (SasLexer.isWord[token.type] && text === "(") {
+        if (Lexer.isWord[token.type] && text === "(") {
           //TODO: Improve this
           //function call
           if (parser.langSrv.isSasFunction(token.text)) {
@@ -3340,10 +3341,10 @@ var Expression = function (parser) {
       if (ignoreDivision === undefined) {
         ignoreDivision = true;
       }
-      SasLexer.isBinaryOpr["/"] = !ignoreDivision;
+      Lexer.isBinaryOpr["/"] = !ignoreDivision;
       _expr(context, { ";": 1 });
       ret.pos = context.pos;
-      SasLexer.isBinaryOpr["/"] = 1;
+      Lexer.isBinaryOpr["/"] = 1;
     } catch (e) {
       //ignore any errors
       //assert('parse expression error'); // eslint-disable-line shikari/sas-i18n-ems
@@ -3352,10 +3353,9 @@ var Expression = function (parser) {
   };
 };
 
-SasLexerEx.SEC_TYPE = {
+LexerEx.SEC_TYPE = {
   DATA: 0,
   PROC: 1,
   MACRO: 2,
   GBL: 3,
 };
-exports.SasLexerEx = SasLexerEx;

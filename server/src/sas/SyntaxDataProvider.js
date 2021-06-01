@@ -29,7 +29,7 @@ var ResLoader = (function () {
 })();
 
 // SasLanguageService
-var SasLanguageService = function () {};
+export var SyntaxDataProvider = function () {};
 (function () {
   var db = {
       procOpts: {},
@@ -2354,6 +2354,4 @@ var SasLanguageService = function () {};
     var data = _keywordObj("proc", name);
     return data && data[ID_ATTR] === "InteractivePROC";
   };
-}.call(SasLanguageService.prototype));
-
-exports.SasLanguageService = SasLanguageService;
+}.call(SyntaxDataProvider.prototype));

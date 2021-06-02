@@ -1,6 +1,6 @@
 import * as path from "path";
-import { ExtensionContext } from "vscode";
-
+import { commands, ExtensionContext } from "vscode";
+import { setup } from "./viya/compute";
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -46,6 +46,10 @@ export function activate(context: ExtensionContext): void {
 
   // Start the client. This will also launch the server
   client.start();
+
+  context.subscriptions.push(
+    commands.registerCommand("SAS.session.run", setup)
+  );
 }
 
 export function deactivate(): Thenable<void> | undefined {

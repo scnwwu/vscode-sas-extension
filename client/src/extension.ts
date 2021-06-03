@@ -1,6 +1,7 @@
 import * as path from "path";
 import { commands, ExtensionContext } from "vscode";
-import { setup } from "./viya/compute";
+import { run } from "./commands/run";
+import { closeSession } from "./commands/closeSession";
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -48,7 +49,8 @@ export function activate(context: ExtensionContext): void {
   client.start();
 
   context.subscriptions.push(
-    commands.registerCommand("SAS.session.run", setup)
+    commands.registerCommand("SAS.session.run", run),
+    commands.registerCommand("SAS.session.close", closeSession)
   );
 }
 

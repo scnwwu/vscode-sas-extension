@@ -18,26 +18,31 @@
     "configuration": {
       "title": "SAS",
       "properties": {
-        "SAS.server.host": {
+        "SAS.session.host": {
           "type": "string",
           "format": "hostname",
           "description": "Full URL of your viya server"
         },
-        "SAS.server.user": {
+        "SAS.session.user": {
           "type": "string",
           "description": "User name for authentication with password flow"
         },
-        "SAS.server.clientId": {
+        "SAS.session.clientId": {
           "type": "string",
           "description": "Client ID for authentication with password flow. Get from your admin."
         },
-        "SAS.server.clientSecret": {
+        "SAS.session.clientSecret": {
           "type": "string",
           "description": "Client secret for authentication with password flow. Get from your admin."
         },
-        "SAS.server.tokenPath": {
+        "SAS.session.tokenPath": {
           "type": "string",
           "description": "Path to a token file for authentication. Otherwise take password flow."
+        },
+        "SAS.session.outputHtml": {
+          "type": "boolean",
+          "default": true,
+          "description": "Get ODS HTML5 output"
         }
       }
     },
@@ -46,8 +51,21 @@
         "command": "SAS.session.run",
         "title": "Run SAS code",
         "category": "SAS Session"
+      },
+      {
+        "command": "SAS.session.close",
+        "title": "Close current session",
+        "category": "SAS Session"
       }
     ],
+    "menus": {
+      "editor/title/run": [
+        {
+          "when": "editorLangId == SAS",
+          "command": "SAS.session.run"
+        }
+      ]
+    },
     "languages": [
       {
         "id": "SAS",

@@ -19,15 +19,10 @@ export type AuthConfig =
 
 export function getAuthConfig(): Promise<AuthConfig> {
   return new Promise((resolve, reject) => {
-    function error(msg: string) {
-      window.showErrorMessage(msg);
-      reject();
-    }
-
-    const config = workspace.getConfiguration("SAS.server");
+    const config = workspace.getConfiguration("SAS.session");
     const host: string = config.get("host");
     if (host === "") {
-      error("SAS server host in Settings is required.");
+      reject("SAS server host in Settings is required.");
       return;
     }
 
@@ -35,7 +30,7 @@ export function getAuthConfig(): Promise<AuthConfig> {
     if (tokenPath.length > 0) {
       readFile(tokenPath, (err, data) => {
         if (err && err.message) {
-          error(err.message);
+          reject(err.message);
           return;
         }
         resolve({
@@ -53,7 +48,7 @@ export function getAuthConfig(): Promise<AuthConfig> {
     const clientID: string = config.get("clientId");
     const clientSecret: string = config.get("clientSecret");
     if (user === "" || clientID === "") {
-      error(
+      reject(
         "Either token path, or user and client ID/Secret needed for authentication."
       );
       return;
@@ -63,15 +58,17 @@ export function getAuthConfig(): Promise<AuthConfig> {
         placeHolder: `password for ${user}`,
         password: true,
       })
-      .then((password) =>
-        resolve({
-          authType: "password",
-          host,
-          clientID,
-          clientSecret,
-          user,
-          password,
-        })
-      );
+      .then((password) => {
+        if (password)
+          resolve({
+            authType: "password",
+            host,
+            clientID,
+            clientSecret,
+            user,
+            password,
+          });
+        else reject("No password");
+      });
   });
 }

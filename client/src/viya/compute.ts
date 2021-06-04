@@ -24,8 +24,18 @@ export async function setup(): Promise<void> {
   if (!authConfig) {
     authConfig = await getAuthConfig();
   }
+  if (computeSession) {
+    await store.apiCall(computeSession.links("state")).catch(() => {
+      computeSession = undefined;
+    });
+  }
   if (!computeSession) {
-    computeSession = await computeSetup(store, null, authConfig);
+    computeSession = await computeSetup(store, null, authConfig).catch(
+      (err) => {
+        authConfig = undefined;
+        throw err;
+      }
+    );
   }
 }
 
@@ -41,9 +51,9 @@ export async function run(code: string): Promise<Results> {
 }
 
 export function closeSession(): Promise<void> {
+  authConfig = undefined;
   if (computeSession)
     return store.apiCall(computeSession.links("delete")).finally(() => {
       computeSession = undefined;
-      authConfig = undefined;
     });
 }

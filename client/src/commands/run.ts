@@ -14,7 +14,7 @@ function getCode(outputHtml: boolean): string {
   return outputHtml ? "ods html5;\n" + code + "\n;quit;ods html5 close;" : code;
 }
 
-export async function run(): Promise<void> {
+async function _run() {
   const outputHtml: boolean = workspace
     .getConfiguration("SAS.session")
     .get("outputHtml");
@@ -25,39 +25,37 @@ export async function run(): Promise<void> {
       location: ProgressLocation.Notification,
       title: "Connecting to SAS session...",
     },
-    () =>
-      setup().catch((err) => {
-        window.showErrorMessage(err);
-      })
+    setup
   );
 
-  window.withProgress(
+  await window.withProgress(
     {
       location: ProgressLocation.Notification,
       title: "SAS code running...",
     },
     () =>
-      computeRun(code).then(
-        (results) => {
-          if (!outputChannel)
-            outputChannel = window.createOutputChannel("SAS Log");
-          outputChannel.show();
-          for (const line of results.log) {
-            outputChannel.appendLine(line.line);
-          }
-          if (outputHtml) {
-            const odsResult = window.createWebviewPanel(
-              "SASSession", // Identifies the type of the webview. Used internally
-              "Result", // Title of the panel displayed to the user
-              ViewColumn.Two, // Editor column to show the new webview panel in.
-              {} // Webview options. More on these later.
-            );
-            odsResult.webview.html = results.ods;
-          }
-        },
-        (err) => {
-          window.showErrorMessage(err);
+      computeRun(code).then((results) => {
+        if (!outputChannel)
+          outputChannel = window.createOutputChannel("SAS Log");
+        outputChannel.show();
+        for (const line of results.log) {
+          outputChannel.appendLine(line.line);
         }
-      )
+        if (outputHtml) {
+          const odsResult = window.createWebviewPanel(
+            "SASSession", // Identifies the type of the webview. Used internally
+            "Result", // Title of the panel displayed to the user
+            ViewColumn.Two, // Editor column to show the new webview panel in.
+            {} // Webview options. More on these later.
+          );
+          odsResult.webview.html = results.ods;
+        }
+      })
   );
+}
+
+export function run(): void {
+  _run().catch((err) => {
+    window.showErrorMessage(err.get ? err.get("detail") : err.detail ?? err);
+  });
 }

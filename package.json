@@ -35,9 +35,9 @@
           "type": "string",
           "description": "Client secret for authentication with password flow. Get from your admin."
         },
-        "SAS.session.tokenPath": {
+        "SAS.session.tokenFile": {
           "type": "string",
-          "description": "Path to a token file for authentication. Otherwise take password flow."
+          "description": "Full path to a token file for authentication. Otherwise take password flow."
         },
         "SAS.session.outputHtml": {
           "type": "boolean",
@@ -60,6 +60,12 @@
     ],
     "menus": {
       "editor/title/run": [
+        {
+          "when": "editorLangId == SAS",
+          "command": "SAS.session.run"
+        }
+      ],
+      "commandPalette": [
         {
           "when": "editorLangId == SAS",
           "command": "SAS.session.run"

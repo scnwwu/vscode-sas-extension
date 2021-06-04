@@ -26,9 +26,9 @@ export function getAuthConfig(): Promise<AuthConfig> {
       return;
     }
 
-    const tokenPath: string = config.get("tokenPath");
-    if (tokenPath.length > 0) {
-      readFile(tokenPath, (err, data) => {
+    const tokenFile: string = config.get("tokenFile");
+    if (tokenFile.length > 0) {
+      readFile(tokenFile, (err, data) => {
         if (err && err.message) {
           reject(err.message);
           return;
@@ -49,7 +49,7 @@ export function getAuthConfig(): Promise<AuthConfig> {
     const clientSecret: string = config.get("clientSecret");
     if (user === "" || clientID === "") {
       reject(
-        "Either token path, or user and client ID/Secret needed for authentication."
+        "Either token file, or user and client ID/Secret needed for authentication."
       );
       return;
     }

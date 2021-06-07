@@ -104,13 +104,17 @@
     "lint": "node node_modules/eslint/bin/eslint.js ./client/src/**/*.ts ./server/src/**/*.ts",
     "compile": "node ./tools/build.js",
     "watch": "node ./tools/build.js dev",
+    "pretest": "npm run compile && tsc -p ./client",
+    "test": "node ./client/out/test/runTest.js",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd .."
   },
   "devDependencies": {
+    "@types/mocha": "^8.2.2",
     "@types/node": "^12.12.0",
     "@typescript-eslint/eslint-plugin": "^4.21.0",
     "@typescript-eslint/parser": "^4.21.0",
     "eslint": "^7.23.0",
+    "mocha": "^8.3.2",
     "typescript": "^4.2.3",
     "esbuild": "^0.12.5"
   }

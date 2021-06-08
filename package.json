@@ -21,40 +21,40 @@
         "SAS.session.host": {
           "type": "string",
           "format": "hostname",
-          "description": "Full URL of your viya server"
+          "description": "%configuration.SAS.session.host%"
         },
         "SAS.session.user": {
           "type": "string",
-          "description": "User name for authentication with password flow"
+          "description": "%configuration.SAS.session.user%"
         },
         "SAS.session.clientId": {
           "type": "string",
-          "description": "Client ID for authentication with password flow. Get from your admin."
+          "description": "%configuration.SAS.session.clientId%"
         },
         "SAS.session.clientSecret": {
           "type": "string",
-          "description": "Client secret for authentication with password flow. Get from your admin."
+          "description": "%configuration.SAS.session.clientSecret%"
         },
         "SAS.session.tokenFile": {
           "type": "string",
-          "description": "Full path to a token file for authentication. Otherwise take password flow."
+          "description": "%configuration.SAS.session.tokenFile%"
         },
         "SAS.session.outputHtml": {
           "type": "boolean",
           "default": true,
-          "description": "Get ODS HTML5 output"
+          "description": "%configuration.SAS.session.outputHtml%"
         }
       }
     },
     "commands": [
       {
         "command": "SAS.session.run",
-        "title": "Run SAS code",
+        "title": "%commands.SAS.session.run%",
         "category": "SAS Session"
       },
       {
         "command": "SAS.session.close",
-        "title": "Close current session",
+        "title": "%commands.SAS.session.close%",
         "category": "SAS Session"
       }
     ],

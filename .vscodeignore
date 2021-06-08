@@ -1,6 +1,7 @@
 .vscode/**
 **/src/**
 **/test/**
+**/testFixture/**
 **/out/**
 **/*.ts
 **/*.map

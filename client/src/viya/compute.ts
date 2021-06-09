@@ -1,6 +1,6 @@
 import { initStore } from "@sassoftware/restaf";
 import {
-  computeSetup,
+  //computeSetup,
   computeRun,
   computeResults,
 } from "@sassoftware/restaflib";
@@ -18,6 +18,35 @@ export interface LogLine {
 export interface Results {
   log: LogLine[];
   ods: string;
+}
+
+// copied from restaflib
+// inject VSCode locale when create session
+async function computeSetup(store, contextName, payload) {
+  if (payload !== null) {
+    await store.logon(payload);
+  }
+  const { compute } = await store.addServices("compute");
+  const contexts = await store.apiCall(compute.links("contexts"));
+  if (contextName === null) {
+    contextName = "Job Execution compute";
+  }
+  contextName = contextName.toLowerCase();
+  const index = contexts
+    .itemsList()
+    .findIndex((c) => c.toLowerCase().indexOf(contextName) >= 0);
+  if (index === -1) {
+    throw { Error: "Compute Context not found: " + contextName };
+  }
+  const createSession = contexts.itemsCmd(
+    contexts.itemsList(index),
+    "createSession"
+  );
+  const locale = JSON.parse(process.env.VSCODE_NLS_CONFIG).locale;
+  const session = await store.apiCall(createSession, {
+    headers: { "accept-language": locale },
+  });
+  return session;
 }
 
 export async function setup(): Promise<void> {

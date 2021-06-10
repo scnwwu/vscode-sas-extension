@@ -841,15 +841,6 @@ export class Lexer {
     return "";
   }
   getText(token: Token): string {
-    return this.model.getText({
-      start: {
-        line: token.start.line,
-        character: token.start.column,
-      },
-      end: {
-        line: token.end.line,
-        character: token.end.column,
-      },
-    });
+    return this.model.getText(token);
   }
 }

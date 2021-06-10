@@ -176,8 +176,8 @@ export class LanguageServiceProvider {
           "PROC " +
           this.model
             .getText({
-              start: { line, character: token.start },
-              end: { line, character: end },
+              start: { line, column: token.start },
+              end: { line, column: end },
             })
             .toUpperCase()
         );

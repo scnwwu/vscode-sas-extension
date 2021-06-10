@@ -7,6 +7,7 @@ import {
 import { Position } from "vscode-languageserver-textdocument";
 import { CodeZoneManager } from "./CodeZoneManager";
 import { Model } from "./Model";
+import { SyntaxProvider } from "./SyntaxProvider";
 import { arrayToMap, getText } from "./utils";
 
 const ZONE_TYPE = CodeZoneManager.ZONE_TYPE;
@@ -211,23 +212,22 @@ export class CompletionProvider {
   private loader;
   private popupContext: any = {};
 
-  constructor(private model: Model, private syntaxColor: any) {
-    this.loader = syntaxColor.lexer.langSrv;
-    this.czMgr = new CodeZoneManager(model, this.loader, syntaxColor);
+  constructor(private model: Model, private syntaxProvider: SyntaxProvider) {
+    this.loader = syntaxProvider.lexer.langSrv;
+    this.czMgr = new CodeZoneManager(model, this.loader, syntaxProvider);
   }
 
   getHelp(position: Position): Promise<Hover | undefined> | undefined {
     const line = this.model.getLine(position.line);
-    const tokens = this.syntaxColor.getSyntax(position.line);
+    const tokens = this.syntaxProvider.getSyntax(position.line);
     for (let j = 0; j < tokens.length; j++) {
       const start = tokens[j].start;
       const end = j === tokens.length - 1 ? line.length : tokens[j + 1].start;
       if (end >= position.character) {
-        const range = {
-          start: { line: position.line, character: start },
-          end: { line: position.line, character: end },
-        };
-        const keyword = this.model.getText(range);
+        const keyword = this.model.getText({
+          start: { line: position.line, column: start },
+          end: { line: position.line, column: end },
+        });
         const zone = this.czMgr.getCurrentZone(
           position.line,
           position.character
@@ -247,7 +247,10 @@ export class CompletionProvider {
                     kind: MarkupKind.Markdown,
                     value: this._addLinkContext(zone, data),
                   },
-                  range,
+                  range: {
+                    start: { line: position.line, character: start },
+                    end: { line: position.line, character: end },
+                  },
                 });
               } else {
                 resolve(undefined);
@@ -1348,7 +1351,7 @@ export class CompletionProvider {
     let flag = 0,
       varName = "";
     for (let line = 0; line < this.model.getLineCount(); line++) {
-      const syntax = this.syntaxColor.getSyntax(line),
+      const syntax = this.syntaxProvider.getSyntax(line),
         lineText = this.model.getLine(line),
         count = syntax.length;
       for (let i = 0; i < count; i++) {

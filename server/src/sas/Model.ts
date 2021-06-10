@@ -1,4 +1,5 @@
-import { Range, TextDocument } from "vscode-languageserver-textdocument";
+import { TextDocument } from "vscode-languageserver-textdocument";
+import { TextRange } from "./utils";
 
 export class Model {
   constructor(private doc: TextDocument) {}
@@ -14,8 +15,17 @@ export class Model {
     return this.doc.lineCount;
   }
 
-  getText(range: Range): string {
-    return this.doc.getText(range);
+  getText(range: TextRange): string {
+    return this.doc.getText({
+      start: {
+        line: range.start.line,
+        character: range.start.column,
+      },
+      end: {
+        line: range.end.line,
+        character: range.end.column,
+      },
+    });
   }
 
   getColumnCount(line: number): number {

@@ -5,6 +5,11 @@ export interface TextPosition {
   column: number;
 }
 
+export interface TextRange {
+  start: TextPosition;
+  end: TextPosition;
+}
+
 export function arrayToMap(arr: string[]): Record<string, 1> {
   const map: Record<string, 1> = {};
   for (const key of arr) {

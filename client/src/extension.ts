@@ -34,7 +34,7 @@ export function activate(context: ExtensionContext): void {
   // Options to control the language client
   const clientOptions: LanguageClientOptions = {
     // Register the server for sas file
-    documentSelector: [{ scheme: "file", language: "SAS" }],
+    documentSelector: [{ language: "SAS" }],
   };
 
   // Create the language client and start the client.

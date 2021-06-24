@@ -3,10 +3,9 @@ import { arrayToMap } from "./utils";
 const getBaseUrl = () => "..";
 
 // ResLoader
-const ResLoader = (function () {
-  return {
-    get: function (url: string, cb: (arg0: any) => void, async?: boolean) {
-      /*jQuery.ajax({
+const ResLoader = {
+  get: function (url: string, cb: (arg0: any) => void, async?: boolean) {
+    /*jQuery.ajax({
                     //type: "get",
                     url: url,
                     dataType: "json",
@@ -22,11 +21,25 @@ const ResLoader = (function () {
                         }
                     }
                 });*/
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      cb(require(url));
-    },
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    cb(require(url));
+  },
+};
+
+export interface HelpData {
+  key: string;
+  alias?: string[];
+  data?: string;
+  syntax?: string;
+  isGlobal?: boolean;
+  supportSite?: {
+    docsetId: string;
+    docsetVersion: string;
+    docsetTargetFile?: string;
+    supportSiteTargetFile?: string;
+    supportSiteTargetFragment?: string;
   };
-})();
+}
 
 const db: any = {
     procOpts: {},
@@ -95,10 +108,7 @@ const db: any = {
     "DEFINE_TAGSET",
     "DEFINE_EVENT",
   ]);
-let libService: (
-  arg0: any,
-  arg1: { (data: any): void; (data: any): void }
-) => void;
+let libService: (arg0: any, arg1: (data: any) => void) => void;
 
 // Utilities
 function _uniq(arr: any[]) {
@@ -118,10 +128,7 @@ function _uniq(arr: any[]) {
   return a;
 }
 
-function _notify(
-  cb: (arg0: any) => void,
-  data: { values: any; type: any } | null
-) {
+function _notify<T>(cb: ((arg0: T) => void) | null | undefined, data: T) {
   if (cb) {
     setTimeout(function () {
       cb(data);
@@ -372,11 +379,11 @@ function _iterateKeywords(
   }
 }
 
-function _tryToLoad(config: {
-  userCb: any;
-  getData: any;
-  needToLoad: any;
-  load: any;
+function _tryToLoad<T>(config: {
+  userCb: ((data: T) => void) | null | undefined;
+  getData: () => T;
+  needToLoad: () => any;
+  load: (cb?: () => void) => void;
 }) {
   if (!config.needToLoad()) {
     //data is ready
@@ -387,7 +394,7 @@ function _tryToLoad(config: {
     if (async) {
       // async mode
       config.load(function () {
-        config.userCb(config.getData());
+        config.userCb?.(config.getData());
       });
     } else {
       config.load();
@@ -452,11 +459,11 @@ function _setFunctionsFromPubs(data: any[], context: string) {
   if (!db.functions[context]) {
     db.functions[context] = {};
   }
-  const list: any[] = [];
+  const list: string[] = [];
   data.forEach(function (fun: {
     name: string;
-    description: any;
-    syntax: { help: any };
+    description: string;
+    syntax: { help: string };
     supportSiteInformation: any;
   }) {
     list.push(fun.name);
@@ -487,7 +494,7 @@ function _FunctionsLoadedFromPubs(context: string) {
 function _tryToLoadFunctionsFromPubs(
   context: string,
   userCb: any,
-  getDataFunc: { (): any; (): boolean }
+  getDataFunc: { (): any }
 ) {
   return _tryToLoad({
     userCb: userCb,
@@ -501,7 +508,7 @@ function _tryToLoadFunctionsFromPubs(
   });
 }
 
-function _loadProceduresFromPubs(cb: () => void) {
+function _loadProceduresFromPubs(cb?: () => void) {
   const url = getBaseUrl() + "/pubsdata/procedures.json";
   ResLoader.get(
     url,
@@ -520,17 +527,14 @@ function _loadProceduresFromPubs(cb: () => void) {
     !!cb
   ); //if cb exists, use async mode
 }
-function _tryToLoadProceduresFromPubs(
-  userCb: any,
-  getDataFunc: { (): any; (): void }
-) {
+function _tryToLoadProceduresFromPubs(userCb: any, getDataFunc: { (): any }) {
   return _tryToLoad({
     userCb: userCb,
     getData: getDataFunc,
     needToLoad: function () {
       return !_keywordLoaded("proc");
     },
-    load: function (cb: any) {
+    load: function (cb) {
       _loadProceduresFromPubs(cb);
     },
   });
@@ -659,7 +663,7 @@ function _statementLoaded(stmtName: string) {
 function _tryToLoadStatementOptions(
   stmtName: string,
   userCb: any,
-  getDataFunc: { (): any; (): any; (): any; (): any }
+  getDataFunc: { (): any }
 ) {
   return _tryToLoad({
     userCb: userCb,
@@ -731,7 +735,7 @@ function _setStatementsFromPubs(data: any[], context: string) {
   });
   db.procStmts[context][ID_STMTS] = list;
 }
-function _loadStatementsFromPubs(context: string, cb: () => void) {
+function _loadStatementsFromPubs(context: string, cb?: () => void) {
   const url = getBaseUrl() + "/pubsdata/Statements/en/" + context + ".json";
   ResLoader.get(
     url,
@@ -752,7 +756,6 @@ function _tryToLoadStatementsFromPubs(
   userCb: any,
   getDataFunc: {
     (): any;
-    (): boolean;
   }
 ) {
   return _tryToLoad({
@@ -761,7 +764,7 @@ function _tryToLoadStatementsFromPubs(
     needToLoad: function () {
       return !_StatementsLoadedFromPubs(context);
     },
-    load: function (cb: any) {
+    load: function (cb) {
       _loadStatementsFromPubs(context, cb);
     },
   });
@@ -856,7 +859,7 @@ function _getKeywordHelp(name: string, type: string, userCb: any) {
 }
 
 // Procedures
-function _loadProcedureFromPubs(procName: string, cb: () => void) {
+function _loadProcedureFromPubs(procName: string, cb?: () => void) {
   const url = getBaseUrl() + "/pubsdata/Procedures/en/" + procName + ".json";
   ResLoader.get(
     url,
@@ -883,7 +886,7 @@ function _loadProcedureFromPubs(procName: string, cb: () => void) {
     !!cb
   );
 }
-function _loadProcedure(procName: string, cb: () => void) {
+function _loadProcedure(procName: string, cb?: () => void) {
   if (procTable[procName]) {
     const url = getBaseUrl() + "/data/Procedures/" + procName + ".json";
     return ResLoader.get(
@@ -906,10 +909,10 @@ function _procedureLoaded(procName: string) {
   return db.procStmts[procName];
 }
 
-function _tryToLoadProcedure(
+function _tryToLoadProcedure<T>(
   procName: string,
-  userCb: any,
-  getDataFunc: () => any
+  userCb: ((data: T) => void) | null | undefined,
+  getDataFunc: () => T
 ) {
   return _tryToLoad({
     userCb: userCb,
@@ -924,7 +927,7 @@ function _tryToLoadProcedure(
         !_procedureLoaded(procName)
       );
     },
-    load: function (cb: any) {
+    load: function (cb) {
       _loadProcedure(procName, cb);
     },
   });
@@ -1819,7 +1822,7 @@ export class SyntaxDataProvider {
     });
   }
 
-  getProcedureHelp(procName: string, cb: any) {
+  getProcedureHelp(procName: string, cb: (data: HelpData) => void) {
     procName = procName.toUpperCase();
     return _tryToLoadProcedure(procName, cb, function () {
       let data = _procOptObj(procName);
@@ -1844,7 +1847,11 @@ export class SyntaxDataProvider {
       return data;
     });
   }
-  getProcedureOptionHelp(procName: string, optName: string, cb: any) {
+  getProcedureOptionHelp(
+    procName: string,
+    optName: string,
+    cb: (data: HelpData) => void
+  ) {
     procName = procName.toUpperCase();
     optName = optName.toUpperCase();
     return _tryToLoadProcedure(procName, cb, function () {
@@ -1876,7 +1883,7 @@ export class SyntaxDataProvider {
     procName: string,
     optName: string,
     valName: string,
-    cb: any
+    cb: (data: HelpData) => void
   ) {
     return _tryToLoadProcedure(procName, cb, function () {
       procName = procName.toUpperCase();
@@ -1926,7 +1933,7 @@ export class SyntaxDataProvider {
     procName: string,
     optName: string,
     subOptName: string,
-    cb: any
+    cb: (data: HelpData) => void
   ) {
     return _tryToLoadProcedure(procName, cb, function () {
       procName = procName.toUpperCase();
@@ -1964,7 +1971,11 @@ export class SyntaxDataProvider {
       return data.length > 0 ? data : null;
     });
   }
-  getProcedureStatementHelp(procName: string, stmtName: string, cb?: any) {
+  getProcedureStatementHelp(
+    procName: string,
+    stmtName: string,
+    cb?: (data: HelpData) => void
+  ) {
     procName = procName.toUpperCase();
     stmtName = stmtName.toUpperCase();
     return _tryToLoadProcedure(procName, cb, () => {
@@ -2011,7 +2022,7 @@ export class SyntaxDataProvider {
     procName: string,
     stmtName: string,
     optName: string,
-    cb?: any
+    cb?: (data: HelpData) => void
   ) {
     procName = procName.toUpperCase();
     stmtName = stmtName.toUpperCase();
@@ -2075,7 +2086,7 @@ export class SyntaxDataProvider {
     stmtName: string,
     optName: string,
     subOptName: string,
-    cb: any
+    cb: (data: HelpData) => void
   ) {
     procName = procName.toUpperCase();
     stmtName = stmtName.toUpperCase();
@@ -2108,7 +2119,7 @@ export class SyntaxDataProvider {
     stmtName: string,
     optName: string,
     valName: string,
-    cb?: any
+    cb?: (data: HelpData) => void
   ) {
     procName = procName.toUpperCase();
     stmtName = stmtName.toUpperCase();
@@ -2238,7 +2249,7 @@ export class SyntaxDataProvider {
     context: string,
     stmtName: string,
     optName: string,
-    cb?: any
+    cb?: (data: HelpData) => void
   ) {
     return _tryToLoadStatementsFromPubs(context, cb, function () {
       stmtName = stmtName.toUpperCase();
@@ -2261,7 +2272,7 @@ export class SyntaxDataProvider {
     stmtName: string,
     optName: string,
     valName: string,
-    cb?: any
+    cb?: (data: HelpData) => void
   ) {
     return _tryToLoadStatementsFromPubs(context, cb, function () {
       stmtName = stmtName.toUpperCase();
@@ -2370,7 +2381,7 @@ export class SyntaxDataProvider {
     stmtName: string,
     optName: string,
     subOptName: string,
-    cb?: any
+    cb?: (data: HelpData) => void
   ) {
     return _tryToLoadStatementsFromPubs(context, cb, function () {
       stmtName = stmtName.toUpperCase();
@@ -2597,7 +2608,9 @@ export class SyntaxDataProvider {
         obj = _procStmtObj(procName, stmtName);
       }
       if (obj[ID_HAS_OPT_DELIMITER] === undefined) {
-        obj[ID_HAS_OPT_DELIMITER] = /Syntax:(.|\n)*\/(.|\n)*;/i.test(help.data);
+        obj[ID_HAS_OPT_DELIMITER] = /Syntax:(.|\n)*\/(.|\n)*;/i.test(
+          help.data!
+        );
       }
       ret = obj[ID_HAS_OPT_DELIMITER];
     }

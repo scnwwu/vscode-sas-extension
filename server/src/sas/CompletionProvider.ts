@@ -7,6 +7,7 @@ import {
 import { Position } from "vscode-languageserver-textdocument";
 import { CodeZoneManager } from "./CodeZoneManager";
 import { Model } from "./Model";
+import { HelpData } from "./SyntaxDataProvider";
 import { SyntaxProvider } from "./SyntaxProvider";
 import { arrayToMap, getText } from "./utils";
 
@@ -240,7 +241,7 @@ export class CompletionProvider {
             procName: this.czMgr.getProcName(),
             stmtName: this.czMgr.getStmtName(),
             optName: this.czMgr.getOptionName(),
-            cb: (data: any) => {
+            cb: (data) => {
               if (data && data.data) {
                 resolve({
                   contents: {
@@ -282,7 +283,7 @@ export class CompletionProvider {
         keyword: item.label,
         type: "tooltip",
         ...this.popupContext,
-        cb: (data: any) => {
+        cb: (data) => {
           if (data && data.data) {
             item.documentation = {
               kind: MarkupKind.Markdown,
@@ -625,7 +626,15 @@ export class CompletionProvider {
     return true;
   }
 
-  private _loadHelp(context: any) {
+  private _loadHelp(context: {
+    keyword: string;
+    type: any;
+    zone: any;
+    procName: string;
+    stmtName: string;
+    optName: string;
+    cb: (data: HelpData) => void;
+  }) {
     let keyword = _cleanUpKeyword(context.keyword),
       help = null;
     const zone = context.zone,
@@ -923,7 +932,7 @@ export class CompletionProvider {
     return help;
   }
 
-  private _addLinkContext(zone: any, content: any) {
+  private _addLinkContext(zone: any, content: HelpData) {
     const context: any = {},
       sasReleaseParam = "fq=releasesystem%3AViya&";
     let contextText,

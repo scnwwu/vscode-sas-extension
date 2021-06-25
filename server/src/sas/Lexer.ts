@@ -165,8 +165,8 @@ export interface Token {
 }
 
 export class Lexer {
-  private start = { line: 0, column: 0 };
-  private curr = { line: 0, column: 0 };
+  start = { line: 0, column: 0 };
+  curr = { line: 0, column: 0 };
   private quoting = -1;
   private bquoting = -1;
   private ignoreFormat = false;

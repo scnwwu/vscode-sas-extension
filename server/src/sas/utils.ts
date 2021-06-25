@@ -10,7 +10,7 @@ export interface TextRange {
   end: TextPosition;
 }
 
-export function arrayToMap(arr: string[]): Record<string, 1> {
+export function arrayToMap(arr: string[] | number[]): Record<string, 1> {
   const map: Record<string, 1> = {};
   for (const key of arr) {
     map[key] = 1;

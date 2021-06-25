@@ -2617,7 +2617,11 @@ export class SyntaxDataProvider {
     return ret;
   }
 
-  isProcedureOptionKeyword(procName: string, optName: string, valName: string) {
+  isProcedureOptionKeyword(
+    procName: string,
+    optName: string,
+    valName?: string
+  ) {
     _loadProcedureImmediately(procName);
     return !!_procOptObj(procName, optName, valName);
   }
@@ -2633,8 +2637,8 @@ export class SyntaxDataProvider {
   isProcedureStatementKeyword(
     procName: string,
     stmtName: string,
-    optName: string,
-    valName: string
+    optName?: string,
+    valName?: string
   ) {
     _loadProcedureImmediately(procName);
     let ret = _procStmtObj(procName, stmtName, optName, valName);
@@ -2679,14 +2683,14 @@ export class SyntaxDataProvider {
   isStatementKeyword(
     context: string,
     stmtName: string,
-    optName: string,
-    valName: string
+    optName?: string,
+    valName?: string
   ) {
     return _tryToLoadStatementsFromPubs(context, null, function () {
       return !!_procStmtObj(context, stmtName, optName, valName);
     });
   }
-  _isStatementKeyword(stmtName: string, optName: string, valName: string) {
+  _isStatementKeyword(stmtName: string, optName: string, valName?: string) {
     _tryToLoadStatementOptionsImmediately(stmtName);
     let ret = !!_stmtObj(stmtName, optName, valName);
     if (!ret && !optName) {

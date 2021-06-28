@@ -3,6 +3,7 @@ import { LexerEx } from "./LexerEx";
 import { Lexer, Token } from "./Lexer";
 import { Model } from "./Model";
 import { SyntaxProvider } from "./SyntaxProvider";
+import { SyntaxDataProvider } from "./SyntaxDataProvider";
 
 interface TokenEx extends Pick<Token, "type" | "text"> {
   line: number;
@@ -102,7 +103,7 @@ export class CodeZoneManager {
 
   constructor(
     private _model: Model,
-    private _syntaxDb: any,
+    private _syntaxDb: SyntaxDataProvider,
     private _syntaxProvider: SyntaxProvider
   ) {
     this._lexer = new Lexer(_model);
@@ -1261,7 +1262,7 @@ export class CodeZoneManager {
       op2: any;
       op1: any;
     },
-    cb: { (i: any): void; (arg0: any): void }
+    cb: { (i: any): void }
   ) {
     if (top instanceof Array) {
       top.forEach((i) => {

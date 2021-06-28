@@ -183,5 +183,6 @@ export class LanguageServiceProvider {
         );
       }
     }
+    return "";
   }
 }

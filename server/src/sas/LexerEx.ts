@@ -18,8 +18,9 @@ class FoldingBlock {
   endCol: number;
   type: any;
   name: string;
-  endFoldingLine: number | undefined;
-  endFoldingCol: number | undefined;
+  endFoldingLine: number;
+  endFoldingCol: number;
+  collapsed?: boolean;
   explicitEnd: any;
   explicitEndStmt: any;
   specialBlks: any;
@@ -43,6 +44,8 @@ class FoldingBlock {
       this.endCol = arguments[3];
       this.type = arguments[4];
       this.name = arguments[5] ? arguments[5] : "";
+      this.endFoldingLine = -1;
+      this.endFoldingCol = -1;
     } else {
       this.startLine = -1;
       this.startCol = -1;
@@ -60,8 +63,8 @@ class FoldingBlock {
 const TknBlock = FoldingBlock;
 
 let blockDepth = 0,
-  sections: any[] = [],
-  tailSections: any[] = [],
+  sections: FoldingBlock[] = [],
+  tailSections: FoldingBlock[] = [],
   currSection: FoldingBlock,
   //stmts: any[] = [],
   //currStmt,
@@ -294,7 +297,7 @@ function _removeComment(text: string) {
   return _remove(regComment, text);
 }
 
-function _removeConst(text: any) {
+function _removeConst(text: string) {
   return _remove(regConst, text, "x");
 }
 
@@ -302,7 +305,7 @@ function _isBlank(text: string) {
   return /^\s*$/.test(text);
 }
 
-function _isTailDestroyed(change: { oldRange: any }, block: FoldingBlock) {
+function _isTailDestroyed(change: Change, block: FoldingBlock) {
   const oldRange = change.oldRange;
   if (
     !_isBefore(oldRange.end, _endPos(block)) ||
@@ -314,24 +317,13 @@ function _isTailDestroyed(change: { oldRange: any }, block: FoldingBlock) {
   }
   return false;
 }
-function _isCollapsedPartially(block: {
-  collapsed: any;
-  endLine: any;
-  endFoldingLine: any;
-}) {
+function _isCollapsedPartially(block: FoldingBlock) {
   return block && block.collapsed && block.endLine !== block.endFoldingLine;
 }
-function _isBetween(
-  pos: { line: any; column: any },
-  start: { line: any; column: any },
-  end: { line: any; column: any }
-) {
+function _isBetween(pos: TextPosition, start: TextPosition, end: TextPosition) {
   return _isBefore(start, pos) && _isBefore(pos, end);
 }
-function _isBefore(
-  pos1: { line: any; column: any },
-  pos2: { line: any; column: any }
-) {
+function _isBefore(pos1: TextPosition, pos2: TextPosition) {
   if (pos1.line < pos2.line) {
     return true;
   } else if (pos1.line === pos2.line) {
@@ -343,12 +335,12 @@ function _isBefore(
 }
 
 function _getBlkIndex(
-  startSectionIdx: any,
+  startSectionIdx: number,
   containerName: string,
-  blocks: string | any[]
+  blocks: FoldingBlock[]
 ) {
   let i = startSectionIdx,
-    section = sections[i],
+    section: any = sections[i],
     blockIdxs = null;
   while (section && !section[containerName]) {
     i++;
@@ -360,10 +352,10 @@ function _getBlkIndex(
   return blockIdxs ? blockIdxs[0] : blocks.length;
 }
 function _handleSpecialBlocks(
-  change: any,
+  change: Change,
   parseRange: any,
   getBlkIndex: { (startSectionIdx: any): any; (arg0: any): any },
-  blocks: any[]
+  blocks: FoldingBlock[]
 ) {
   if (sections.length <= 0 || parseRange.removedBlocks.count <= 0) {
     return;
@@ -390,21 +382,11 @@ function _handleSpecialBlocks(
   }
   return { blocks: blocks, unchangedBlocks: unchangedBlocks };
 }
-function _getTknBlkIndex(startSectionIdx: any) {
+function _getTknBlkIndex(startSectionIdx: number) {
   return _getBlkIndex(startSectionIdx, "specialBlks", tknBlks);
 }
 
-function _adjustPosCoord(
-  change: {
-    oldRange: {
-      end: { line: number; column: number };
-      start: { column: number; line: number };
-    };
-    text: string;
-    newRange: { end: { line: number }; start: { line: number } };
-  },
-  pos: { line: number; column: number }
-) {
+function _adjustPosCoord(change: Change, pos: TextPosition) {
   if (pos.line === change.oldRange.end.line) {
     let index = -1,
       col,
@@ -495,7 +477,7 @@ export class LexerEx {
   stack: any;
   curr: any;
   lookAheadTokens: any[];
-  sectionCache: any[];
+  sectionCache: (FoldingBlock | null)[];
   lastToken: any;
 
   static readonly SEC_TYPE = {
@@ -633,21 +615,17 @@ export class LexerEx {
   //TODO: IMPROVE
   private _changeCardsDataToken(token: {
     type: string;
-    start: { line: any; column: any };
-    end: { line: any; column: any };
+    start: TextPosition;
+    end: TextPosition;
   }) {
     tokens.pop();
     tokens.push(token);
     return token;
   }
-  private _clonePos(pos: { line: any; column: any }) {
+  private _clonePos(pos: TextPosition) {
     return { line: pos.line, column: pos.column };
   }
-  private startFoldingBlock_(
-    type: any,
-    pos: { line: number; column: number },
-    name: string
-  ) {
+  private startFoldingBlock_(type: any, pos: TextPosition, name: string) {
     blockDepth++;
     if (blockDepth === 1) {
       currSection.startLine = pos.line;
@@ -659,10 +637,10 @@ export class LexerEx {
   }
   private endFoldingBlock_(
     type: any,
-    pos: { line: number; column: number },
+    pos: TextPosition,
     explicitEnd?: boolean,
     start?: { start: any },
-    name?: undefined
+    name?: string
   ) {
     // positively end
     let add = false;
@@ -697,7 +675,7 @@ export class LexerEx {
   private hasFoldingBlock_() {
     return currSection.startLine >= 0;
   }
-  private getLastNormalFoldingBlockInLine_(currentIdx: number, line: any) {
+  private getLastNormalFoldingBlockInLine_(currentIdx: number, line: number) {
     let i = currentIdx,
       block = sections[i],
       idx = currentIdx;
@@ -743,7 +721,7 @@ export class LexerEx {
       if (
         block &&
         !_isBefore({ line: line, column: col }, _endPos(block)) &&
-        !block.explictEnd
+        !block.explicitEnd
       ) {
         // must use !
         return block;
@@ -755,7 +733,7 @@ export class LexerEx {
     if (col === undefined) {
       if (!this.sectionCache[line]) {
         const section = this.getFoldingBlock_(line);
-        if (section && line <= section.endFoldingLine) {
+        if (section && line <= section.endFoldingLine!) {
           this.sectionCache[line] = section;
         } else {
           this.sectionCache[line] = null;
@@ -765,7 +743,7 @@ export class LexerEx {
     }
     return this.getFoldingBlock_(line, col, strict);
   }
-  private getBlockPos_(blocks: any, line: number, col?: number) {
+  private getBlockPos_(blocks: FoldingBlock[], line: number, col?: number) {
     let idx = this.getBlockPos1_(blocks, line);
     if (col || col === 0) {
       idx = getBlockPos2_(blocks, idx, line, col); // multiple blocks are in one same lines
@@ -776,7 +754,7 @@ export class LexerEx {
   //SUPPORT CODE FOLDING
   //we define global statments as a kind of block, so the return will always be the first form.
   //
-  private getBlockPos1_(blocks: any[], line: number) {
+  private getBlockPos1_(blocks: FoldingBlock[], line: number) {
     let len = blocks.length,
       m = Math.floor(len / 2),
       l = 0,
@@ -811,7 +789,7 @@ export class LexerEx {
     sections = [];
     blockDepth = 0;
   }
-  private tryEndFoldingBlock_(pos: { line: number; column: number }) {
+  private tryEndFoldingBlock_(pos: TextPosition) {
     if (this.hasFoldingBlock_()) {
       // handle text end
       let secType = this.SEC_TYPE.PROC;
@@ -939,10 +917,7 @@ export class LexerEx {
     }
     return null;
   }
-  private getChange_(
-    blocks: FoldingBlock[],
-    origPos: { line: any; column: number }
-  ) {
+  private getChange_(blocks: FoldingBlock[], origPos: TextPosition) {
     let idx = this.getBlockPos_(blocks, origPos.line, origPos.column),
       blockIdx = idx,
       block: any = {
@@ -983,7 +958,7 @@ export class LexerEx {
       blockIdx: blockIdx,
     };
   }
-  private _getParseRange(blocks: any[], change: { oldRange: any }) {
+  private _getParseRange(blocks: FoldingBlock[], change: Change) {
     let oldRange = change.oldRange,
       changeStart: any = this.getChange_(blocks, oldRange.start),
       changeEnd,
@@ -1294,7 +1269,7 @@ export class LexerEx {
       return part1 + change.text + part2;
     }
   }
-  private _getNextComment(startIndex: any) {
+  private _getNextComment(startIndex: number) {
     // section index
     let i = _getNextValidTknBlkIdx(startIndex);
     while (tknBlks[i] && tknBlks[i].blockComment !== true) {
@@ -1302,7 +1277,7 @@ export class LexerEx {
     }
     return tknBlks[i];
   }
-  private _getNextCards4(startIndex: any) {
+  private _getNextCards4(startIndex: number) {
     let i = _getNextValidTknBlkIdx(startIndex);
     while (
       tknBlks[i] &&
@@ -1425,7 +1400,7 @@ export class LexerEx {
 
     return -1;
   }
-  private _handleTokens(change: any, parseRange: any) {
+  private _handleTokens(change: Change, parseRange: any) {
     const ret = _handleSpecialBlocks(
       change,
       parseRange,
@@ -1484,11 +1459,7 @@ export class LexerEx {
       this.addTknBlock_(block);
     }
   }
-  private tryToAddCardsBlock_(token: {
-    type: string;
-    start: { line: any; column: any };
-    end: { line: any; column: any };
-  }) {
+  private tryToAddCardsBlock_(token: Token) {
     if (token && token.type === Lexer.TOKEN_TYPES.CARDSDATA) {
       const block = new TknBlock(
         token.start.line,
@@ -1585,8 +1556,8 @@ export class LexerEx {
     this.tryStop_(ret);
     return ret;
   }
-  private cacheToken_(token: Token | undefined) {
-    let cache;
+  private cacheToken_(token?: Token) {
+    let cache: Token | undefined;
     if (token) {
       cache = {
         type: token.type,
@@ -2304,15 +2275,10 @@ export class LexerEx {
     "RUN CANCEL": 1,
     QUIT: 1,
   };
-  private tryToHandleSectionEnd_(token: {
-    type: any;
-    text: any;
-    start?: TextPosition;
-    end?: TextPosition;
-  }) {
+  private tryToHandleSectionEnd_(token: Token) {
     let ret = false;
     if (this.sectionEndStmts_[token.text]) {
-      token.type = Lexer.TOKEN_TYPES.SKEYWORD;
+      token.type = "sec-keyword"; // Lexer.TOKEN_TYPES.SKEYWORD;
       const next = this.prefetch_({ pos: 1 });
       if (next && next.text === "CANCEL") {
         next.type = Lexer.TOKEN_TYPES.SKEYWORD;
@@ -2876,6 +2842,7 @@ export class LexerEx {
               });
               break;
             } // not break
+          // eslint-disable-next-line no-fallthrough
           default:
             this.tryToHandleSectionEnd_(token);
             var generalProcStmt = true;
@@ -3077,6 +3044,7 @@ export class LexerEx {
               });
               break;
             } // attention: not break here
+          // eslint-disable-next-line no-fallthrough
           default:
             if (Lexer.isCards[word]) {
               this.cardsState = this.CARDS_STATE.IN_CMD;

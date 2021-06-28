@@ -1952,7 +1952,7 @@ export class SyntaxDataProvider {
       return data;
     });
   }
-  getProcedureStatements(procName: string, cb: any) {
+  getProcedureStatements(procName: string, cb?: any) {
     procName = procName.toUpperCase();
     return _tryToLoadProcedure(procName, cb, () => {
       let data = _procStmtObj(procName);

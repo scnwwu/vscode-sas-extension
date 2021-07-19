@@ -251,7 +251,7 @@ function _procStmtObj(
   subOptName?: string
 ) {
   if (optName) {
-    optName = _removeEqu(optName);
+    optName = _cleanName(optName);
   }
   if (subOptName) {
     subOptName = _removeEqu(subOptName);
@@ -1086,7 +1086,7 @@ function _setProcedureOptionValueFromPubs(
   optName: string,
   val: { name: any; aliases: any; description: any }
 ) {
-  const name = val.name;
+  const name = val.name.toUpperCase();
   if (db.procOpts[procName][optName][name] === undefined) {
     db.procOpts[procName][optName][name] = {};
   }
@@ -1161,7 +1161,7 @@ function _setProcedureOptionFromPubs(
     supportSiteTargetFragment: any;
   }
 ) {
-  const optName = _removeEqu(data.name);
+  const optName = _removeEqu(data.name).toUpperCase();
   if (db.procOpts[procName][optName] === undefined) {
     db.procOpts[procName][optName] = {};
   }
@@ -1300,7 +1300,7 @@ function _setProcedureStatementOptionFromPubs(
     supportSiteInformation: any;
   }
 ) {
-  const optName = _cleanName(data.name); //optName.replace('=','');
+  const optName = _cleanName(data.name).toUpperCase(); //optName.replace('=','');
   if (db.procStmts[procName][stmtName][optName] === undefined) {
     db.procStmts[procName][stmtName][optName] = {};
   }
@@ -1530,7 +1530,7 @@ function _setProcedureStatementOptionValueFromPubs(
   optName: string,
   val: { name: any; aliases: any; description: any }
 ) {
-  const name = val.name;
+  const name = val.name.toUpperCase();
   if (db.procStmts[procName][stmtName][optName][name] === undefined) {
     db.procStmts[procName][stmtName][optName][name] = {};
   }
@@ -1957,8 +1957,9 @@ export class SyntaxDataProvider {
     return _tryToLoadProcedure(procName, cb, () => {
       let data = _procStmtObj(procName);
       if (data) {
-        data = data[ID_STMTS];
-      } else {
+        data = data[ID_STMTS]; // data[ID_STMTS] can be undefined
+      }
+      if (!data) {
         data = [];
       }
       if (!this.noGlobal) {

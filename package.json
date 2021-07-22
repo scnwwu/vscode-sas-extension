@@ -50,6 +50,10 @@
       {
         "command": "SAS.session.run",
         "title": "%commands.SAS.session.run%",
+        "icon": {
+          "light": "icons/light/submitSASCode.svg",
+          "dark": "icons/dark/submitSASCode.svg"
+        },
         "category": "SAS Session"
       },
       {

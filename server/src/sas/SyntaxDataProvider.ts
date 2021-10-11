@@ -1728,17 +1728,27 @@ function _setProcedureStatementsFromPubs(procName: string, data: any[]) {
   const keywords: any[] = [];
   data.forEach(function (item: {
     name: string;
-    aliases: any;
+    aliases: string[];
     arguments: any;
     description: any;
     help: any;
     supportSiteTargetFile: any;
   }) {
-    _setProcedureStatementFromPubs(
-      procName,
-      _removeEqu(item.name.toUpperCase()),
-      item
-    );
+    const stmtName = _removeEqu(item.name.toUpperCase());
+    _setProcedureStatementFromPubs(procName, stmtName, item);
+    if (item.aliases) {
+      item.aliases.forEach((alias) => {
+        keywords.push(alias);
+        db.procStmts[procName][alias] = Object.assign(
+          {},
+          db.procStmts[procName][stmtName]
+        );
+        db.procStmts[procName][alias][ID_ALIAS] = _resolveAliasFromPubs(
+          alias,
+          item
+        ).aliases;
+      });
+    }
     keywords.push(item.name);
   });
   db.procStmts[procName][ID_STMTS] = keywords;

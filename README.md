@@ -2,6 +2,37 @@
 
 ## Features
 
+### SAS Syntax Highlighting
+
+It provides 3 color themes.
+
+- SAS Illuminate (light theme)
+  <img src="doc/images/Illuminate.PNG"/>
+- SAS Ignite (dark theme)
+  <img src="doc/images/Ignite.PNG"/>
+- SAS High Contrast
+  <img src="doc/images/HighContrast.PNG"/>
+
+### Code completion and hover help
+
+<img src="doc/images/CodeCompletion.PNG"/>
+
+Tip: Click the link on the help panel to navigate to the documentation.
+
+### Code folding and outline
+
+<img src="doc/images/Folding.PNG"/>
+
+Tip: Define custom region with `/*region*/` and `/*endregion*/`
+
+### Run SAS code
+
+- Before you can run, please go to `Settings > Extensions > SAS` to configure your Viya server, Client ID/Secret, User name or token file.
+- Click the Run<img src="icons/light/submitSASCode.svg"/> icon on the top right on a SAS file.
+- Enter password when prompted
+- You'll see SAS log when done and HTML output if any
+  <img src="doc/images/RunResult.PNG"/>
+
 ## Structure
 
 ```

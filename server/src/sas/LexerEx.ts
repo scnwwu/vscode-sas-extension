@@ -62,184 +62,11 @@ class FoldingBlock {
 //var StmtBlock = FoldingBlock;
 const TknBlock = FoldingBlock;
 
-let blockDepth = 0,
-  sections: FoldingBlock[] = [],
-  tailSections: FoldingBlock[] = [],
-  currSection: FoldingBlock,
-  //stmts: any[] = [],
-  //currStmt,
-  //isStmtStart = true,
-  tokens: any[] = [],
-  tknBlks: any[] = [],
-  tailTknBlks: FoldingBlock[],
-  changedLineCount = 0,
-  changedColCount = 0;
 const stmtAlias: any = {
   OPTION: "OPTIONS",
   GOPTION: "GOPTIONS",
 };
 
-// The definition of return value is same to getBlockPos1_
-// FIXID S1178400
-function getBlockPos2_(
-  blocks: { [x: string]: any },
-  currentIdx: any,
-  line: any,
-  col: any
-) {
-  let i = currentIdx,
-    block = blocks[i],
-    pos = { line: line, column: col };
-
-  if (!block || _isBetween(pos, _startPos(block), _endPos(block))) {
-    return currentIdx;
-  }
-
-  if (_isBefore(pos, _startPos(block))) {
-    /*
-                 |[] <-
-                 */
-    do {
-      i--;
-      block = blocks[i];
-    } while (block && !_isBefore(_endPos(block), pos)); // []|
-
-    return ++i;
-  } else {
-    /*
-                 []| ->
-                 */
-    do {
-      i++;
-      block = blocks[i];
-    } while (block && !_isBefore(pos, _startPos(block))); // |[]
-    return --i;
-  }
-}
-
-function _startPos(block: FoldingBlock) {
-  return { line: block.startLine, column: block.startCol };
-}
-function _endPos(block: {
-  startLine?: number;
-  startCol?: number;
-  endLine: any;
-  endCol: any;
-}) {
-  return { line: block.endLine, column: block.endCol };
-}
-function _setStart(
-  block: { startLine: any; startCol: any },
-  pos: { line: any; column: any }
-) {
-  block.startLine = pos.line;
-  block.startCol = pos.column;
-}
-function _setEnd(
-  block: { endLine: any; endCol: any },
-  pos: { line: any; column: any }
-) {
-  block.endLine = pos.line;
-  block.endCol = pos.column;
-}
-function _sectionEndPos(block: { endFoldingLine: any; endFoldingCol: any }) {
-  return { line: block.endFoldingLine, column: block.endFoldingCol };
-}
-function _setSectionEnd(
-  block: { endFoldingLine: any; endFoldingCol: any },
-  pos: { line: any; column: any }
-) {
-  block.endFoldingLine = pos.line;
-  block.endFoldingCol = pos.column;
-}
-
-function _getNextValidTknBlkIdx(startIndex: any) {
-  // section index
-  let i = startIndex,
-    max = sections.length - 1,
-    section;
-  while (i <= max) {
-    section = sections[i];
-    if (section && section.specialBlks) {
-      return section.specialBlks[0];
-    }
-    i++;
-  }
-  return -1;
-}
-
-function _checkCards4(
-  regExp: { start: any; cards: any; end?: RegExp },
-  text: string
-) {
-  let start,
-    cards = null;
-
-  start = regExp.start.exec(text); //find start statement
-  if (start) {
-    text = text.substring(start.index + start[0].length);
-    cards = regExp.cards.exec(text); // find cards statement
-  }
-
-  return cards;
-}
-function _saveRemoveDataLines(
-  regExp: { start: any; cards: any; end: any },
-  text: string
-) {
-  let done;
-
-  function _removeDataLines(text: string) {
-    let start,
-      cards,
-      end,
-      parts = [],
-      len;
-    //if (sap.ui.Device.browser.msie) {
-    //    CollectGarbage();
-    //}
-    done = true;
-    for (;;) {
-      start = regExp.start.exec(text); //find start statement
-      if (start) {
-        len = start.index + start[0].length;
-        parts.push(text.substring(0, len));
-        text = ";" + text.substring(len); //NOTE: add ;
-        cards = regExp.cards.exec(text); // find cards statement
-        if (cards) {
-          parts.push(text.substring(0, cards.index + 1));
-          text = text.substring(cards.index + cards[0].length); //remove cards;
-          end = regExp.end.exec(text); //find end position of cards data
-          if (end) {
-            text = text.substring(end.index + end[0].length);
-
-            if (parts.length > 400) {
-              // jump out to release memory
-              done = false;
-              break;
-            }
-          } else {
-            parts.push(cards[0]);
-            //text = "";
-            break;
-          }
-        } else {
-          parts.push(text.substring(1)); // no cards, we should keep the remaining
-          break;
-        }
-      } else {
-        parts.push(text);
-        break;
-      }
-    }
-    return parts.join("");
-  }
-
-  do {
-    text = _removeDataLines(text);
-  } while (!done);
-  return text;
-}
 const regComment =
     /(\/\*[\s\S]*?\*\/)|(^\s*\*[\s\S]*?;)|(;\s*\*[\s\S]*?;)|(%\*[\s\S]*?;)/i,
   regConst = /('|")([\s\S]*?)(\1)/i,
@@ -274,186 +101,6 @@ const regComment =
     end: regCards4End,
   };
 
-function _remove(reg: RegExp, text: string, replacement?: string) {
-  let parts = [],
-    matched;
-  for (;;) {
-    matched = reg.exec(text);
-    if (matched) {
-      parts.push(text.substring(0, matched.index));
-      if (replacement) {
-        parts.push(replacement);
-      }
-      text = text.substring(matched.index + matched[0].length);
-    } else {
-      parts.push(text);
-      break;
-    }
-  }
-  return parts.join("");
-}
-
-function _removeComment(text: string) {
-  return _remove(regComment, text);
-}
-
-function _removeConst(text: string) {
-  return _remove(regConst, text, "x");
-}
-
-function _isBlank(text: string) {
-  return /^\s*$/.test(text);
-}
-
-function _isTailDestroyed(change: Change, block: FoldingBlock) {
-  const oldRange = change.oldRange;
-  if (
-    !_isBefore(oldRange.end, _endPos(block)) ||
-    (block.type !== LexerEx.SEC_TYPE.GBL &&
-      block.explicitEnd &&
-      _isBefore(block.explicitEndStmt.start, oldRange.end))
-  ) {
-    return true;
-  }
-  return false;
-}
-function _isCollapsedPartially(block: FoldingBlock) {
-  return block && block.collapsed && block.endLine !== block.endFoldingLine;
-}
-function _isBetween(pos: TextPosition, start: TextPosition, end: TextPosition) {
-  return _isBefore(start, pos) && _isBefore(pos, end);
-}
-function _isBefore(pos1: TextPosition, pos2: TextPosition) {
-  if (pos1.line < pos2.line) {
-    return true;
-  } else if (pos1.line === pos2.line) {
-    if (pos1.column < pos2.column) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function _getBlkIndex(
-  startSectionIdx: number,
-  containerName: string,
-  blocks: FoldingBlock[]
-) {
-  let i = startSectionIdx,
-    section: any = sections[i],
-    blockIdxs = null;
-  while (section && !section[containerName]) {
-    i++;
-    section = sections[i];
-  }
-  if (section) {
-    blockIdxs = section[containerName];
-  }
-  return blockIdxs ? blockIdxs[0] : blocks.length;
-}
-function _handleSpecialBlocks(
-  change: Change,
-  parseRange: any,
-  getBlkIndex: { (startSectionIdx: any): any; (arg0: any): any },
-  blocks: FoldingBlock[]
-) {
-  if (sections.length <= 0 || parseRange.removedBlocks.count <= 0) {
-    return;
-  }
-  let startIdx, endIdx;
-  //find start idx
-  startIdx = getBlkIndex(parseRange.removedBlocks.start);
-  // find end idx
-  endIdx = getBlkIndex(parseRange.removedBlocks.end + 1); // must be here
-
-  const unchangedBlocks = blocks;
-  blocks = unchangedBlocks.splice(0, startIdx);
-  // t1 t2 t3 [] t4 ...
-  // no tokens are destroyed if i > end
-  // t1 [t2 t3 t4] t5 ...
-  // t1 [t2 .....
-  // t1 [t2 ...) ti...
-  if (unchangedBlocks.length > 0 && endIdx > startIdx) {
-    // remove blocks
-    unchangedBlocks.splice(0, endIdx - startIdx);
-
-    // adjust token coordinate
-    _adjustBlocksCoord(unchangedBlocks, change, parseRange);
-  }
-  return { blocks: blocks, unchangedBlocks: unchangedBlocks };
-}
-function _getTknBlkIndex(startSectionIdx: number) {
-  return _getBlkIndex(startSectionIdx, "specialBlks", tknBlks);
-}
-
-function _adjustPosCoord(change: Change, pos: TextPosition) {
-  if (pos.line === change.oldRange.end.line) {
-    let index = -1,
-      col,
-      addedCount = change.text.length,
-      len1 = change.oldRange.start.column,
-      len2 = pos.column - change.oldRange.end.column;
-
-    index = change.text.lastIndexOf("\n");
-    if (index >= 0) {
-      // multiple lines
-      col =
-        change.text[change.text.length - 1] === "\n"
-          ? len2
-          : addedCount - index - 1 + len2;
-    } else {
-      col = len1 + addedCount + len2;
-    }
-
-    pos.column = col;
-  } //ignore pos.line <> change.oldRange.end.line
-
-  pos.line +=
-    change.newRange.end.line -
-    change.newRange.start.line -
-    change.oldRange.end.line +
-    change.oldRange.start.line;
-}
-
-function _adjustBlocksCoord(
-  blocks: FoldingBlock[],
-  change: any,
-  parseRange: { endLine: number }
-) {
-  let len = blocks.length,
-    i,
-    pos;
-  changedLineCount =
-    change.newRange.end.line -
-    change.newRange.start.line -
-    change.oldRange.end.line +
-    change.oldRange.start.line;
-
-  for (i = 0; i < len; i++) {
-    if (blocks[i].startLine > parseRange.endLine && changedLineCount === 0) {
-      break;
-    }
-    pos = _startPos(blocks[i]);
-    _adjustPosCoord(change, pos);
-    _setStart(blocks[i], pos);
-
-    pos = _endPos(blocks[i]);
-    _adjustPosCoord(change, pos);
-    _setEnd(blocks[i], pos);
-    // TODO: not very good, folding block end
-    const isSection = arrayToMap([
-      LexerEx.SEC_TYPE.DATA,
-      LexerEx.SEC_TYPE.PROC,
-      LexerEx.SEC_TYPE.MACRO,
-    ]);
-    if (isSection[blocks[i].type]) {
-      pos = _sectionEndPos(blocks[i]);
-      _adjustPosCoord(change, pos);
-      _setSectionEnd(blocks[i], pos);
-    }
-  }
-}
-
 export class LexerEx {
   lexer: Lexer;
   expr: Expression;
@@ -479,6 +126,19 @@ export class LexerEx {
   lookAheadTokens: any[];
   sectionCache: (FoldingBlock | null)[];
   lastToken: any;
+
+  blockDepth = 0;
+  sections: FoldingBlock[] = [];
+  tailSections: FoldingBlock[] = [];
+  currSection: FoldingBlock;
+  //stmts: any[] = [],
+  //currStmt,
+  //isStmtStart = true,
+  tokens: any[] = [];
+  tknBlks: any[] = [];
+  tailTknBlks: FoldingBlock[] = [];
+  changedLineCount = 0;
+  changedColCount = 0;
 
   static readonly SEC_TYPE = {
     DATA: 0,
@@ -522,15 +182,367 @@ export class LexerEx {
     this.sectionCache = [];
     this.lastToken = null;
     // support to cache collapsible block
-    sections = [];
-    currSection = new FoldingBlock(); //this is ref to FoldingBlock obj
+    this.sections = [];
+    this.currSection = new FoldingBlock(); //this is ref to FoldingBlock obj
     //currStmt = new StmtBlock();
+  }
+
+  // The definition of return value is same to getBlockPos1_
+  // FIXID S1178400
+  private getBlockPos2_(
+    blocks: { [x: string]: any },
+    currentIdx: any,
+    line: any,
+    col: any
+  ) {
+    let i = currentIdx,
+      block = blocks[i],
+      pos = { line: line, column: col };
+
+    if (
+      !block ||
+      this._isBetween(pos, this._startPos(block), this._endPos(block))
+    ) {
+      return currentIdx;
+    }
+
+    if (this._isBefore(pos, this._startPos(block))) {
+      /*
+                 |[] <-
+                 */
+      do {
+        i--;
+        block = blocks[i];
+      } while (block && !this._isBefore(this._endPos(block), pos)); // []|
+
+      return ++i;
+    } else {
+      /*
+                 []| ->
+                 */
+      do {
+        i++;
+        block = blocks[i];
+      } while (block && !this._isBefore(pos, this._startPos(block))); // |[]
+      return --i;
+    }
+  }
+
+  private _startPos(block: FoldingBlock) {
+    return { line: block.startLine, column: block.startCol };
+  }
+  private _endPos(block: {
+    startLine?: number;
+    startCol?: number;
+    endLine: any;
+    endCol: any;
+  }) {
+    return { line: block.endLine, column: block.endCol };
+  }
+  private _setStart(
+    block: { startLine: any; startCol: any },
+    pos: { line: any; column: any }
+  ) {
+    block.startLine = pos.line;
+    block.startCol = pos.column;
+  }
+  private _setEnd(
+    block: { endLine: any; endCol: any },
+    pos: { line: any; column: any }
+  ) {
+    block.endLine = pos.line;
+    block.endCol = pos.column;
+  }
+  private _sectionEndPos(block: { endFoldingLine: any; endFoldingCol: any }) {
+    return { line: block.endFoldingLine, column: block.endFoldingCol };
+  }
+  private _setSectionEnd(
+    block: { endFoldingLine: any; endFoldingCol: any },
+    pos: { line: any; column: any }
+  ) {
+    block.endFoldingLine = pos.line;
+    block.endFoldingCol = pos.column;
+  }
+
+  private _getNextValidTknBlkIdx(startIndex: any) {
+    // section index
+    let i = startIndex,
+      max = this.sections.length - 1,
+      section;
+    while (i <= max) {
+      section = this.sections[i];
+      if (section && section.specialBlks) {
+        return section.specialBlks[0];
+      }
+      i++;
+    }
+    return -1;
+  }
+
+  private _checkCards4(
+    regExp: { start: any; cards: any; end?: RegExp },
+    text: string
+  ) {
+    let start,
+      cards = null;
+
+    start = regExp.start.exec(text); //find start statement
+    if (start) {
+      text = text.substring(start.index + start[0].length);
+      cards = regExp.cards.exec(text); // find cards statement
+    }
+
+    return cards;
+  }
+  private _saveRemoveDataLines(
+    regExp: { start: any; cards: any; end: any },
+    text: string
+  ) {
+    let done;
+
+    function _removeDataLines(text: string) {
+      let start,
+        cards,
+        end,
+        parts = [],
+        len;
+      //if (sap.ui.Device.browser.msie) {
+      //    CollectGarbage();
+      //}
+      done = true;
+      for (;;) {
+        start = regExp.start.exec(text); //find start statement
+        if (start) {
+          len = start.index + start[0].length;
+          parts.push(text.substring(0, len));
+          text = ";" + text.substring(len); //NOTE: add ;
+          cards = regExp.cards.exec(text); // find cards statement
+          if (cards) {
+            parts.push(text.substring(0, cards.index + 1));
+            text = text.substring(cards.index + cards[0].length); //remove cards;
+            end = regExp.end.exec(text); //find end position of cards data
+            if (end) {
+              text = text.substring(end.index + end[0].length);
+
+              if (parts.length > 400) {
+                // jump out to release memory
+                done = false;
+                break;
+              }
+            } else {
+              parts.push(cards[0]);
+              //text = "";
+              break;
+            }
+          } else {
+            parts.push(text.substring(1)); // no cards, we should keep the remaining
+            break;
+          }
+        } else {
+          parts.push(text);
+          break;
+        }
+      }
+      return parts.join("");
+    }
+
+    do {
+      text = _removeDataLines(text);
+    } while (!done);
+    return text;
+  }
+
+  private _remove(reg: RegExp, text: string, replacement?: string) {
+    let parts = [],
+      matched;
+    for (;;) {
+      matched = reg.exec(text);
+      if (matched) {
+        parts.push(text.substring(0, matched.index));
+        if (replacement) {
+          parts.push(replacement);
+        }
+        text = text.substring(matched.index + matched[0].length);
+      } else {
+        parts.push(text);
+        break;
+      }
+    }
+    return parts.join("");
+  }
+
+  private _removeComment(text: string) {
+    return this._remove(regComment, text);
+  }
+
+  private _removeConst(text: string) {
+    return this._remove(regConst, text, "x");
+  }
+
+  private _isBlank(text: string) {
+    return /^\s*$/.test(text);
+  }
+
+  private _isTailDestroyed(change: Change, block: FoldingBlock) {
+    const oldRange = change.oldRange;
+    if (
+      !this._isBefore(oldRange.end, this._endPos(block)) ||
+      (block.type !== LexerEx.SEC_TYPE.GBL &&
+        block.explicitEnd &&
+        this._isBefore(block.explicitEndStmt.start, oldRange.end))
+    ) {
+      return true;
+    }
+    return false;
+  }
+  private _isCollapsedPartially(block: FoldingBlock) {
+    return block && block.collapsed && block.endLine !== block.endFoldingLine;
+  }
+  private _isBetween(
+    pos: TextPosition,
+    start: TextPosition,
+    end: TextPosition
+  ) {
+    return this._isBefore(start, pos) && this._isBefore(pos, end);
+  }
+  private _isBefore(pos1: TextPosition, pos2: TextPosition) {
+    if (pos1.line < pos2.line) {
+      return true;
+    } else if (pos1.line === pos2.line) {
+      if (pos1.column < pos2.column) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private _getBlkIndex(
+    startSectionIdx: number,
+    containerName: string,
+    blocks: FoldingBlock[]
+  ) {
+    let i = startSectionIdx,
+      section: any = this.sections[i],
+      blockIdxs = null;
+    while (section && !section[containerName]) {
+      i++;
+      section = this.sections[i];
+    }
+    if (section) {
+      blockIdxs = section[containerName];
+    }
+    return blockIdxs ? blockIdxs[0] : blocks.length;
+  }
+  private _handleSpecialBlocks(
+    change: Change,
+    parseRange: any,
+    getBlkIndex: { (startSectionIdx: any): any; (arg0: any): any },
+    blocks: FoldingBlock[]
+  ) {
+    if (this.sections.length <= 0 || parseRange.removedBlocks.count <= 0) {
+      return;
+    }
+    let startIdx, endIdx;
+    //find start idx
+    startIdx = getBlkIndex(parseRange.removedBlocks.start);
+    // find end idx
+    endIdx = getBlkIndex(parseRange.removedBlocks.end + 1); // must be here
+
+    const unchangedBlocks = blocks;
+    blocks = unchangedBlocks.splice(0, startIdx);
+    // t1 t2 t3 [] t4 ...
+    // no tokens are destroyed if i > end
+    // t1 [t2 t3 t4] t5 ...
+    // t1 [t2 .....
+    // t1 [t2 ...) ti...
+    if (unchangedBlocks.length > 0 && endIdx > startIdx) {
+      // remove blocks
+      unchangedBlocks.splice(0, endIdx - startIdx);
+
+      // adjust token coordinate
+      this._adjustBlocksCoord(unchangedBlocks, change, parseRange);
+    }
+    return { blocks: blocks, unchangedBlocks: unchangedBlocks };
+  }
+  private _getTknBlkIndex(startSectionIdx: number) {
+    return this._getBlkIndex(startSectionIdx, "specialBlks", this.tknBlks);
+  }
+
+  private _adjustPosCoord(change: Change, pos: TextPosition) {
+    if (pos.line === change.oldRange.end.line) {
+      let index = -1,
+        col,
+        addedCount = change.text.length,
+        len1 = change.oldRange.start.column,
+        len2 = pos.column - change.oldRange.end.column;
+
+      index = change.text.lastIndexOf("\n");
+      if (index >= 0) {
+        // multiple lines
+        col =
+          change.text[change.text.length - 1] === "\n"
+            ? len2
+            : addedCount - index - 1 + len2;
+      } else {
+        col = len1 + addedCount + len2;
+      }
+
+      pos.column = col;
+    } //ignore pos.line <> change.oldRange.end.line
+
+    pos.line +=
+      change.newRange.end.line -
+      change.newRange.start.line -
+      change.oldRange.end.line +
+      change.oldRange.start.line;
+  }
+
+  private _adjustBlocksCoord(
+    blocks: FoldingBlock[],
+    change: any,
+    parseRange: { endLine: number }
+  ) {
+    let len = blocks.length,
+      i,
+      pos;
+    this.changedLineCount =
+      change.newRange.end.line -
+      change.newRange.start.line -
+      change.oldRange.end.line +
+      change.oldRange.start.line;
+
+    for (i = 0; i < len; i++) {
+      if (
+        blocks[i].startLine > parseRange.endLine &&
+        this.changedLineCount === 0
+      ) {
+        break;
+      }
+      pos = this._startPos(blocks[i]);
+      this._adjustPosCoord(change, pos);
+      this._setStart(blocks[i], pos);
+
+      pos = this._endPos(blocks[i]);
+      this._adjustPosCoord(change, pos);
+      this._setEnd(blocks[i], pos);
+      // TODO: not very good, folding block end
+      const isSection = arrayToMap([
+        LexerEx.SEC_TYPE.DATA,
+        LexerEx.SEC_TYPE.PROC,
+        LexerEx.SEC_TYPE.MACRO,
+      ]);
+      if (isSection[blocks[i].type]) {
+        pos = this._sectionEndPos(blocks[i]);
+        this._adjustPosCoord(change, pos);
+        this._setSectionEnd(blocks[i], pos);
+      }
+    }
   }
 
   private _isHeadDestroyed(change: Change, block: FoldingBlock) {
     const oldRange = change.oldRange,
-      blank = _isBlank(change.text + change.removedText);
-    if (_isBefore(oldRange.start, _startPos(block)) && !blank) {
+      blank = this._isBlank(change.text + change.removedText);
+    if (this._isBefore(oldRange.start, this._startPos(block)) && !blank) {
       //PROC PROCEDURE DATA %MACRO
       return true;
     } else if (oldRange.start.line === block.startLine) {
@@ -539,7 +551,7 @@ export class LexerEx {
         const text = this.model
           .getLine(block.startLine)
           .slice(block.startCol, oldRange.start.column);
-        return /(PROC|PROCEDURE|DATA)\s*/i.test(_removeComment(text));
+        return /(PROC|PROCEDURE|DATA)\s*/i.test(this._removeComment(text));
       }
       if (offset === 0 && blank) {
         return false;
@@ -605,12 +617,12 @@ export class LexerEx {
     block.endFoldingLine = block.endLine;
     block.endFoldingCol = block.endCol;
     // adjujst previous block
-    if (sections.length) {
-      this.adjustFoldingEnd_(sections[sections.length - 1], block);
+    if (this.sections.length) {
+      this.adjustFoldingEnd_(this.sections[this.sections.length - 1], block);
     }
     // add
-    sections.push(block);
-    tokens = [];
+    this.sections.push(block);
+    this.tokens = [];
   }
   //TODO: IMPROVE
   private _changeCardsDataToken(token: {
@@ -618,21 +630,21 @@ export class LexerEx {
     start: TextPosition;
     end: TextPosition;
   }) {
-    tokens.pop();
-    tokens.push(token);
+    this.tokens.pop();
+    this.tokens.push(token);
     return token;
   }
   private _clonePos(pos: TextPosition) {
     return { line: pos.line, column: pos.column };
   }
   private startFoldingBlock_(type: any, pos: TextPosition, name: string) {
-    blockDepth++;
-    if (blockDepth === 1) {
-      currSection.startLine = pos.line;
-      currSection.startCol = pos.column;
-      currSection.type = type;
-      currSection.name = name;
-      currSection.specialBlks = null;
+    this.blockDepth++;
+    if (this.blockDepth === 1) {
+      this.currSection.startLine = pos.line;
+      this.currSection.startCol = pos.column;
+      this.currSection.type = type;
+      this.currSection.name = name;
+      this.currSection.specialBlks = null;
     }
   }
   private endFoldingBlock_(
@@ -644,16 +656,16 @@ export class LexerEx {
   ) {
     // positively end
     let add = false;
-    blockDepth--;
-    if (blockDepth === 0) {
+    this.blockDepth--;
+    if (this.blockDepth === 0) {
       add = true;
     }
     if (add) {
-      if (pos.line >= currSection.startLine) {
-        currSection.endLine = pos.line;
-        currSection.endCol = pos.column;
+      if (pos.line >= this.currSection.startLine) {
+        this.currSection.endLine = pos.line;
+        this.currSection.endCol = pos.column;
         //currSection.type = type;
-        const block = new FoldingBlock(currSection);
+        const block = new FoldingBlock(this.currSection);
         //var block = {};
         //jQuery.extend(true, block, currSection);
         block.explicitEnd = explicitEnd;
@@ -662,22 +674,22 @@ export class LexerEx {
           block.explicitEndStmt.start = start?.start;
           block.explicitEndStmt.name = name;
         }
-        if (currSection.specialBlks) {
-          block.specialBlks = currSection.specialBlks;
-          currSection.specialBlks = null;
+        if (this.currSection.specialBlks) {
+          block.specialBlks = this.currSection.specialBlks;
+          this.currSection.specialBlks = null;
         }
         this.push_(block);
       }
       //sas.log.info('block('+currSection.startLine + ',' + currSection.endLine + ')');
-      currSection.startLine = -1;
+      this.currSection.startLine = -1;
     }
   }
   private hasFoldingBlock_() {
-    return currSection.startLine >= 0;
+    return this.currSection.startLine >= 0;
   }
   private getLastNormalFoldingBlockInLine_(currentIdx: number, line: number) {
     let i = currentIdx,
-      block = sections[i],
+      block = this.sections[i],
       idx = currentIdx;
     // find forward
     while (block && (block.startLine === line || block.endLine === line)) {
@@ -685,31 +697,31 @@ export class LexerEx {
         idx = i;
       } else idx = -1;
       i++;
-      block = sections[i];
+      block = this.sections[i];
     }
     // find backward
     if (idx < 0) {
       i = currentIdx - 1;
-      block = sections[i];
+      block = this.sections[i];
       while (block && (block.startLine === line || block.endLine === line)) {
         if (block.type !== this.SEC_TYPE.GBL) {
           idx = i;
           break;
         } else idx = -1;
         i--;
-        block = sections[i];
+        block = this.sections[i];
       }
     }
     // ignore global
-    if (sections[idx] && sections[idx].type === this.SEC_TYPE.GBL) {
+    if (this.sections[idx] && this.sections[idx].type === this.SEC_TYPE.GBL) {
       idx = -1;
     }
-    return sections[idx];
+    return this.sections[idx];
     //return sections[idx]?sections[idx]:null; //we return null if no
   }
   private getFoldingBlock_(line: number, col?: number, strict?: boolean) {
-    let idx = this.getBlockPos_(sections, line, col),
-      block = sections[idx];
+    let idx = this.getBlockPos_(this.sections, line, col),
+      block = this.sections[idx];
     if (strict) {
       return block;
     }
@@ -717,10 +729,10 @@ export class LexerEx {
       return this.getLastNormalFoldingBlockInLine_(idx, line);
     } else if (col) {
       // for last block, the input position is the last
-      block = sections[sections.length - 1];
+      block = this.sections[this.sections.length - 1];
       if (
         block &&
-        !_isBefore({ line: line, column: col }, _endPos(block)) &&
+        !this._isBefore({ line: line, column: col }, this._endPos(block)) &&
         !block.explicitEnd
       ) {
         // must use !
@@ -746,7 +758,7 @@ export class LexerEx {
   private getBlockPos_(blocks: FoldingBlock[], line: number, col?: number) {
     let idx = this.getBlockPos1_(blocks, line);
     if (col || col === 0) {
-      idx = getBlockPos2_(blocks, idx, line, col); // multiple blocks are in one same lines
+      idx = this.getBlockPos2_(blocks, idx, line, col); // multiple blocks are in one same lines
     }
 
     return idx;
@@ -786,8 +798,8 @@ export class LexerEx {
     return 0;
   }
   private resetFoldingBlockCache_() {
-    sections = [];
-    blockDepth = 0;
+    this.sections = [];
+    this.blockDepth = 0;
   }
   private tryEndFoldingBlock_(pos: TextPosition) {
     if (this.hasFoldingBlock_()) {
@@ -802,38 +814,42 @@ export class LexerEx {
       }
       this.endFoldingBlock_(secType, pos);
 
-      while (blockDepth > 0) {
+      while (this.blockDepth > 0) {
         this.endFoldingBlock_(secType, pos);
-        blockDepth--;
+        this.blockDepth--;
       }
     }
   }
   private tryStop_(token: Token) {
-    let len = tailSections.length;
+    let len = this.tailSections.length;
     //this.tryToAddStmtBlock_(token);
     this.tryToAddTknBlock_(token);
     //this.tryToAddCardsBlock_(token);
-    if (token && len && !_isBefore(token.start, _startPos(tailSections[0]))) {
+    if (
+      token &&
+      len &&
+      !this._isBefore(token.start, this._startPos(this.tailSections[0]))
+    ) {
       if (this.hasFoldingBlock_()) {
-        if (currSection.type === this.SEC_TYPE.MACRO) {
-          tailSections.splice(0, 1);
+        if (this.currSection.type === this.SEC_TYPE.MACRO) {
+          this.tailSections.splice(0, 1);
           return;
         }
         this.tryEndFoldingBlock_(this.lastToken.end);
       }
       // adjust the associated information
-      let blkIdx = tknBlks.length;
-      let sectionIdx = sections.length;
+      let blkIdx = this.tknBlks.length;
+      let sectionIdx = this.sections.length;
       let i,
         j = 0;
-      tailSections.forEach(function (section: any) {
+      this.tailSections.forEach((section: any) => {
         if (section.specialBlks) {
           i = 0;
           len = section.specialBlks.length;
           for (; i < len; i++) {
             section.specialBlks[i] = blkIdx;
-            if (tailTknBlks[j]) {
-              tailTknBlks[j].sectionIdx = sectionIdx;
+            if (this.tailTknBlks[j]) {
+              this.tailTknBlks[j].sectionIdx = sectionIdx;
             }
             j++;
             blkIdx++;
@@ -841,24 +857,27 @@ export class LexerEx {
         }
         sectionIdx++;
       });
-      if (sections.length && tailSections.length) {
-        this.adjustFoldingEnd_(sections[sections.length - 1], tailSections[0]);
+      if (this.sections.length && this.tailSections.length) {
+        this.adjustFoldingEnd_(
+          this.sections[this.sections.length - 1],
+          this.tailSections[0]
+        );
       }
       // merge
-      sections = sections.concat(tailSections);
-      tknBlks = tknBlks.concat(tailTknBlks);
+      this.sections = this.sections.concat(this.tailSections);
+      this.tknBlks = this.tknBlks.concat(this.tailTknBlks);
       this.lastToken = null;
       throw {
-        changedLineCount: changedLineCount,
-        changedColCount: changedColCount,
+        changedLineCount: this.changedLineCount,
+        changedColCount: this.changedColCount,
         type: "skip-syntax-parsing",
         token: token,
       };
     }
-    if (token) tokens.push(token);
+    if (token) this.tokens.push(token);
   }
   printBlocks() {
-    for (let i = 0; i < sections.length; i++) {
+    for (let i = 0; i < this.sections.length; i++) {
       //sas.log.info(sections[i].startLine + '-'+sections[i].endLine);
     }
   }
@@ -898,22 +917,22 @@ export class LexerEx {
     //}
   }
   private getLastToken_(block: FoldingBlock) {
-    let i = tokens.length - 1;
+    let i = this.tokens.length - 1;
     // skip the tokens belonging to next block
     // while(i >= 0 && this.getWord_(tokens[i]) !== ';') {
     while (
-      tokens[i] &&
-      (tokens[i].start.line > block.endLine ||
-        (tokens[i].start.line === block.endLine &&
-          tokens[i].start.column >= block.endCol))
+      this.tokens[i] &&
+      (this.tokens[i].start.line > block.endLine ||
+        (this.tokens[i].start.line === block.endLine &&
+          this.tokens[i].start.column >= block.endCol))
     ) {
       i--;
     }
-    while (i >= 0 && /^\s*$/g.test(this.lexer.getText(tokens[i]))) {
+    while (i >= 0 && /^\s*$/g.test(this.lexer.getText(this.tokens[i]))) {
       i--;
     }
     if (i >= 0) {
-      return tokens[i];
+      return this.tokens[i];
     }
     return null;
   }
@@ -941,7 +960,7 @@ export class LexerEx {
         };
         block.endCol = this.model.getColumnCount(block.endLine);
 
-        if (_isBefore(_endPos(block), _startPos(block))) {
+        if (this._isBefore(this._endPos(block), this._startPos(block))) {
           block.endLine = block.startLine;
           block.endCol = block.startCol;
         }
@@ -1043,7 +1062,7 @@ export class LexerEx {
     return this.getParseRangeBySections_(change);
   }
   private getParseRangeBySections_(change: Change) {
-    const blocks = sections;
+    const blocks = this.sections;
     const range = this._getParseRange(blocks, change);
     // include the previous part
     let currBlock = blocks[range.removedBlocks.start - 1],
@@ -1065,14 +1084,14 @@ export class LexerEx {
       if (
         prevBlock &&
         ((this._isHeadDestroyed(change, currBlock) && !prevBlock.explicitEnd) ||
-          _isCollapsedPartially(prevBlock))
+          this._isCollapsedPartially(prevBlock))
       ) {
         //check whether re-parse the previous block
         range.startLine = prevBlock.startLine;
         range.startCol = prevBlock.startCol;
         range.removedBlocks.start--;
       } else if (
-        !_isBefore(change.oldRange.start, _endPos(currBlock)) &&
+        !this._isBefore(change.oldRange.start, this._endPos(currBlock)) &&
         currBlock.explicitEnd
       ) {
         // use '!'
@@ -1084,20 +1103,20 @@ export class LexerEx {
     // const, comment
     const sectionToChange = this._checkSpecialChange(change, range);
     if (sectionToChange >= 0) {
-      if (sectionToChange === sections.length) {
+      if (sectionToChange === this.sections.length) {
         range.endLine = this.model.getLineCount() - 1;
         range.endCol = this.model.getColumnCount(range.endLine);
         range.removedBlocks.end = blocks.length - 1;
       } else if (sectionToChange > range.removedBlocks.end) {
-        range.endLine = sections[sectionToChange].endLine;
-        range.endCol = sections[sectionToChange].endCol;
+        range.endLine = this.sections[sectionToChange].endLine;
+        range.endCol = this.sections[sectionToChange].endCol;
         range.removedBlocks.end = sectionToChange;
       }
     } else {
       let nextBlockIdx = range.removedBlocks.end,
         nextBlock = null;
       currBlock = blocks[nextBlockIdx];
-      if (currBlock && _isTailDestroyed(change, currBlock)) {
+      if (currBlock && this._isTailDestroyed(change, currBlock)) {
         do {
           nextBlockIdx++;
           nextBlock = blocks[nextBlockIdx];
@@ -1176,7 +1195,7 @@ export class LexerEx {
 
     this.stack = [{ parse: this.readProg_, state: this.PARSING_STATE.IN_GBL }];
     this.curr = null;
-    blockDepth = 0;
+    this.blockDepth = 0;
     this.sectionCache.splice(
       parseRange.startLine,
       this.sectionCache.length - parseRange.startLine
@@ -1186,16 +1205,16 @@ export class LexerEx {
   }
   private _handleSections(change: Change, parseRange: any) {
     // keep the blocks not changed
-    tailSections = sections;
-    sections = tailSections.splice(0, parseRange.removedBlocks.start);
+    this.tailSections = this.sections;
+    this.sections = this.tailSections.splice(0, parseRange.removedBlocks.start);
     if (parseRange.removedBlocks !== undefined) {
-      tailSections.splice(0, parseRange.removedBlocks.count);
+      this.tailSections.splice(0, parseRange.removedBlocks.count);
     }
-    changedColCount = 0;
-    if (tailSections.length) {
-      const oldCol = tailSections[0].startCol;
-      _adjustBlocksCoord(tailSections, change, parseRange);
-      changedColCount = tailSections[0].startCol - oldCol;
+    this.changedColCount = 0;
+    if (this.tailSections.length) {
+      const oldCol = this.tailSections[0].startCol;
+      this._adjustBlocksCoord(this.tailSections, change, parseRange);
+      this.changedColCount = this.tailSections[0].startCol - oldCol;
     }
   }
   // _handleStmts(
@@ -1224,8 +1243,8 @@ export class LexerEx {
     },
     parseRange: any
   ) {
-    let startSection = sections[parseRange.removedBlocks.start],
-      endSection = sections[parseRange.removedBlocks.end],
+    let startSection = this.sections[parseRange.removedBlocks.start],
+      endSection = this.sections[parseRange.removedBlocks.end],
       start,
       end,
       tmpBlks = [],
@@ -1236,22 +1255,22 @@ export class LexerEx {
       return change.text;
     }
 
-    prevSection = sections[parseRange.removedBlocks.start - 1];
+    prevSection = this.sections[parseRange.removedBlocks.start - 1];
     if (prevSection) {
-      start = _endPos(prevSection);
+      start = this._endPos(prevSection);
     } else {
       start = { line: 0, column: 0 };
     }
 
     if (change.type === "textChanged") {
-      nextSection = sections[parseRange.removedBlocks.end + 1];
+      nextSection = this.sections[parseRange.removedBlocks.end + 1];
       if (
         nextSection /*&& _isBefore(change.newRange.end, _startPos(nextSection))*/
       ) {
         tmpBlk = new FoldingBlock(nextSection);
         tmpBlks.push(tmpBlk);
-        _adjustBlocksCoord(tmpBlks, change, parseRange);
-        end = _startPos(tmpBlk);
+        this._adjustBlocksCoord(tmpBlks, change, parseRange);
+        end = this._startPos(tmpBlk);
       } else {
         end = this._docEndPos();
       }
@@ -1263,7 +1282,7 @@ export class LexerEx {
         }),
         part2;
 
-      end = endSection ? _endPos(endSection) : this._docEndPos();
+      end = endSection ? this._endPos(endSection) : this._docEndPos();
       part2 = this.model.getText({ start: change.oldRange.end, end: end });
 
       return part1 + change.text + part2;
@@ -1271,22 +1290,22 @@ export class LexerEx {
   }
   private _getNextComment(startIndex: number) {
     // section index
-    let i = _getNextValidTknBlkIdx(startIndex);
-    while (tknBlks[i] && tknBlks[i].blockComment !== true) {
+    let i = this._getNextValidTknBlkIdx(startIndex);
+    while (this.tknBlks[i] && this.tknBlks[i].blockComment !== true) {
       i++;
     }
-    return tknBlks[i];
+    return this.tknBlks[i];
   }
   private _getNextCards4(startIndex: number) {
-    let i = _getNextValidTknBlkIdx(startIndex);
+    let i = this._getNextValidTknBlkIdx(startIndex);
     while (
-      tknBlks[i] &&
-      !Lexer.isCards4[tknBlks[i].name] &&
-      !Lexer.isParmcards4[tknBlks[i].name]
+      this.tknBlks[i] &&
+      !Lexer.isCards4[this.tknBlks[i].name] &&
+      !Lexer.isParmcards4[this.tknBlks[i].name]
     ) {
       i++;
     }
-    return tknBlks[i];
+    return this.tknBlks[i];
   }
   private _checkSpecialChange(
     change: any,
@@ -1309,15 +1328,15 @@ export class LexerEx {
     //sas.log.info("changed special tokens:" + tknParseRange);
     // text is of the blocks impacted directly
     // clean up text
-    text = _removeComment(text); //remove normal comments
-    text = _removeConst(text);
+    text = this._removeComment(text); //remove normal comments
+    text = this._removeConst(text);
     // NOTE:
     // (1) cards contain comment-like data, and matched token is outside
     // (2) cards contain const-like data, and matched token is ourside
-    text = _saveRemoveDataLines(cards, text);
-    text = _saveRemoveDataLines(cards4, text);
-    text = _saveRemoveDataLines(parmcards, text);
-    text = _saveRemoveDataLines(parmcards4, text);
+    text = this._saveRemoveDataLines(cards, text);
+    text = this._saveRemoveDataLines(cards4, text);
+    text = this._saveRemoveDataLines(parmcards, text);
+    text = this._saveRemoveDataLines(parmcards4, text);
     text = text.replace(/\n/g, " ");
     //text = text.replace(regConst, "x");
 
@@ -1329,33 +1348,33 @@ export class LexerEx {
       if (nextBlockComment) {
         text += " /**/"; //with a space before /**/
         sectionToChange = nextBlockComment.sectionIdx;
-        text = _removeComment(text);
+        text = this._removeComment(text);
         regBlockCommentStart.lastIndex = 0;
         change = regBlockCommentStart.test(text);
       }
       //}
       if (change) {
-        return sections.length; // always reparse all
+        return this.sections.length; // always reparse all
       }
     }
 
     // check const
     change = regQuotesStart.test(text);
     if (change) {
-      return sections.length;
+      return this.sections.length;
     }
 
     // check macro
     change = regMacro.test(text);
     if (change) {
-      return sections.length;
+      return this.sections.length;
     }
 
     if (text.lastIndexOf("*") > 0) {
       // S1454652: *comment need following ';'
       sectionToChange = parseRange.removedBlocks.end + 1;
-      if (sectionToChange > sections.length) {
-        return sections.length;
+      if (sectionToChange > this.sections.length) {
+        return this.sections.length;
       }
     }
     if (sectionToChange > 0) {
@@ -1363,35 +1382,35 @@ export class LexerEx {
     }
 
     // check cards
-    change = _checkCards4(cards4, text);
+    change = this._checkCards4(cards4, text);
     if (change) {
       if (parseRange.removedBlocks) {
         nextBlockCards4 = this._getNextCards4(parseRange.removedBlocks.end + 1);
         if (nextBlockCards4) {
           text += " \n;;;;\n";
           sectionToChange = nextBlockCards4.sectionIdx;
-          text = _saveRemoveDataLines(cards4, text);
-          change = _checkCards4(cards4, text);
+          text = this._saveRemoveDataLines(cards4, text);
+          change = this._checkCards4(cards4, text);
         }
       }
       if (change) {
-        return sections.length;
+        return this.sections.length;
       }
     }
     // check parmcards
-    change = _checkCards4(parmcards4, text);
+    change = this._checkCards4(parmcards4, text);
     if (change) {
       if (parseRange.removedBlocks) {
         nextBlockCards4 = this._getNextCards4(parseRange.removedBlocks.end + 1);
         if (nextBlockCards4) {
           text += " \n;;;;\n";
           sectionToChange = nextBlockCards4.sectionIdx;
-          text = _saveRemoveDataLines(parmcards4, text);
-          change = _checkCards4(parmcards4, text);
+          text = this._saveRemoveDataLines(parmcards4, text);
+          change = this._checkCards4(parmcards4, text);
         }
       }
       if (change) {
-        return sections.length;
+        return this.sections.length;
       }
     }
     if (sectionToChange > 0) {
@@ -1401,15 +1420,15 @@ export class LexerEx {
     return -1;
   }
   private _handleTokens(change: Change, parseRange: any) {
-    const ret = _handleSpecialBlocks(
+    const ret = this._handleSpecialBlocks(
       change,
       parseRange,
-      _getTknBlkIndex,
-      tknBlks
+      this._getTknBlkIndex,
+      this.tknBlks
     );
     if (ret) {
-      tknBlks = ret.blocks;
-      tailTknBlks = ret.unchangedBlocks;
+      this.tknBlks = ret.blocks;
+      this.tailTknBlks = ret.unchangedBlocks;
     }
   }
   //adjustTokenType_(token){//FIX S0891785 : Not all procs color code
@@ -1432,13 +1451,13 @@ export class LexerEx {
     return token;
   }
   private addTknBlock_(block: FoldingBlock) {
-    if (!currSection.specialBlks) {
+    if (!this.currSection.specialBlks) {
       //const with quotes, comment, cards data
-      currSection.specialBlks = [];
+      this.currSection.specialBlks = [];
     }
-    currSection.specialBlks.push(tknBlks.length);
+    this.currSection.specialBlks.push(this.tknBlks.length);
 
-    tknBlks.push(block);
+    this.tknBlks.push(block);
   }
   private tryToAddTknBlock_(token: Token) {
     if (token && this.isTokenWithScopeMarks[token.type]) {
@@ -1450,7 +1469,7 @@ export class LexerEx {
         token.type,
         this.lexer.getText(token)
       );
-      block.sectionIdx = sections.length; //TODO: Improve this
+      block.sectionIdx = this.sections.length; //TODO: Improve this
       block.blockComment =
         this.model.getLine(token.start.line)[token.start.column] === "/"
           ? true
@@ -1469,7 +1488,7 @@ export class LexerEx {
         token.type,
         this.curr.name
       );
-      block.sectionIdx = sections.length; //TODO: Improve this
+      block.sectionIdx = this.sections.length; //TODO: Improve this
 
       this.addTknBlock_(block);
     }

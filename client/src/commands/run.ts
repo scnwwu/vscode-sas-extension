@@ -56,6 +56,8 @@ async function _run() {
 
 export function run(): void {
   _run().catch((err) => {
-    window.showErrorMessage(err.get ? err.get("detail") : err.detail ?? err);
+    window.showErrorMessage(
+      (err.get ? err.get("detail") : err.detail ?? err).toString()
+    );
   });
 }

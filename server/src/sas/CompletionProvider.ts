@@ -224,7 +224,7 @@ export class CompletionProvider {
     for (let j = 0; j < tokens.length; j++) {
       const start = tokens[j].start;
       const end = j === tokens.length - 1 ? line.length : tokens[j + 1].start;
-      if (end >= position.character) {
+      if (end > position.character) {
         const keyword = this.model.getText({
           start: { line: position.line, column: start },
           end: { line: position.line, column: end },

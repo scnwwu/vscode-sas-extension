@@ -62,6 +62,7 @@ export async function setup(): Promise<void> {
     computeSession = await computeSetup(store, null, authConfig).catch(
       (err) => {
         authConfig = undefined;
+        store.logoff();
         throw err;
       }
     );
@@ -83,6 +84,8 @@ export function closeSession(): Promise<void> {
   authConfig = undefined;
   if (computeSession)
     return store.apiCall(computeSession.links("delete")).finally(() => {
+      store.logoff();
       computeSession = undefined;
     });
+  store.logoff();
 }

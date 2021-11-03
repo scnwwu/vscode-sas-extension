@@ -312,7 +312,11 @@ export class Lexer {
     const token = this.getNext_() as Token | undefined;
     if (token) {
       if (Lexer.isComment[token.type] === undefined) {
-        this.context.lastNoncommentToken = { ...token };
+        this.context.lastNoncommentToken = {
+          ...token,
+          start: { ...token.start },
+          end: { ...token.end },
+        };
       }
       if (Lexer.isLiteral[token.type]) {
         token.text = this.getText(token);

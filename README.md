@@ -61,7 +61,7 @@ Tip: Click the link on the help panel to navigate to the document.
 
 ### Snippets
 
-The extension defines a lot of snippets for sas funcitons and procecures to help users input SAS code blocks. You can type the name of a function or procedure directly to show them. The first line of the below picture is a snippet.
+The extension defines a lot of snippets for SAS functions and procedures to help users input SAS code blocks. You can type the name of a function or procedure directly to show them. The first line in the following screenshot is a snippet.
 
 <img src="doc/images/Snippets.PNG"/>
 
@@ -77,7 +77,7 @@ Tip: Define custom region with `/*region*/` and `/*endregion*/`
 
 Submit SAS code to Viya server.
 
-- Before you run SAS code, please go to `Settings > Extensions > SAS` to configure your Viya server, Client ID/Secret and user name to login with password.
+- Before you run SAS code, please go to `Settings > Extensions > SAS` to configure your Viya server, client ID/Secret and user name to login with password.
 
   - Please contact your SAS administrator for the Client ID and Client Secret. Refers to [Register a New Client ID](https://go.documentation.sas.com/doc/en/sasadmincdc/v_019/calauthmdl/p1gq6q7zzt52win1jwhc2b5kuc1z.htm#n0brttsp1nuzzkn1njvr535txk86).
   - Alternatively you can get access token by your own preferred way and store it in a file. Set the path to the token file in settings, the extension will use it.
@@ -90,6 +90,6 @@ Submit SAS code to Viya server.
 
 - Notes
   - A session will be created the first time you run, which may take some time.
-  - Currently only HTML output is supported to show. By default it will wrap `ods html5` to the code submitted. You can disable it by uncheck `Get ODS HTML5 output` in settings.
-  - The code in "current" editor will be submitted. Please be sure to focus the editor you want before click the Run button.
-  - You can run `Close current session` command to reset connection if anything wrong.
+  - Currently only HTML output is supported. By default it will wrap `ods html5` to the code submitted. You can disable it by uncheck `Get ODS HTML5 output` in the settings.
+  - The code in "current" editor will be submitted. Please be sure to focus the editor you want before clicking the Run button.
+  - You can run `Close current session` command to reset connections if anything goes wrong.

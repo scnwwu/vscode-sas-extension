@@ -1,6 +1,6 @@
 # SAS Language Server for VSCode
 
-A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marketplace.visualstudio.com/VSCode) with rich support for the [SAS language](https://www.sas.com/), including features such as syntax highlighting, code completion, hover help, sas code snippets and run sas code.
+This VS Code extension provides support for the [SAS language](https://www.sas.com, including features such as SAS syntax highlighting, code completion, hover help, code folding, outline, sas code snippets and run sas code.
 
 ## Features
 

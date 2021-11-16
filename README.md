@@ -73,19 +73,19 @@ Tip: Define custom region with `/*region*/` and `/*endregion*/`
 
 Submit SAS code to Viya server.
 
-- Before you run SAS code, please go to `Settings > Extensions > SAS` to configure your Viya server, client ID/Secret and user name to login with password.
+- Before you run SAS code, please go to `Settings > Extensions > SAS` to configure your Viya server, client ID/Secret and User name.
 
-  - Please contact your SAS administrator for the Client ID and Client Secret. Refers to [Register a New Client ID](https://go.documentation.sas.com/doc/en/sasadmincdc/v_019/calauthmdl/p1gq6q7zzt52win1jwhc2b5kuc1z.htm#n0brttsp1nuzzkn1njvr535txk86).
-  - Alternatively you can get access token by your own preferred way and store it in a file. Set the path to the token file in settings, the extension will use it.
+  - Please contact your SAS administrator for the Client ID and Client Secret. [Register a New Client ID](https://go.documentation.sas.com/doc/en/sasadmincdc/v_019/calauthmdl/p1gq6q7zzt52win1jwhc2b5kuc1z.htm#n0brttsp1nuzzkn1njvr535txk86).
+  - Alternatively you can get the access token and store it in a file. Set the path to the token file in the settings, the extension will use it.
 
 - Click the Run<img src="icons/light/submitSASCode.svg"/> icon on the top right on a SAS file.
 - Enter password when prompted
-- You'll see the SAS log and HTML output if any
+- You'll see the SAS log and HTML output if there is any
 
 <img src="doc/images/RunResult.PNG"/>
 
 - Notes
-  - A session will be created the first time you run, which may take some time.
+  - A session will be created the first time you run SAS code, which may take 10-60 seconds based on your server connections.
   - Currently only HTML output is supported. By default it will wrap `ods html5` to the code submitted. You can disable it by uncheck `Get ODS HTML5 output` in the settings.
-  - The code in "current" editor will be submitted. Please be sure to focus the editor you want before clicking the Run button.
+  - The code in the "current" editor will be submitted. Please make sure to focus on the code tab before clicking the Run button.
   - You can run `Close current session` command to reset connections if anything goes wrong.

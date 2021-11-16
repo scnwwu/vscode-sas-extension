@@ -44,20 +44,16 @@ Provides 3 color themes. Select one of them from `Manage > Color Theme` to gain 
 
 Provides code completion and mouse hover help for SAS keywords. The extension can display brief SAS syntax documents when you are editing your SAS code. You can display the help in any of the following ways:
 
-- Move the mouse pointer over a valid SAS keyword in your code.
-- Start to type a valid SAS keyboard, and move the mouse pionter over a suggested keyword in the autocompletion window.
+- Move the mouse cursor over a valid SAS keyword in your code.
+- Start to type a valid SAS keyboard, and navigate the focus to a suggested keyword in the autocompletion popup list.
 
-The SAS language have overlapped keyword names that can be used in different contexts. For example, the LABEL keyword can be used both within the LABEL statement or as part of the LABEL= data set option. Our extension can tell the difference between them.
-
-The SAS Product Document provides more comprehensive usage information about the SAS language, but our syntax help will give you the hint about the syntax or a brief description of a keyword. You can get additional help by clicking links in the syntax help.
-
-The SAS Product Document is available on the SAS Customer Support Web site.
+Our syntax help will give you a brief description of a keyword. You can get additional help by clicking the links in the syntax help.
 
 In the following example, the panel displays help for the data option in the PROC Print procedure.
+Tip: Click the link on the help panel to navigate to the SAS online help.
 
 <img src="doc/images/CodeCompletion.PNG"/>
 
-Tip: Click the link on the help panel to navigate to the document.
 
 ### Snippets
 

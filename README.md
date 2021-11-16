@@ -1,10 +1,30 @@
 # SAS Language Server for VSCode
 
-A VS Code extension with rich support for the [SAS language](https://www.sas.com/), including features such as syntax highlighting, code completion, hover help, sas code snippets and run sas code.
+A [Visual Studio Code](https://code.visualstudio.com/) [extension](https://marketplace.visualstudio.com/VSCode) with rich support for the [SAS language](https://www.sas.com/), including features such as syntax highlighting, code completion, hover help, sas code snippets and run sas code.
 
 ## Features
 
 ### SAS Syntax Highlighting
+
+Support to highlight the below syntax elements:
+
+- Global statements
+- SAS procedures
+- SAS procedure statements
+- Data step definition
+- Data step statements
+- SAS data sets
+- Macro definition
+- Macro statements
+- Functions
+- CALL routins
+- Formats and informats
+- Macro variables
+- SAS colors
+- Style elements and style attributes
+- Comment
+- Various constants
+- Options, enumerated option values, sub-options and sub-option values for various procedure definitions and statements
 
 It provides 3 color themes. Select one of them from `Manage > Color Theme` to gain colors for SAS syntax elements.
 
@@ -22,11 +42,28 @@ It provides 3 color themes. Select one of them from `Manage > Color Theme` to ga
 
 ### Code completion and hover help
 
-Provides code completion and mouse hover help for SAS keywords.
+Provides code completion and mouse hover help for SAS keywords. The extension can displays brief SAS syntax documentation as you write and edit your SAS programs. You can display the help in any of the following ways:
+
+- Position the mouse pointer over a valid SAS keyword in your program.
+- Start typing a valid SAS keyboard, and then position the mouse pionter over a suggested keyword in the autocompletion window.
+
+The SAS language often uses keywords that have the same name but can be used in different contexts. For example, the LABEL keyword is used both within the LABEL statement and also as part of the LABEL= data set option. The extension can distinguish between these uses and display the appropriate help.
+
+The SAS Product Documentation provides more comprehensive usage information about the SAS language, but the syntax help can get you started with a hint about the syntax or a brief description of a keyword. You can get additional help by clicking links in the syntax help window as follows.
+
+The SAS Product Documentation is available on the SAS Customer Support Web site.
+
+In the following example, the panel displays help for the data option in the PROC Print procedure.
 
 <img src="doc/images/CodeCompletion.PNG"/>
 
 Tip: Click the link on the help panel to navigate to the documentation.
+
+### Snippets
+
+The extension defines a lot of snippets for sas funcitons and procecures to help users input sas code blocks which are used most commonly, you can type the name of a function or procedure directly to show them. The first line of the below picture is a snippet.
+
+<img src="doc/images/Snippets.PNG"/>
 
 ### Code folding and outline
 

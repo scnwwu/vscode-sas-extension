@@ -43,15 +43,15 @@ Provides 3 color themes that control the coloring for the SAS syntax elements.  
 
 ### Code completion and hover help
 
-Provides code completion and mouse hover help for SAS keywords. The extension can display brief SAS syntax documents when you are editing your SAS code. You can display the help in any of the following ways:
+Provides code completion and mouse hover help for SAS keywords. The extension can display brief SAS syntax documents when editing SAS code. The help can be displayed in any of the following ways:
 
-- Move the mouse cursor over a valid SAS keyword in your code.
+- Move the mouse cursor over a valid SAS keyword in the code.
 - Start to type a valid SAS keyboard, and navigate the focus via the up/down arrows to a keyword in the autocompletion popup list.
 
-Syntax help will display a brief description of a keyword.  Additional help can be show by clicking one of the links in the syntax help.
+Syntax help will display a brief description of a keyword.  Additional help can be obtained by clicking the links in the syntax help.
  
 In the following example, the panel displays help for the data option in the PROC Print procedure.
-Tip: Click the link on the help panel to navigate to the SAS online help.
+_Tip_: Click the link on the help panel to navigate to the SAS online help.
 
 <img src="doc/images/CodeCompletion.PNG"/>
 
@@ -59,7 +59,7 @@ Tip: Click the link on the help panel to navigate to the SAS online help.
 ### Snippets
 A snippet is a one or more defined words that are recognized by the extension and then replaced with a block of text.  The extension defines a large number of built in snippets for SAS functions and procedures to help users quickly input SAS code blocks.
 
-The extension defines a lot of snippets for SAS functions and procedures to help users input SAS code blocks. You can type the name of a function or procedure directly to show them. The first line in the following screenshot is a snippet.
+The extension defines a large number of snippets for SAS functions and procedures to help users input SAS code blocks. Type the name of a function or procedure directly to show them. The first line in the following screenshot is a snippet.
 
 <img src="doc/images/Snippets.PNG"/>
 
@@ -69,25 +69,25 @@ Provides code folding and outline for data steps, procedures, macro sections and
 
 <img src="doc/images/Folding.PNG"/>
 
-Tip: Define custom region with `/*region*/` and `/*endregion*/`
+_Tip_: Define custom region with `/*region*/` and `/*endregion*/`
 
 ### Run SAS code
 
 Submit SAS code to Viya server. (A licensed Viya 4 system is needed to run SAS Code.)
 
-- Before you run SAS code, please go to `Settings > Extensions > SAS` to configure your Viya server, client ID/Secret and User name. Currently, only Viya 4 servers are supported.
+- Before running SAS code, go to `Settings > Extensions > SAS` to configure your Viya server, client ID/Secret and User name. Currently, only Viya 4 servers are supported.
 
   - Please contact your SAS administrator for the Client ID and Client Secret. [Register a New Client ID](https://go.documentation.sas.com/doc/en/sasadmincdc/v_019/calauthmdl/p1gq6q7zzt52win1jwhc2b5kuc1z.htm#n0brttsp1nuzzkn1njvr535txk86).
-  - Alternatively you can get the access token and store it in a file. Set the path to the token file in the settings, the extension will use it.
+  - Alternatively the access token can be stored in a file. Set the path to the token file in the settings, the extension will use it.
 
 - Click the Run<img src="icons/light/submitSASCode.svg"/> icon on the top right on a SAS file.
-- Enter password when prompted
-- You'll see the SAS log and HTML output if there is any
+- Enter password when prompted.
+- The SAS log and HTML output will be displayed if there is any.
 
 <img src="doc/images/RunResult.PNG"/>
 
 - Notes
   - A session will be created the first time you run SAS code, which may take 10-60 seconds based on your server connections.
-  - Currently only HTML output is supported. By default it will wrap `ods html5` to the code submitted. You can disable it by uncheck `Get ODS HTML5 output` in the settings.
-  - The code in the "current" editor will be submitted. Please make sure to focus on the code tab before clicking the Run button.
+  - Currently only HTML output is supported. By default it will wrap `ods html5` to the code submitted. You can disable it by unchecking `Get ODS HTML5 output` in the settings.
+  - The code in the "current" editor will be submitted. Please make sure to focus on the code tab before clicking the `Run` button.
   - You can run `Close current session` command to reset connections if anything goes wrong.

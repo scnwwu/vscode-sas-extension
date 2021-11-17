@@ -75,7 +75,7 @@ _Tip_: Define custom region with `/*region*/` and `/*endregion*/`
 
 Submit SAS code to Viya server. (A licensed Viya 4 system is needed to run SAS Code.)
 
-- Before running SAS code, go to `Settings > Extensions > SAS` to configure your Viya server, client ID/Secret and User name. Currently, only Viya 4 servers are supported.
+- Before running SAS code, go to `Settings > Extensions > SAS` to configure the Viya server, client ID/Secret and User name. Currently, only Viya 4 servers are supported.
 
   - Please contact your SAS administrator for the Client ID and Client Secret. [Register a New Client ID](https://go.documentation.sas.com/doc/en/sasadmincdc/v_019/calauthmdl/p1gq6q7zzt52win1jwhc2b5kuc1z.htm#n0brttsp1nuzzkn1njvr535txk86).
   - Alternatively the access token can be stored in a file. Set the path to the token file in the settings, the extension will use it.
@@ -87,7 +87,7 @@ Submit SAS code to Viya server. (A licensed Viya 4 system is needed to run SAS C
 <img src="doc/images/RunResult.PNG"/>
 
 - Notes
-  - A session will be created the first time you run SAS code, which may take 10-60 seconds based on your server connections.
-  - Currently only HTML output is supported. By default it will wrap `ods html5` to the code submitted. You can disable it by unchecking `Get ODS HTML5 output` in the settings.
+  - A session will be created the first time when running SAS code, which may take 10-60 seconds based on the server connections.
+  - Currently only HTML output is supported. By default it will wrap `ods html5` to the code submitted. Can disable it by unchecking `Get ODS HTML5 output` in the settings.
   - The code in the "current" editor will be submitted. Please make sure to focus on the code tab before clicking the `Run` button.
-  - You can run `Close current session` command to reset connections if anything goes wrong.
+  - User can run `Close current session` command to reset the connections if anything goes wrong.

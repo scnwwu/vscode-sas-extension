@@ -48,8 +48,8 @@ Provides code completion and mouse hover help for SAS keywords. The extension ca
 - Move the mouse cursor over a valid SAS keyword in your code.
 - Start to type a valid SAS keyboard, and navigate the focus via the up/down arrows to a keyword in the autocompletion popup list.
 
-Our syntax help will give you a brief description of a keyword. You can get additional help by clicking the links in the syntax help.
-
+Syntax help will display a brief description of a keyword.  Additional help can be show by clicking one of the links in the syntax help.
+ 
 In the following example, the panel displays help for the data option in the PROC Print procedure.
 Tip: Click the link on the help panel to navigate to the SAS online help.
 
@@ -57,6 +57,7 @@ Tip: Click the link on the help panel to navigate to the SAS online help.
 
 
 ### Snippets
+A snippet is a one or more defined words that are recognized by the extension and then replaced with a block of text.  The extension defines a large number of built in snippets for SAS functions and procedures to help users quickly input SAS code blocks.
 
 The extension defines a lot of snippets for SAS functions and procedures to help users input SAS code blocks. You can type the name of a function or procedure directly to show them. The first line in the following screenshot is a snippet.
 
@@ -72,9 +73,9 @@ Tip: Define custom region with `/*region*/` and `/*endregion*/`
 
 ### Run SAS code
 
-Submit SAS code to Viya server.
+Submit SAS code to Viya server. (A licensed Viya 4 system is needed to run SAS Code.)
 
-- Before you run SAS code, please go to `Settings > Extensions > SAS` to configure your Viya server, client ID/Secret and User name.
+- Before you run SAS code, please go to `Settings > Extensions > SAS` to configure your Viya server, client ID/Secret and User name. Currently, only Viya 4 servers are supported.
 
   - Please contact your SAS administrator for the Client ID and Client Secret. [Register a New Client ID](https://go.documentation.sas.com/doc/en/sasadmincdc/v_019/calauthmdl/p1gq6q7zzt52win1jwhc2b5kuc1z.htm#n0brttsp1nuzzkn1njvr535txk86).
   - Alternatively you can get the access token and store it in a file. Set the path to the token file in the settings, the extension will use it.

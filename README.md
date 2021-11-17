@@ -1,6 +1,6 @@
 # SAS Extension for Visual Studio Code
 
-This VS Code extension provides support for the [SAS language](https://www.sas.com), including features such as SAS syntax highlighting, code completion, hover help, code folding, outline, SAS code snippets and run SAS code.
+This VS Code extension provides support for the [SAS language](https://go.documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/lrcon/titlepage.htm), including features such as SAS syntax highlighting, code completion, hover help, code folding, outline, SAS code snippets and run SAS code.
 
 ## Features
 
@@ -17,7 +17,7 @@ Highlights the following syntax elements:
 - Macro definition
 - Macro statements
 - Functions
-- CALL routins
+- CALL routines
 - Formats and informats
 - Macro variables
 - SAS colors
@@ -26,7 +26,8 @@ Highlights the following syntax elements:
 - Various constants
 - Options, enumerated option values, sub-options and sub-option values for various procedure definitions and statements
 
-Provides 3 color themes. Select one of them from `Manage > Color Theme` to gain colors for SAS syntax elements.
+### Theme
+Provides 3 color themes that control the coloring for the SAS syntax elements.  To choose a color theme, select one of them from `Manage > Color Theme` 
 
 - SAS Illuminate (light theme)
 
@@ -45,7 +46,7 @@ Provides 3 color themes. Select one of them from `Manage > Color Theme` to gain 
 Provides code completion and mouse hover help for SAS keywords. The extension can display brief SAS syntax documents when you are editing your SAS code. You can display the help in any of the following ways:
 
 - Move the mouse cursor over a valid SAS keyword in your code.
-- Start to type a valid SAS keyboard, and navigate the focus to a suggested keyword in the autocompletion popup list.
+- Start to type a valid SAS keyboard, and navigate the focus via the up/down arrows to a keyword in the autocompletion popup list.
 
 Our syntax help will give you a brief description of a keyword. You can get additional help by clicking the links in the syntax help.
 

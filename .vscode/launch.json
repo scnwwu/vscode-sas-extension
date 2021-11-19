@@ -15,6 +15,21 @@
       }
     },
     {
+      "name": "Launch Browser",
+      "type": "pwa-extensionHost",
+      "debugWebWorkerHost": true,
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceRoot}",
+        "--extensionDevelopmentKind=web"
+      ],
+      "outFiles": ["${workspaceRoot}/client/dist/**/*.js"],
+      "preLaunchTask": {
+        "type": "npm",
+        "script": "watch-browser"
+      }
+    },
+    {
       "type": "node",
       "request": "attach",
       "name": "Attach to Server",

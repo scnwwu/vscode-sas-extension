@@ -1,30 +1,7 @@
 import { arrayToMap } from "./utils";
+import { ResLoader } from "../node/ResLoader";
 
-const getBaseUrl = () => "..";
-
-// ResLoader
-const ResLoader = {
-  get: function (url: string, cb: (arg0: any) => void, async?: boolean) {
-    /*jQuery.ajax({
-                    //type: "get",
-                    url: url,
-                    dataType: "json",
-                    async: !!async,
-                    success: function(data, textStatus, xhr) {
-                        if (cb) {
-                            cb(data);
-                        }
-                    },
-                    error: function(xhr, textStatus, error) {
-                        if (cb) {
-                            cb(null);
-                        }
-                    }
-                });*/
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    cb(require(url));
-  },
-};
+const getBaseUrl = () => "../..";
 
 export interface HelpData {
   key: string;

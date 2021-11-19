@@ -30,6 +30,27 @@
           }
         }
       }
+    },
+    {
+      "type": "npm",
+      "script": "compile-browser",
+      "group": "build",
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "never"
+      },
+      "problemMatcher": ["$ts-webpack", "$tslint-webpack"]
+    },
+    {
+      "type": "npm",
+      "script": "watch-browser",
+      "isBackground": true,
+      "group": "build",
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "never"
+      },
+      "problemMatcher": ["$ts-webpack-watch", "$tslint-webpack-watch"]
     }
   ]
 }

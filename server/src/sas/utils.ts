@@ -1,5 +1,3 @@
-import { readFileSync } from "fs";
-
 export interface TextPosition {
   line: number;
   column: number;
@@ -22,10 +20,10 @@ let bundle: Record<string, string>;
 export function getText(key: string, arg?: string): string {
   if (!bundle) {
     bundle = {};
-    readFileSync(__dirname + "/../messagebundle.properties")
-      .toString()
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    require("../../messagebundle.properties")
       .split("\n")
-      .forEach((pair) => {
+      .forEach((pair: string) => {
         const [key, value] = pair.split("=");
         bundle[key] = value;
       });

@@ -4,13 +4,16 @@ const dev = process.argv[2];
 require("esbuild")
   .build({
     entryPoints: {
-      "./client/dist/extension": "./client/src/extension.ts",
-      "./server/dist/server": "./server/src/server.ts",
+      "./client/dist/node/extension": "./client/src/node/extension.ts",
+      "./server/dist/node/server": "./server/src/node/server.ts",
     },
     bundle: true,
     outdir: ".",
     platform: "node",
     external: ["vscode"],
+    loader: {
+      ".properties": "text",
+    },
     sourcemap: !!dev,
     watch: dev
       ? {

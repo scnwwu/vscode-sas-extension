@@ -7,7 +7,9 @@
     // for code formatting
     "esbenp.prettier-vscode",
     // for linting
-    "dbaeumer.vscode-eslint"
+    "dbaeumer.vscode-eslint",
+    // for webpack
+    "amodio.tsl-problem-matcher"
   ],
   // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
   "unwantedRecommendations": []

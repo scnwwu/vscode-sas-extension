@@ -9,9 +9,7 @@ import { Model } from "./Model";
 import { Change } from "./SyntaxProvider";
 
 /**
- * SasLexerEx constructor
- * CodeEditor has not semantic parsing function,
- * so using this module to handle basic semantic related problems.
+ * LexerEx to handle basic semantic related problems.
  */
 
 class FoldingBlock {
@@ -65,7 +63,7 @@ class FoldingBlock {
 //var StmtBlock = FoldingBlock;
 const TknBlock = FoldingBlock;
 
-const stmtAlias: any = {
+const stmtAlias: Record<string, string> = {
   OPTION: "OPTIONS",
   GOPTION: "GOPTIONS",
 };
@@ -199,8 +197,8 @@ export class LexerEx {
     col: any
   ) {
     let i = currentIdx,
-      block = blocks[i],
-      pos = { line: line, column: col };
+      block = blocks[i];
+    const pos = { line: line, column: col };
 
     if (
       !block ||
@@ -270,8 +268,9 @@ export class LexerEx {
   private _getNextValidTknBlkIdx(startIndex: any) {
     // section index
     let i = startIndex,
-      max = this.sections.length - 1,
       section;
+    const max = this.sections.length - 1;
+
     while (i <= max) {
       section = this.sections[i];
       if (section && section.specialBlks) {
@@ -356,10 +355,9 @@ export class LexerEx {
   }
 
   private _remove(reg: RegExp, text: string, replacement?: string) {
-    let parts = [],
-      matched;
+    const parts = [];
     for (;;) {
-      matched = reg.exec(text);
+      const matched = reg.exec(text);
       if (matched) {
         parts.push(text.substring(0, matched.index));
         if (replacement) {
@@ -445,11 +443,10 @@ export class LexerEx {
     if (this.sections.length <= 0 || parseRange.removedBlocks.count <= 0) {
       return;
     }
-    let startIdx, endIdx;
     //find start idx
-    startIdx = getBlkIndex(parseRange.removedBlocks.start);
+    const startIdx = getBlkIndex(parseRange.removedBlocks.start);
     // find end idx
-    endIdx = getBlkIndex(parseRange.removedBlocks.end + 1); // must be here
+    const endIdx = getBlkIndex(parseRange.removedBlocks.end + 1); // must be here
 
     const unchangedBlocks = blocks;
     blocks = unchangedBlocks.splice(0, startIdx);
@@ -474,8 +471,8 @@ export class LexerEx {
   private _adjustPosCoord(change: Change, pos: TextPosition) {
     if (pos.line === change.oldRange.end.line) {
       let index = -1,
-        col,
-        addedCount = change.text.length,
+        col;
+      const addedCount = change.text.length,
         len1 = change.oldRange.start.column,
         len2 = pos.column - change.oldRange.end.column;
 
@@ -505,9 +502,8 @@ export class LexerEx {
     change: any,
     parseRange: { endLine: number }
   ) {
-    let len = blocks.length,
-      i,
-      pos;
+    const len = blocks.length;
+    let i, pos;
     this.changedLineCount =
       change.newRange.end.line -
       change.newRange.start.line -
@@ -567,11 +563,11 @@ export class LexerEx {
 
   private _cleanKeyword(keyword: string) {
     if (/^(TITLE|FOOTNOTE|AXIS|LEGEND|PATTERN|SYMBOL)\d{0,}$/.test(keyword)) {
-      let results = keyword.match(
+      const results = keyword.match(
           /(^(TITLE|FOOTNOTE|AXIS|LEGEND|PATTERN|SYMBOL)|\d{0,}$)/g
         )!,
-        nbr = parseInt(results[1], 10),
-        isKeyword = false;
+        nbr = parseInt(results[1], 10);
+      let isKeyword = false;
 
       switch (results[0]) {
         case "TITLE":
@@ -723,8 +719,8 @@ export class LexerEx {
     //return sections[idx]?sections[idx]:null; //we return null if no
   }
   private getFoldingBlock_(line: number, col?: number, strict?: boolean) {
-    let idx = this.getBlockPos_(this.sections, line, col),
-      block = this.sections[idx];
+    const idx = this.getBlockPos_(this.sections, line, col);
+    let block = this.sections[idx];
     if (strict) {
       return block;
     }
@@ -770,11 +766,11 @@ export class LexerEx {
   //we define global statments as a kind of block, so the return will always be the first form.
   //
   private getBlockPos1_(blocks: FoldingBlock[], line: number) {
-    let len = blocks.length,
-      m = Math.floor(len / 2),
-      l = 0,
-      r = len - 1,
+    const len = blocks.length,
       flags: any = {};
+    let m = Math.floor(len / 2),
+      l = 0,
+      r = len - 1;
     if (len) {
       for (;;) {
         flags[m] = true;
@@ -940,8 +936,8 @@ export class LexerEx {
     return null;
   }
   private getChange_(blocks: FoldingBlock[], origPos: TextPosition) {
-    let idx = this.getBlockPos_(blocks, origPos.line, origPos.column),
-      blockIdx = idx,
+    const idx = this.getBlockPos_(blocks, origPos.line, origPos.column);
+    let blockIdx = idx,
       block: any = {
         startLine: 0,
         startCol: 0,
@@ -981,11 +977,11 @@ export class LexerEx {
     };
   }
   private _getParseRange(blocks: FoldingBlock[], change: Change) {
-    let oldRange = change.oldRange,
+    const oldRange = change.oldRange,
       changeStart: any = this.getChange_(blocks, oldRange.start),
-      changeEnd,
-      removedBlocks: any = {},
-      range = changeStart;
+      removedBlocks: any = {};
+    let range = changeStart,
+      changeEnd;
     if (
       oldRange.start.line === oldRange.end.line &&
       oldRange.start.column === oldRange.end.column
@@ -1246,19 +1242,15 @@ export class LexerEx {
     },
     parseRange: any
   ) {
-    let startSection = this.sections[parseRange.removedBlocks.start],
+    const startSection = this.sections[parseRange.removedBlocks.start],
       endSection = this.sections[parseRange.removedBlocks.end],
-      start,
-      end,
-      tmpBlks = [],
-      tmpBlk,
-      prevSection,
-      nextSection;
+      tmpBlks = [];
+    let start, end, tmpBlk, nextSection;
     if (!startSection) {
       return change.text;
     }
 
-    prevSection = this.sections[parseRange.removedBlocks.start - 1];
+    const prevSection = this.sections[parseRange.removedBlocks.start - 1];
     if (prevSection) {
       start = this._endPos(prevSection);
     } else {
@@ -1279,14 +1271,16 @@ export class LexerEx {
       }
       return this.model.getText({ start: start, end: end });
     } else {
-      let part1 = this.model.getText({
-          start: start,
-          end: change.oldRange.start,
-        }),
-        part2;
+      const part1 = this.model.getText({
+        start: start,
+        end: change.oldRange.start,
+      });
 
       end = endSection ? this._endPos(endSection) : this._docEndPos();
-      part2 = this.model.getText({ start: change.oldRange.end, end: end });
+      const part2 = this.model.getText({
+        start: change.oldRange.end,
+        end: end,
+      });
 
       return part1 + change.text + part2;
     }
@@ -1321,13 +1315,12 @@ export class LexerEx {
       removedBlocks?: any;
     }
   ) {
-    var regQuotesStart = /['"]/gim,
-      regBlockCommentStart = /\/\*/gim,
-      text = this._getParseText(change, parseRange),
+    const regQuotesStart = /['"]/gim,
+      regBlockCommentStart = /\/\*/gim;
+    let text = this._getParseText(change, parseRange),
       nextBlockComment = null,
       nextBlockCards4 = null,
-      sectionToChange = -1,
-      change;
+      sectionToChange = -1;
     //sas.log.info("changed special tokens:" + tknParseRange);
     // text is of the blocks impacted directly
     // clean up text
@@ -1650,9 +1643,9 @@ export class LexerEx {
   private readProg_() {
     let word = "",
       gbl = true,
-      token = this.getNext_(),
       isLabel,
       isAssignment;
+    const token = this.getNext_();
 
     if (!token) return null;
     if (Lexer.isWord[token.type]) {
@@ -2084,8 +2077,8 @@ export class LexerEx {
     },
   };
   private handleProcName_() {
-    let token = this.prefetch_({ pos: 1 }),
-      name = "";
+    const token = this.prefetch_({ pos: 1 });
+    let name = "";
     if (token) {
       name = token.text;
       token.type = Lexer.TOKEN_TYPES.PROCNAME; // procedure name
@@ -2103,9 +2096,9 @@ export class LexerEx {
     return this.handleStatement_(this.OptionCheckers_["macro-def"]);
   }
   private handleODSStmt_(token: Token) {
-    let isKeyword = false,
-      currName = token.text;
-    const procName = "ODS",
+    let isKeyword = false;
+    const currName = token.text,
+      procName = "ODS",
       stmtName = procName;
 
     if (this.curr.fullName === undefined) {
@@ -2135,19 +2128,17 @@ export class LexerEx {
     return isKeyword;
   }
   private handleLongStmtName_(procName: string, startWord: string) {
+    const name1 = startWord,
+      it = { pos: 1 },
+      next1 = this.prefetch_(it);
     let isKeyword = false,
-      name1 = startWord,
       name2 = null,
       name3 = null,
       name4 = null,
-      next1,
       next2,
       next3,
       stmtNameLen = 1,
-      fullStmtName = name1,
-      it = { pos: 1 };
-
-    next1 = this.prefetch_(it);
+      fullStmtName = name1;
     if (next1 && Lexer.isWord[next1.type]) {
       name2 = name1 + " " + next1.text; // the keyword has 2 words
       next2 = this.prefetch_(it);
@@ -2425,8 +2416,8 @@ export class LexerEx {
     }
   }
   private handleBlock_(fn: { (token: any): void }) {
-    let word = "",
-      token = this.getNext_();
+    let word = "";
+    const token = this.getNext_();
     if (!token) return null;
 
     if (Lexer.isWord[token.type]) {
@@ -3468,12 +3459,10 @@ class Expression {
       ends: { [x: string]: any; ";"?: number },
       optionNameCandidate?: boolean
     ) {
-      let token,
-        text,
-        ret,
-        tmpContext = _cloneContext(context);
+      let text, ret;
 
-      token = _next(tmpContext);
+      const tmpContext = _cloneContext(context),
+        token = _next(tmpContext);
       if (ends && ends[token.text]) {
         return;
       } else if (isScopeBeginMark[token.text]) {
@@ -3517,8 +3506,8 @@ class Expression {
     function _argList(context: any, ends: { [x: string]: number }) {
       let token = _next(context), //consume left mark
         tmpContext = null,
-        exit = false,
-        marks: any = { "(": ")", "[": "]", "{": "}" },
+        exit = false;
+      const marks: Record<string, string> = { "(": ")", "[": "]", "{": "}" },
         lmark = token.text,
         rmark = marks[lmark];
 

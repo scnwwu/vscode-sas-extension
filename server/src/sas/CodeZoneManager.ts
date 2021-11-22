@@ -35,16 +35,16 @@ interface Zone {
 }
 
 const SEC_TYPE = LexerEx.SEC_TYPE,
-  _isBlockEnd: any = { RUN: 1, QUIT: 1, "%MEND": 1 },
+  _isBlockEnd: Record<string, 1> = { RUN: 1, QUIT: 1, "%MEND": 1 },
   _secStarts = { PROC: 1, DATA: 1 },
   _secEnds = { "%MACRO": 1, RUN: 1, QUIT: 1 },
-  _secType: any = {
+  _secType: Record<string, string | number> = {
     PROC: SEC_TYPE.PROC,
     DATA: SEC_TYPE.DATA,
     "%MACRO": SEC_TYPE.MACRO,
     BEGINGRAPH: "statgraph",
   },
-  _isScopeBeginMark: any = { "[": 1, "{": 1, "(": 1 },
+  _isScopeBeginMark: Record<string, 1> = { "[": 1, "{": 1, "(": 1 },
   _tagsets = arrayToMap([
     "CHTML",
     "CORE",
@@ -99,8 +99,9 @@ export class CodeZoneManager {
     IF: this._if,
     WHERE: this._where,
   };
-  private _stmtCache: any = {};
-  private _stmtWithOptionDelimiter: any = {};
+  private _stmtCache: Record<string, Record<string, 1>> = {};
+  private _stmtWithOptionDelimiter: Record<string, Record<string, boolean>> =
+    {};
 
   private _dummyToken = { line: 0, col: 0, type: "text", pos: -1 };
 
@@ -2418,9 +2419,6 @@ export class CodeZoneManager {
     } catch (e) {
       return CodeZoneManager.ZONE_TYPE.RESTRICTED;
     }
-  }
-  getContextPrompt(line: number, col: number) {
-    this.getCurrentZone(line, col);
   }
   setSectionMode(secType: any, procName: string): void {
     this._sectionMode = {

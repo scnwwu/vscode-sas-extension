@@ -150,7 +150,7 @@ export class SyntaxProvider {
         //   break;
         // }
       }
-    } catch (e) {
+    } catch (e: any) {
       if (e && e.changedLineCount !== undefined) {
         if (this.lastToken) {
           token = this.lastToken;

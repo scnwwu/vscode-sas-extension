@@ -68,13 +68,13 @@
     "menus": {
       "editor/title/run": [
         {
-          "when": "editorLangId == SAS",
+          "when": "editorLangId == SAS && !isWeb",
           "command": "SAS.session.run"
         }
       ],
       "commandPalette": [
         {
-          "when": "editorLangId == SAS",
+          "when": "editorLangId == SAS && !isWeb",
           "command": "SAS.session.run"
         }
       ]

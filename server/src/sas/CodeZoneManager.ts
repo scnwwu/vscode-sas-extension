@@ -1,3 +1,6 @@
+// Copyright © 2021, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
+// SPDX-License-Identifier: Apache-2.0
+
 import { arrayToMap } from "./utils";
 import { LexerEx } from "./LexerEx";
 import { Lexer, Token } from "./Lexer";

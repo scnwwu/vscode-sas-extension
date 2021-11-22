@@ -27,7 +27,8 @@ Highlights the following syntax elements:
 - Options, enumerated option values, sub-options and sub-option values for various procedure definitions and statements
 
 ### Theme
-Provides 3 color themes that control the coloring for the SAS syntax elements.  To choose a color theme, select one of them from `Manage > Color Theme` 
+
+Provides 3 color themes that control the coloring for the SAS syntax elements. To choose a color theme, select one of them from `Manage > Color Theme`
 
 - SAS Illuminate (light theme)
 
@@ -48,16 +49,16 @@ Provides code completion and mouse hover help for SAS keywords. The extension ca
 - Move the mouse cursor over a valid SAS keyword in the code.
 - Start to type a valid SAS keyboard, and navigate the focus via the up/down arrows to a keyword in the autocompletion popup list.
 
-Syntax help will display a brief description of a keyword.  Additional help can be obtained by clicking the links in the syntax help.
- 
+Syntax help will display a brief description of a keyword. Additional help can be obtained by clicking the links in the syntax help.
+
 In the following example, the panel displays help for the data option in the PROC Print procedure.
 _Tip_: Click the link on the help panel to navigate to the SAS online help.
 
 <img src="doc/images/CodeCompletion.PNG"/>
 
-
 ### Snippets
-A snippet is a one or more defined words that are recognized by the extension and then replaced with a block of text.  The extension defines a large number of built in snippets for SAS functions and procedures to help users quickly input SAS code blocks.
+
+A snippet is a one or more defined words that are recognized by the extension and then replaced with a block of text. The extension defines a large number of built in snippets for SAS functions and procedures to help users quickly input SAS code blocks.
 
 The extension defines a large number of snippets for SAS functions and procedures to help users input SAS code blocks. Type the name of a function or procedure directly to show them. The first line in the following screenshot is a snippet.
 
@@ -91,3 +92,11 @@ Submit SAS code to Viya server. (A licensed Viya 4 system is needed to run SAS C
   - Currently only HTML output is supported. By default it will wrap `ods html5` to the code submitted. Can disable it by unchecking `Get ODS HTML5 output` in the settings.
   - The code in the "current" editor will be submitted. Please make sure to focus on the code tab before clicking the `Run` button.
   - User can run `Close current session` command to reset the connections if anything goes wrong.
+
+## Contributing
+
+We welcome your contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to submit contributions to this project.
+
+## License
+
+This project is licensed under the [Apache 2.0 License](LICENSE).

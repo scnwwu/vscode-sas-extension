@@ -154,7 +154,7 @@ export class CodeZoneManager {
 
     if (!this._stmtCache[procName]) {
       stmts = this._syntaxDb.getProcedureStatements(procName);
-      setCache = (stmts: string[]) => {
+      setCache = (stmts?: string[]) => {
         if (stmts && stmts.length > 0) {
           this._stmtCache[procName] = arrayToMap(stmts);
         }
@@ -2399,6 +2399,7 @@ export class CodeZoneManager {
     } else if (block.type === SEC_TYPE.MACRO) {
       return this._macroSec(context);
     }
+    return CodeZoneManager.ZONE_TYPE.RESTRICTED;
   }
   /* The followings are the APIs for code zone manager.*/
   getProcName(): string {

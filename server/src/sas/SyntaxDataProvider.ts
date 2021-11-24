@@ -21,6 +21,11 @@ export interface HelpData {
   };
 }
 
+export interface OptionValues {
+  type: string;
+  values: string[];
+}
+
 const db: any = {
     procOpts: {},
     procStmts: {},
@@ -1777,7 +1782,10 @@ export class SyntaxDataProvider {
   noGlobal: boolean | undefined;
 
   // private functions
-  private _handleOptionValues(data: { type: any; values: any }, cb: any) {
+  private _handleOptionValues(
+    data: OptionValues,
+    cb?: (data: OptionValues) => void
+  ) {
     // support async behavior
     if (this.isColorType(data.type)) {
       // color value
@@ -1785,7 +1793,7 @@ export class SyntaxDataProvider {
       _notify(cb, data);
     } else if (this.isDataSetType(data.type)) {
       // library value
-      data.values = this.getLibraryList(cb, data.type); // It always is asynchronous
+      this.getLibraryList(cb, data.type); // It always is asynchronous
     } else {
       _notify(cb, data);
     }
@@ -1801,7 +1809,7 @@ export class SyntaxDataProvider {
    *  If cb is valid, the call will work in asynchronous mode;
    *  if cb is invalid, the call will work in synchronous mode.
    */
-  getProcedures(cb: any) {
+  getProcedures(cb: (data: string[]) => void) {
     //return _loadKeywords(/*'procedures'*/'proc', cb);
     return _tryToLoadProceduresFromPubs(cb, function () {
       let data = _keywordObj("proc");
@@ -1827,7 +1835,7 @@ export class SyntaxDataProvider {
       return data;
     });
   }
-  getProcedureOptions(procName: string, cb: any) {
+  getProcedureOptions(procName: string, cb: (data: string[]) => void) {
     procName = procName.toUpperCase();
     return _tryToLoadProcedure(procName, cb, function () {
       let data = _procOptObj(procName);
@@ -1891,7 +1899,11 @@ export class SyntaxDataProvider {
       return data;
     });
   }
-  getProcedureOptionValues(procName: string, optName: string, cb: any) {
+  getProcedureOptionValues(
+    procName: string,
+    optName: string,
+    cb: (data: OptionValues) => void
+  ) {
     let ret = _tryToLoadProcedure(procName, null, () => {
       //sync
       procName = procName.toUpperCase();
@@ -1908,7 +1920,11 @@ export class SyntaxDataProvider {
     }
     return ret;
   }
-  getProcedureSubOptions(procName: string, optName: string, cb: any) {
+  getProcedureSubOptions(
+    procName: string,
+    optName: string,
+    cb: (data: string[]) => void
+  ) {
     return _tryToLoadProcedure(procName, cb, function () {
       procName = procName.toUpperCase();
       optName = optName.toUpperCase();
@@ -1942,7 +1958,7 @@ export class SyntaxDataProvider {
       return data;
     });
   }
-  getProcedureStatements(procName: string, cb?: any) {
+  getProcedureStatements(procName: string, cb?: (data: string[]) => void) {
     procName = procName.toUpperCase();
     return _tryToLoadProcedure(procName, cb, () => {
       let data = _procStmtObj(procName);
@@ -1994,7 +2010,7 @@ export class SyntaxDataProvider {
   getProcedureStatementOptions(
     procName: string,
     stmtName: string,
-    cb: any,
+    cb: (data: string[]) => void,
     req?: boolean
   ) {
     procName = procName.toUpperCase();
@@ -2057,7 +2073,7 @@ export class SyntaxDataProvider {
     procName: string,
     stmtName: string,
     optName: string,
-    cb: any
+    cb: (data: string[]) => void
   ) {
     procName = procName.toUpperCase();
     stmtName = stmtName.toUpperCase();
@@ -2140,7 +2156,7 @@ export class SyntaxDataProvider {
     procName: string,
     stmtName: string,
     optName: string,
-    cb: any
+    cb: (data: OptionValues) => void
   ) {
     if (!optName) return null;
     stmtName = stmtName.toUpperCase();
@@ -2223,7 +2239,7 @@ export class SyntaxDataProvider {
   getStatementOptions(
     context: string,
     stmtName: string,
-    cb: any,
+    cb?: (data: string[]) => void,
     req?: boolean
   ) {
     stmtName = stmtName.toUpperCase();
@@ -2314,7 +2330,7 @@ export class SyntaxDataProvider {
     context: string,
     stmtName: string,
     optName: string,
-    cb?: any
+    cb?: (data: OptionValues) => void
   ) {
     let ret = _tryToLoadStatementsFromPubs(context, null, function () {
       stmtName = stmtName.toUpperCase();
@@ -2353,7 +2369,7 @@ export class SyntaxDataProvider {
     context: string,
     stmtName: string,
     optName: string,
-    cb?: any
+    cb?: (data: string[]) => void
   ) {
     return _tryToLoadStatementsFromPubs(context, cb, function () {
       stmtName = stmtName.toUpperCase();
@@ -2402,13 +2418,13 @@ export class SyntaxDataProvider {
   getDataStepOptionValueHelp(optName: string, valName: string, cb: any) {
     this.getStatementOptionValueHelp("datastep", "DATA", optName, valName, cb);
   }
-  getDataStepOptionValues(optName: string, cb: any) {
+  getDataStepOptionValues(optName: string, cb: (data: OptionValues) => void) {
     this.getStatementOptionValues("datastep", "DATA", optName, cb);
   }
   getDataSetOptionValueHelp(optName: string, valName: string, cb: any) {
     this._getStatementOptionValueHelp("DATA-SET", optName, valName, cb);
   }
-  getDataSetOptionValues(optName: string, cb: any) {
+  getDataSetOptionValues(optName: string, cb: (data: OptionValues) => void) {
     this._getStatementOptionValues("DATA-SET", optName, cb);
   }
   // get all keyword's help, not only global statement, or global procedure statement
@@ -2482,32 +2498,32 @@ export class SyntaxDataProvider {
     return _getKeywords(/*'styleLocations'*/ "style-loc", cb);
   }
   // macro
-  getARMMacros(cb?: any) {
+  getARMMacros(cb?: (data: string[]) => void) {
     return _getKeywords(/*'ARMMacros'*/ "arm-macro", cb);
   }
   getAutocallMacros(cb?: any) {
     return _getKeywords(/*'autocallMacros'*/ "autocall-macro", cb);
   }
-  getAutoVariables(cb?: any) {
+  getAutoVariables(cb?: (data: string[]) => void) {
     return _getKeywords(/*'autoVariables'*/ "auto-var", cb);
   }
   getMacroDefinitionOptions(cb?: any) {
     return _getKeywords("macro-def-opt", cb);
   }
-  getGlobalStatements(cb?: any) {
+  getGlobalStatements(cb?: (data: string[]) => void) {
     const globalProcStatements = this.getGlobalProcedureStatements();
     return _tryToLoadStatementsFromPubs("standalone", cb, function () {
       const data = _procStmtObj("standalone");
       return data[ID_STMTS].concat(globalProcStatements);
     });
   }
-  getGlobalProcedureStatements(cb?: any) {
+  getGlobalProcedureStatements(cb?: (data: string[]) => void) {
     return _tryToLoadStatementsFromPubs("global", cb, function () {
       const data = _procStmtObj("global");
       return data[ID_STMTS];
     });
   }
-  getMacroStatements(cb?: any) {
+  getMacroStatements(cb?: (data: string[]) => void) {
     return _tryToLoadStatementsFromPubs("macro", cb, function () {
       const data = _procStmtObj("macro");
       return data[ID_STMTS];
@@ -2540,7 +2556,7 @@ export class SyntaxDataProvider {
   getStatisticsKeywords(cb?: any) {
     return _getKeywords(/*'statisticsKeywords'*/ "stat-kw", cb);
   }
-  getDSStatements(cb?: any) {
+  getDSStatements(cb?: (data: string[]) => void) {
     return _tryToLoadStatementsFromPubs("datastep", cb, function () {
       const data = _procStmtObj("datastep");
       return data[ID_STMTS];

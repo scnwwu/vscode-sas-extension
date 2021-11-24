@@ -12,7 +12,7 @@ import { Change } from "./SyntaxProvider";
  * LexerEx to handle basic semantic related problems.
  */
 
-class FoldingBlock {
+export class FoldingBlock {
   startLine: number;
   startCol: number;
   endLine: number;

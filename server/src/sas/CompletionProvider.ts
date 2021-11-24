@@ -82,9 +82,9 @@ function _buildKwMap() {
 }
 const KW_MAP = _buildKwMap();
 
-function _distinctList(list: any) {
+function _distinctList(list: string[]) {
   const newList = [],
-    obj: any = {};
+    obj: Record<string, true> = {};
   for (let i = 0; i < list.length; i++) {
     const item = list[i].toUpperCase();
     if (!obj[item]) {
@@ -95,7 +95,7 @@ function _distinctList(list: any) {
   return newList;
 }
 
-function _notify(cb: any, data: any) {
+function _notify<T>(cb: (data: T) => void, data: T) {
   if (cb) {
     setTimeout(function () {
       cb(data);
@@ -169,7 +169,7 @@ function _cleanUpKeyword(keyword: string) {
   return keyword.toUpperCase();
 }
 
-function _getContextMain(zone: any, keyword: string) {
+function _getContextMain(zone: number, keyword: string) {
   let context;
   const wd = keyword.toUpperCase();
   switch (zone) {
@@ -201,7 +201,7 @@ function _getContextMain(zone: any, keyword: string) {
   return context;
 }
 
-function getItemKind(zone: any) {
+function getItemKind(zone: number) {
   if (zone === ZONE_TYPE.COLOR) {
     return CompletionItemKind.Color;
   }
@@ -266,12 +266,12 @@ export class CompletionProvider {
     }
   }
 
-  getCompleteItems(position: Position): Promise<CompletionItem[]> | undefined {
+  getCompleteItems(position: Position): Promise<CompletionItem[] | undefined> {
     return new Promise((resolve) => {
       this._getZone(position);
-      this._loadAutoCompleteItems(this.popupContext.zone, (data: any) => {
+      this._loadAutoCompleteItems(this.popupContext.zone, (data?: string[]) => {
         resolve(
-          data?.map((item: string) => ({
+          data?.map((item) => ({
             label: item.toLowerCase(),
             kind: getItemKind(this.popupContext.zone),
           }))
@@ -299,7 +299,7 @@ export class CompletionProvider {
     });
   }
 
-  private _loadAutoCompleteItems(zone: any, cb: any) {
+  private _loadAutoCompleteItems(zone: number, cb: (data?: string[]) => void) {
     // var cb = (function (prf) {
     //     return function () {
     //       if (prf === prefix) {
@@ -326,7 +326,7 @@ export class CompletionProvider {
         this.loader.getProcedureOptionValues(
           procName,
           optName + "=",
-          (data: any) => {
+          (data) => {
             this._notifyOptValue(cb, data, optName);
           }
         );
@@ -335,7 +335,7 @@ export class CompletionProvider {
         this.loader.getProcedureSubOptions(procName, optName, cb);
         break;
       case ZONE_TYPE.PROC_STMT:
-        this.loader.getProcedureStatements(procName, function (data: any) {
+        this.loader.getProcedureStatements(procName, function (data) {
           if (procName === "ODS") {
             cb(_cleanUpODSStmts(data));
           } else {
@@ -351,7 +351,7 @@ export class CompletionProvider {
         this.loader.getProcedureStatementOptions(
           procName,
           stmtName,
-          function (data: any) {
+          function (data) {
             cb(_cleanUpStmtOpts(data));
           },
           zone === ZONE_TYPE.PROC_STMT_OPT_REQ
@@ -365,7 +365,7 @@ export class CompletionProvider {
           procName,
           stmtName,
           optName,
-          (data: any) => {
+          (data) => {
             this._notifyOptValue(cb, data, optName);
           }
         );
@@ -378,7 +378,7 @@ export class CompletionProvider {
           procName,
           stmtName,
           optName,
-          function (data: any) {
+          function (data) {
             cb(_distinctList(data));
           }
         );
@@ -403,8 +403,8 @@ export class CompletionProvider {
         this.loader.getDSOptions(cb);
         break;
       case ZONE_TYPE.DATA_SET_OPT_VALUE:
-        this.loader.getDataSetOptionValues(optName, function (data: any) {
-          cb(data ? data.values : null);
+        this.loader.getDataSetOptionValues(optName, function (data) {
+          cb(data ? data.values : undefined);
         });
         break;
       case ZONE_TYPE.DATA_STEP_OPT_NAME:
@@ -446,7 +446,7 @@ export class CompletionProvider {
         //         }
         //     }, 'DV');
         // } else {
-        this.loader.getStatementOptions("datastep", stmtName, (data: any) => {
+        this.loader.getStatementOptions("datastep", stmtName, (data) => {
           if (!data) {
             this.loader.getProcedureStatementOptions("DATA", stmtName, cb);
           } else {
@@ -460,7 +460,7 @@ export class CompletionProvider {
           "datastep",
           stmtName,
           optName,
-          (data: any) => {
+          (data) => {
             if (data) {
               this._notifyOptValue(cb, data, optName);
             } else {
@@ -468,7 +468,7 @@ export class CompletionProvider {
                 "DATA",
                 stmtName,
                 optName,
-                (data: any) => {
+                (data) => {
                   this._notifyOptValue(cb, data, optName);
                 }
               );
@@ -477,8 +477,8 @@ export class CompletionProvider {
         );
         break;
       case ZONE_TYPE.MACRO_STMT:
-        this.loader.getMacroStatements((macroStmts: any) => {
-          this.loader.getARMMacros(function (armMacros: any) {
+        this.loader.getMacroStatements((macroStmts) => {
+          this.loader.getARMMacros(function (armMacros) {
             //if (macroDefList) macroStmts = macroStmts.concat(macroDefList);
             cb(_distinctList(armMacros.concat(macroStmts)));
           });
@@ -499,7 +499,7 @@ export class CompletionProvider {
           "macro",
           stmtName,
           optName,
-          (data: any) => {
+          (data) => {
             this._notifyOptValue(cb, data, optName);
           }
         );
@@ -508,7 +508,7 @@ export class CompletionProvider {
         this.loader.getCallRoutines(cb);
         break;
       case ZONE_TYPE.GBL_STMT:
-        this.loader.getGlobalStatements((data: any) => {
+        this.loader.getGlobalStatements((data) => {
           // if (this.popupContext.prefix.startsWith("%")) {
           //   //_setCurrentZone(ZONE_TYPE.MACRO_STMT);
           //   this.loader.getMacroStatements((macroStmt: any) => {
@@ -520,12 +520,12 @@ export class CompletionProvider {
         });
         break;
       case ZONE_TYPE.GBL_STMT_OPT:
-        this.loader.getStatementOptions("global", stmtName, (data: any) => {
+        this.loader.getStatementOptions("global", stmtName, (data) => {
           if (!data) {
             this.loader.getStatementOptions(
               "standalone",
               stmtName,
-              function (data: any) {
+              function (data) {
                 cb(_cleanUpStmtOpts(data));
               }
             );
@@ -539,7 +539,7 @@ export class CompletionProvider {
           "global",
           stmtName,
           optName,
-          (data: any) => {
+          (data) => {
             this._notifyOptValue(cb, data, optName);
           }
         );
@@ -549,7 +549,7 @@ export class CompletionProvider {
           "global",
           stmtName,
           optName,
-          (data: any) => {
+          (data) => {
             if (!data) {
               this.loader.getStatementSubOptions(
                 "standalone",
@@ -579,7 +579,7 @@ export class CompletionProvider {
         this.loader.getODSTagsets(cb);
         break;
       case ZONE_TYPE.ODS_STMT:
-        this.loader.getGlobalStatements(function (data: any) {
+        this.loader.getGlobalStatements(function (data) {
           cb(_cleanUpODSStmts(data));
         });
         break;
@@ -595,7 +595,7 @@ export class CompletionProvider {
           "global",
           _cleanUpODSStmtName(stmtName),
           optName,
-          (data: any) => {
+          (data) => {
             this._notifyOptValue(cb, data, optName);
           }
         );
@@ -616,7 +616,7 @@ export class CompletionProvider {
         this.loader.getAutoVariables(cb);
         break;
       case ZONE_TYPE.MACRO_VAR:
-        this.loader.getAutoVariables((autoVar: any) => {
+        this.loader.getAutoVariables((autoVar) => {
           const macroVarList = this._getMacroVar();
           if (macroVarList.length)
             autoVar = _distinctList(autoVar.concat(macroVarList));
@@ -631,12 +631,12 @@ export class CompletionProvider {
 
   private _loadHelp(context: {
     keyword: string;
-    type: any;
-    zone: any;
+    type: string;
+    zone: number;
     procName: string;
     stmtName: string;
     optName: string;
-    cb: (data: HelpData) => void;
+    cb: (data?: HelpData) => void;
   }) {
     let keyword = _cleanUpKeyword(context.keyword),
       help = null;
@@ -925,7 +925,7 @@ export class CompletionProvider {
       default: {
         if (KW_MAP[zone] === undefined) {
           if (cb) {
-            _notify(cb, null);
+            _notify(cb, undefined);
           }
         } else {
           help = this.loader.getKeywordHelp(keyword, cb, KW_MAP[zone]);
@@ -935,7 +935,7 @@ export class CompletionProvider {
     return help;
   }
 
-  private _addLinkContext(zone: any, content: HelpData) {
+  private _addLinkContext(zone: number, content: HelpData) {
     const context: any = {},
       sasReleaseParam = "fq=releasesystem%3AViya&";
     let contextText,

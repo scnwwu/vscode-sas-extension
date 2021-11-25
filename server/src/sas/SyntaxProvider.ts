@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Token } from "./Lexer";
-import { LexerEx } from "./LexerEx";
+import { FoldingBlock, LexerEx } from "./LexerEx";
 import { Model } from "./Model";
 import { TextRange } from "./utils";
 
@@ -366,7 +366,11 @@ export class SyntaxProvider {
   getParseRange(change: Change) {
     return this.lexer.getParseRange(change);
   }
-  getFoldingBlock(line: number, col?: number, strict?: boolean) {
+  getFoldingBlock(
+    line: number,
+    col?: number,
+    strict?: boolean
+  ): FoldingBlock | null {
     return this.lexer.getFoldingBlock(line, col, strict);
   }
   add(change: Change): void {

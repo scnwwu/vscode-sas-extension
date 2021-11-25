@@ -36,8 +36,8 @@ interface Zone {
 
 const SEC_TYPE = LexerEx.SEC_TYPE,
   _isBlockEnd: Record<string, 1> = { RUN: 1, QUIT: 1, "%MEND": 1 },
-  _secStarts = { PROC: 1, DATA: 1 },
-  _secEnds = { "%MACRO": 1, RUN: 1, QUIT: 1 },
+  _secStarts: Record<string, 1> = { PROC: 1, DATA: 1 },
+  _secEnds: Record<string, 1> = { "%MACRO": 1, RUN: 1, QUIT: 1 },
   _secType: Record<string, string | number> = {
     PROC: SEC_TYPE.PROC,
     DATA: SEC_TYPE.DATA,
@@ -91,7 +91,10 @@ export class CodeZoneManager {
   private _subOptName = "";
 
   private _topZone = 0;
-  private _sectionMode: any = null;
+  private _sectionMode: {
+    secType: number;
+    procName: string;
+  } | null = null;
   //_typeWithArgs = Utils.arrayToMap([ZONE_TYPE.OBJECT, ZONE_TYPE.MACRO_FUNC, ZONE_TYPE.SAS_FUNC]),
   private _specialStmt: any = {
     STYLE: this._style,
@@ -210,7 +213,7 @@ export class CodeZoneManager {
       end,
       ret = true,
       reg = null;
-    const regs: any = {
+    const regs: Record<string, RegExp> = {
       comment: /(^\*.*;$|^\/\*.*\*\/$)/i,
       "macro-comment": /(^%\*.*;$)/i,
       string: /(^'.*'$|^".*"$)/i,
@@ -553,7 +556,7 @@ export class CodeZoneManager {
      c c[c]c c
      3 2 1 0 -1
     */
-  private _pos(cursor: { line: any; col: any }, token: TokenEx) {
+  private _pos(cursor: { line: number; col: number }, token: TokenEx) {
     const l1 = token.line,
       c1 = token.col;
     let l2, c2;
@@ -694,7 +697,11 @@ export class CodeZoneManager {
     }
     context.tokenIdx = 0;
   }
-  private _isStatgraph(parentBlock: any, cursor: any, stmtName: string) {
+  private _isStatgraph(
+    parentBlock: { startLine: number; startCol: number },
+    cursor: { line: number; col: number },
+    stmtName: string
+  ) {
     const block = this._findEmbeddedBlock(
       parentBlock,
       cursor,
@@ -706,25 +713,17 @@ export class CodeZoneManager {
     }
     return false;
   }
-  private _embeddedBlock(parentBlock: any, cursor: { line: any; col: number }) {
+  private _embeddedBlock(
+    parentBlock: { startLine: number; startCol: number },
+    cursor: { line: number; col: number }
+  ) {
     return this._findEmbeddedBlock(parentBlock, cursor, _secStarts, _secEnds);
   }
   private _findEmbeddedBlock(
     parentBlock: { startLine: number; startCol: number },
-    cursor: { line: any; col: number },
-    starts: {
-      [x: string]: any;
-      BEGINGRAPH?: number;
-      PROC?: number;
-      DATA?: number;
-    },
-    ends: {
-      [x: string]: any;
-      ENDGRAPH?: number;
-      "%MACRO"?: number;
-      RUN?: number;
-      QUIT?: number;
-    }
+    cursor: { line: number; col: number },
+    starts: Record<string, 1>,
+    ends: Record<string, 1>
   ) {
     let token = null,
       secName = null,
@@ -1131,20 +1130,20 @@ export class CodeZoneManager {
     }
     return type;
   }
-  private _stmtEx(context: Context, stmt: any) {
+  private _stmtEx(context: Context, stmt: TokenWithPos) {
     const tokens = this._stmt(context, stmt),
       stack: any[] = [];
     this._context(tokens, stack);
     return this._zone(stack, context);
   }
-  private _emit3(context: any, tree: any, type: any) {
+  private _emit3(context: Context, tree: any, type: any) {
     this._traverse(tree, (i: { type: string }) => {
       if (Lexer.isWord[i.type] || i.type === "text") {
         this._emit(i, type);
       }
     });
   }
-  private _if(context: any, stmt: { text: string }, type: number) {
+  private _if(context: Context, stmt: { text: string }, type: number) {
     const opts = [];
     let expr = this._expr(context),
       token,
@@ -1176,11 +1175,11 @@ export class CodeZoneManager {
     return { op: stmt, op1: opts };
   }
 
-  private _where(context: any, stmt: any) {
+  private _where(context: Context, stmt: TokenWithPos) {
     return { op: stmt, op1: this._expr(context) };
   }
 
-  private _style(context: any, stmt: any) {
+  private _style(context: Context, stmt: TokenWithPos) {
     const ret: any = { op: stmt },
       styleElemNames = [];
     let from = null,
@@ -1241,7 +1240,7 @@ export class CodeZoneManager {
     }
     return ret;
   }
-  private _ods(context: any, stmt: TokenWithPos) {
+  private _ods(context: Context, stmt: TokenWithPos) {
     let nameType, optType;
     this._getFullStmtName(context, "ODS", stmt);
     this._stmtName = stmt.text.toUpperCase();
@@ -1293,7 +1292,7 @@ export class CodeZoneManager {
   }
   private _isNormalStmt(stmt: { text: string }) {
     //TODO: we should improve this when we get enough information about SAS language
-    const _normalStmts: any = {
+    const _normalStmts: Record<string, 1> = {
       SELECT: 1,
     };
     return _normalStmts[stmt.text];
@@ -1305,7 +1304,7 @@ export class CodeZoneManager {
       ? CodeZoneManager.ZONE_TYPE.SAS_FUNC
       : CodeZoneManager.ZONE_TYPE.OBJECT;
   }
-  private _stmt(context: Context, stmt: { text: string }): any {
+  private _stmt(context: Context, stmt: { text: string }) {
     const ret = this._tryGetOpr(context);
     let token;
     if (ret.token.text === "/") {
@@ -1611,17 +1610,17 @@ export class CodeZoneManager {
     obj?: any,
     nameType?: number,
     valType?: number
-  ): any {
+  ) {
     let token = this._getNextEx(context),
       tmpContext = null,
       lopd,
       exit = false,
       val;
     const items = [],
-      marks: any = { "(": ")", "[": "]", "{": "}" },
+      marks: Record<string, string> = { "(": ")", "[": "]", "{": "}" },
       lmark = token.text,
       rmark = marks[lmark],
-      ends: any = {};
+      ends: Record<string, 1> = {};
 
     if (!nameType) nameType = CodeZoneManager.ZONE_TYPE.SUB_OPT_NAME;
     if (!valType) valType = CodeZoneManager.ZONE_TYPE.SUB_OPT_VALUE;
@@ -1725,7 +1724,7 @@ export class CodeZoneManager {
 
   private _expr(
     context: Context,
-    ends?: { [x: string]: any },
+    ends?: Record<string, 1>,
     one?: boolean
   ): any {
     let text,
@@ -1818,7 +1817,7 @@ export class CodeZoneManager {
       }
     } else return this._dataStmt(context, token);
   }
-  private _dataDef(context: Context, stmt: any) {
+  private _dataDef(context: Context, stmt: TokenWithPos) {
     let token1, token2, tmpContext, viewOrPrg: any, name;
     const opts = [],
       stack: any[] = [];
@@ -2076,7 +2075,7 @@ export class CodeZoneManager {
       CodeZoneManager.ZONE_TYPE.DATA_STEP_OPT_VALUE
     );
   }
-  private _dataStmt(context: Context, stmt: { text: string }) {
+  private _dataStmt(context: Context, stmt: TokenWithPos) {
     let token = null,
       text = null;
     const newContext = {
@@ -2112,7 +2111,7 @@ export class CodeZoneManager {
   private _callStmt(context: Context) {
     return CodeZoneManager.ZONE_TYPE.CALL_ROUTINE;
   }
-  private _setStmt(context: Context, stmt: { text: string }) {
+  private _setStmt(context: Context, stmt: TokenWithPos) {
     let item,
       next,
       tmpContext,
@@ -2421,7 +2420,7 @@ export class CodeZoneManager {
       return CodeZoneManager.ZONE_TYPE.RESTRICTED;
     }
   }
-  setSectionMode(secType: any, procName: string): void {
+  setSectionMode(secType: number, procName: string): void {
     this._sectionMode = {
       secType: secType,
       procName: procName,

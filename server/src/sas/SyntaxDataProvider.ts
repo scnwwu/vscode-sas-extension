@@ -148,7 +148,7 @@ function _cleanName(name: string) {
     return name.replace(/(\(.*\))|=/g, "");
   }
 }
-function _resolveAliasFromPubs(alias: any, item: { name: string }) {
+function _resolveAliasFromPubs(alias: string, item: { name: string }) {
   const cloneItem = JSON.parse(JSON.stringify(item)); // deep clone
   cloneItem.name = alias;
   const index = cloneItem.aliases.indexOf(alias);
@@ -264,7 +264,7 @@ function _funcObj(funcName: string, context: string) {
   return _obj(db.functions, context, funcName);
 }
 
-const Type2File: any = {
+const Type2File: Record<string, string> = {
   formats: "SASFormats.json",
   informats: "SASInformats.json",
   "macro-func": "SASMacroFunctions.json",
@@ -807,11 +807,7 @@ function _keywordLoaded(type: string) {
   return db.kwPool[type];
 }
 
-function _tryToLoadKeywords(
-  type: any,
-  userCb: any,
-  getDataFunc: { (): any; (): any; (): any }
-) {
+function _tryToLoadKeywords(type: any, userCb: any, getDataFunc: { (): any }) {
   return _tryToLoad({
     userCb: userCb,
     getData: getDataFunc,
@@ -1085,7 +1081,7 @@ function _setProcedureOptionValuesFromPubs(
   optName: string,
   values: any[]
 ) {
-  const list: any[] = [];
+  const list: string[] = [];
   values.forEach(function (val: {
     placeholder: any;
     type: string;
@@ -1117,7 +1113,7 @@ function _setProcedureOptionValues(
   values: any,
   tooltips: any
 ) {
-  const list: any[] = [];
+  const list: string[] = [];
   _iterateValues(
     values,
     tooltips,
@@ -1196,7 +1192,7 @@ function _setProcedureOption(
   }
 }
 function _setProcedureOptionsFromPubs(procName: string, data: any[]) {
-  const keywords: any[] = [];
+  const keywords: string[] = [];
   data.forEach(function (item: {
     placeholder: any;
     name: any;
@@ -1225,7 +1221,7 @@ function _setProcedureOptionsFromPubs(procName: string, data: any[]) {
 }
 function _setProcedureOptions(procName: string, data: any[]) {
   if (data) {
-    let keywords: any[] = [];
+    let keywords: string[] = [];
     if (!(data instanceof Array)) data = [data];
     for (let i = 0; i < data.length; i++) {
       if (!data[i]["ProcedureOptionName"]) continue;
@@ -1570,7 +1566,7 @@ function _setProcedureStatementOptionValues(
   values: any,
   tooltips: any
 ) {
-  const list: any[] = [];
+  const list: string[] = [];
   _iterateValues(
     values,
     tooltips,
@@ -1598,8 +1594,8 @@ function _setProcedureStatementOptionsFromPubs(
   stmtName: string,
   data: any[]
 ) {
-  let keywords = [],
-    keywordsReq: any[] = [];
+  let keywords: string[] = [],
+    keywordsReq: string[] = [];
   data.forEach(function (item: {
     placeholder: any;
     followsDelimiter: any;
@@ -1650,7 +1646,7 @@ function _setProcedureStatementOptions(
   data: any[]
 ) {
   if (data) {
-    let keywords: any[] = [];
+    let keywords: string[] = [];
     if (!(data instanceof Array)) data = [data];
     for (let i = 0; i < data.length; i++) {
       let names = data[i]["StatementOptionName"];
@@ -1710,7 +1706,7 @@ function _setProcedureStatement(
   }
 }
 function _setProcedureStatementsFromPubs(procName: string, data: any[]) {
-  const keywords: any[] = [];
+  const keywords: string[] = [];
   data.forEach(function (item: {
     name: string;
     aliases: string[];
@@ -1740,7 +1736,7 @@ function _setProcedureStatementsFromPubs(procName: string, data: any[]) {
 }
 function _setProcedureStatements(procName: string, data: any[]) {
   if (data) {
-    let keywords: any[] = [];
+    let keywords: string[] = [];
     if (!(data instanceof Array)) data = [data];
     for (let i = 0; i < data.length; i++) {
       let names = data[i]["StatementName"];
@@ -2406,29 +2402,42 @@ export class SyntaxDataProvider {
       return data;
     });
   }
-  getStatementSyntax(stmtName: string, cb?: any) {
-    //TODO:
-  }
   getDataStepOptions(cb?: any) {
     return _getKeywords("datastep-option", cb);
   }
-  getDataStepOptionHelp(optName: string, cb: any, type: any) {
+  getDataStepOptionHelp(
+    optName: string,
+    cb: (data: HelpData) => void,
+    type: string
+  ) {
     return _getKeywordHelp(optName, type, cb);
   }
-  getDataStepOptionValueHelp(optName: string, valName: string, cb: any) {
+  getDataStepOptionValueHelp(
+    optName: string,
+    valName: string,
+    cb: (data: HelpData) => void
+  ) {
     this.getStatementOptionValueHelp("datastep", "DATA", optName, valName, cb);
   }
   getDataStepOptionValues(optName: string, cb: (data: OptionValues) => void) {
     this.getStatementOptionValues("datastep", "DATA", optName, cb);
   }
-  getDataSetOptionValueHelp(optName: string, valName: string, cb: any) {
+  getDataSetOptionValueHelp(
+    optName: string,
+    valName: string,
+    cb: (data: HelpData) => void
+  ) {
     this._getStatementOptionValueHelp("DATA-SET", optName, valName, cb);
   }
   getDataSetOptionValues(optName: string, cb: (data: OptionValues) => void) {
     this._getStatementOptionValues("DATA-SET", optName, cb);
   }
   // get all keyword's help, not only global statement, or global procedure statement
-  getKeywordHelp(name: string, cb: any, type: string) {
+  getKeywordHelp(
+    name: string,
+    cb: ((data: HelpData) => void) | null | undefined,
+    type: string
+  ) {
     if (type === "func") {
       // from pubsdata
       const data = _getFunctionHelp(name, "base");
@@ -2568,10 +2577,10 @@ export class SyntaxDataProvider {
   getDSOptionHelp(optName: string, cb?: any) {
     return _getKeywordHelp(optName, "ds-option", cb);
   }
-  getDS2Keywords(cb?: any) {
+  getDS2Keywords() {
     //TODO:
   }
-  getDS2Functions(cb?: any) {
+  getDS2Functions() {
     //TODO:
   }
   getLibraryList(cb: any, type: any) {
@@ -2597,7 +2606,7 @@ export class SyntaxDataProvider {
   getDocumentVariables() {
     //TODO:
   }
-  getMacroDefinitions(cb?: any) {
+  getMacroDefinitions() {
     //TODO:
   }
   getMacroVariables() {
@@ -2714,9 +2723,6 @@ export class SyntaxDataProvider {
   ) {
     _tryToLoadStatementOptionsImmediately(stmtName);
     return !!_stmtObj(stmtName, optName, ID_SUB_OPTS, subOptName);
-  }
-  isGeneralKeyword(name: string) {
-    //TODO:
   }
   isDatasetKeyword(name: string) {
     const type = "ds-option";

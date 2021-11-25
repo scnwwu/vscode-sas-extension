@@ -10,7 +10,7 @@ import {
 import { Position } from "vscode-languageserver-textdocument";
 import { CodeZoneManager } from "./CodeZoneManager";
 import { Model } from "./Model";
-import { HelpData } from "./SyntaxDataProvider";
+import { HelpData, OptionValues } from "./SyntaxDataProvider";
 import { SyntaxProvider } from "./SyntaxProvider";
 import { arrayToMap, getText } from "./utils";
 
@@ -126,7 +126,7 @@ function _cleanUpODSStmtName(name: string) {
   return name === "" ? "ODS" : "ODS " + name;
 }
 
-function _cleanUpStmtOpts(data: any) {
+function _cleanUpStmtOpts(data: string[]) {
   // var stmtName = czMgr.getStmtName();
   // if (stmtName === "LIBNAME") {
   //   data = _distinctList(data);
@@ -1301,7 +1301,11 @@ export class CompletionProvider {
     );
   }
 
-  private _notifyOptValue(cb: any, data: any, optName: any) {
+  private _notifyOptValue(
+    cb: (data?: string[]) => void,
+    data: OptionValues,
+    optName: string
+  ) {
     if (data) {
       if (this.loader.isColorType(data.type)) {
         this.popupContext.zone = ZONE_TYPE.COLOR;
@@ -1331,7 +1335,7 @@ export class CompletionProvider {
       // }
       cb(data.values);
     } else {
-      cb(null);
+      cb(undefined);
     }
   }
 

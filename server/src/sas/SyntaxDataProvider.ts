@@ -1,6 +1,8 @@
 // Copyright © 2021, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+
 import { arrayToMap } from "./utils";
 import { ResLoader } from "../node/ResLoader";
 
@@ -24,6 +26,49 @@ export interface HelpData {
 export interface OptionValues {
   type: string;
   values: string[];
+}
+
+interface SupportSiteInformation {
+  docsetId: string;
+  docsetVersion: string;
+  docsetTargetFile: string;
+}
+
+interface FunctionData {
+  name: string;
+  description?: string;
+  syntax?: { help: string };
+  supportSiteInformation?: SupportSiteInformation;
+}
+
+interface StatementOption {
+  name: string;
+  type: string;
+  aliases?: string[];
+  arguments?: StatementOption[];
+  followsDelimiter?: string;
+  description?: string;
+  help?: string;
+  placeholder?: boolean;
+  supportSiteTargetFragment?: string;
+  supportSiteInformation?: SupportSiteInformation;
+}
+
+interface Statement {
+  name: string;
+  aliases?: string[];
+  arguments?: StatementOption[];
+  description?: string;
+  help?: string;
+  supportSiteTargetFile?: string;
+  supportSiteInformation?: SupportSiteInformation;
+}
+
+interface Procedure {
+  name: string;
+  statements?: Statement[];
+  supportSiteInformation?: SupportSiteInformation;
+  interactive?: boolean;
 }
 
 const db: any = {
@@ -367,7 +412,7 @@ function _iterateKeywords(
 function _tryToLoad<T>(config: {
   userCb: ((data: T) => void) | null | undefined;
   getData: () => T;
-  needToLoad: () => any;
+  needToLoad: () => boolean;
   load: (cb?: () => void) => void;
 }) {
   if (!config.needToLoad()) {
@@ -440,17 +485,12 @@ function _getFunctionHelp(funcName: string, context: string, userCb?: any) {
     return data;
   });
 }
-function _setFunctionsFromPubs(data: any[], context: string) {
+function _setFunctionsFromPubs(data: FunctionData[], context: string) {
   if (!db.functions[context]) {
     db.functions[context] = {};
   }
   const list: string[] = [];
-  data.forEach(function (fun: {
-    name: string;
-    description: string;
-    syntax: { help: string };
-    supportSiteInformation: any;
-  }) {
+  data.forEach(function (fun) {
     list.push(fun.name);
     db.functions[context][fun.name] = {};
     db.functions[context][fun.name][ID_HELP] = fun.description;
@@ -460,11 +500,11 @@ function _setFunctionsFromPubs(data: any[], context: string) {
   });
   db.functions[context][ID_KEYWORDS] = list;
 }
-function _loadFunctionsFromPubs(context: string, cb: () => void) {
+function _loadFunctionsFromPubs(context: string, cb?: () => void) {
   const url = getBaseUrl() + "/pubsdata/Functions/en/" + context + ".json";
   ResLoader.get(
     url,
-    function (data: any) {
+    function (data?: FunctionData[]) {
       if (data && data.length) {
         _setFunctionsFromPubs(data, context);
         if (cb) cb();
@@ -476,10 +516,10 @@ function _loadFunctionsFromPubs(context: string, cb: () => void) {
 function _FunctionsLoadedFromPubs(context: string) {
   return db.functions[context];
 }
-function _tryToLoadFunctionsFromPubs(
+function _tryToLoadFunctionsFromPubs<T>(
   context: string,
-  userCb: any,
-  getDataFunc: { (): any }
+  userCb: ((data: T) => void) | null | undefined,
+  getDataFunc: () => T
 ) {
   return _tryToLoad({
     userCb: userCb,
@@ -487,7 +527,7 @@ function _tryToLoadFunctionsFromPubs(
     needToLoad: function () {
       return !_FunctionsLoadedFromPubs(context);
     },
-    load: function (cb: any) {
+    load: function (cb) {
       _loadFunctionsFromPubs(context, cb);
     },
   });
@@ -497,12 +537,12 @@ function _loadProceduresFromPubs(cb?: () => void) {
   const url = getBaseUrl() + "/pubsdata/procedures.json";
   ResLoader.get(
     url,
-    function (data: any[]) {
+    function (data?: string[]) {
       if (data && data.length) {
         if (db.kwPool["proc"] === undefined) {
           db.kwPool["proc"] = {};
         }
-        data.forEach(function (item: string) {
+        data.forEach(function (item) {
           db.kwPool["proc"][item] = {};
         });
         db.kwPool["proc"][ID_KEYWORDS] = data;
@@ -512,7 +552,10 @@ function _loadProceduresFromPubs(cb?: () => void) {
     !!cb
   ); //if cb exists, use async mode
 }
-function _tryToLoadProceduresFromPubs(userCb: any, getDataFunc: { (): any }) {
+function _tryToLoadProceduresFromPubs<T>(
+  userCb: ((data: T) => void) | null | undefined,
+  getDataFunc: () => T
+) {
   return _tryToLoad({
     userCb: userCb,
     getData: getDataFunc,
@@ -548,7 +591,7 @@ function _setStatementOptionValues(
   values: any,
   tooltips: any
 ) {
-  const list: any[] = [];
+  const list: string[] = [];
   _iterateValues(
     values,
     tooltips,
@@ -612,7 +655,7 @@ function _setStatementOption(
 }
 
 function _setStatementOptions(stmtName: string, keywords: any) {
-  const list: any[] = [];
+  const list: string[] = [];
   if (db.stmts[stmtName] === undefined) {
     db.stmts[stmtName] = {};
   }
@@ -662,7 +705,11 @@ function _tryToLoadStatementOptions(
   });
 }
 
-function _getStatementHelp(context: string, stmtName: string, userCb?: any) {
+function _getStatementHelp(
+  context: string,
+  stmtName: string,
+  userCb?: (data?: HelpData) => void
+) {
   return _tryToLoadStatementsFromPubs(context, userCb, function () {
     let data = _procStmtObj(context, stmtName);
     if (data) {
@@ -677,19 +724,12 @@ function _getStatementHelp(context: string, stmtName: string, userCb?: any) {
     return data;
   });
 }
-function _setStatementsFromPubs(data: any[], context: string) {
+function _setStatementsFromPubs(data: Statement[], context: string) {
   if (!db.procStmts[context]) {
     db.procStmts[context] = {};
   }
-  const list: any[] = [];
-  data.forEach(function (stmt: {
-    name: any;
-    description: any;
-    help: any;
-    supportSiteInformation: any;
-    aliases: any[];
-    arguments: any;
-  }) {
+  const list: string[] = [];
+  data.forEach(function (stmt) {
     const stmtName = stmt.name;
     list.push(stmtName);
     if (db.procStmts[context][stmtName] === undefined) {
@@ -724,7 +764,7 @@ function _loadStatementsFromPubs(context: string, cb?: () => void) {
   const url = getBaseUrl() + "/pubsdata/Statements/en/" + context + ".json";
   ResLoader.get(
     url,
-    function (data: any) {
+    function (data?: Statement[]) {
       if (data && data.length) {
         _setStatementsFromPubs(data, context);
         if (cb) cb();
@@ -736,12 +776,10 @@ function _loadStatementsFromPubs(context: string, cb?: () => void) {
 function _StatementsLoadedFromPubs(context: string) {
   return db.procStmts[context];
 }
-function _tryToLoadStatementsFromPubs(
+function _tryToLoadStatementsFromPubs<T>(
   context: string,
-  userCb: any,
-  getDataFunc: {
-    (): any;
-  }
+  userCb: ((data: T) => void) | null | undefined,
+  getDataFunc: () => T
 ) {
   return _tryToLoad({
     userCb: userCb,
@@ -779,7 +817,7 @@ function _setKeyword(
   _setKeywordAttr(type, name, data.Attributes);
 }
 function _setKeywords(type: string, keywords: any) {
-  const list: any[] = [];
+  const list: string[] = [];
   if (db.kwPool[type] === undefined) {
     db.kwPool[type] = {};
   }
@@ -807,7 +845,11 @@ function _keywordLoaded(type: string) {
   return db.kwPool[type];
 }
 
-function _tryToLoadKeywords(type: any, userCb: any, getDataFunc: { (): any }) {
+function _tryToLoadKeywords(
+  type: string,
+  userCb: any,
+  getDataFunc: { (): any }
+) {
   return _tryToLoad({
     userCb: userCb,
     getData: getDataFunc,
@@ -844,12 +886,7 @@ function _loadProcedureFromPubs(procName: string, cb?: () => void) {
   const url = getBaseUrl() + "/pubsdata/Procedures/en/" + procName + ".json";
   ResLoader.get(
     url,
-    function (data: {
-      statements: any;
-      supportSiteInformation: any;
-      interactive: any;
-      name: any;
-    }) {
+    function (data: Procedure) {
       if (data && data.statements) {
         _setProcedureFromPubs(
           procName,
@@ -916,8 +953,8 @@ function _tryToLoadProcedure<T>(
 
 function _setProcedureFromPubs(
   procName: string,
-  data: any[],
-  supportSite: { supportSiteTargetFile: any }
+  data: Statement[],
+  supportSite?: SupportSiteInformation
 ) {
   if (db.procOpts[procName] === undefined) {
     db.procOpts[procName] = {};
@@ -927,8 +964,10 @@ function _setProcedureFromPubs(
   }
   if (data[0]) {
     if (supportSite) {
-      supportSite.supportSiteTargetFile = data[0].supportSiteTargetFile;
-      db.procOpts[procName][ID_SUPPORT_SITE] = supportSite;
+      db.procOpts[procName][ID_SUPPORT_SITE] = {
+        ...supportSite,
+        supportSiteTargetFile: data[0].supportSiteTargetFile,
+      };
     }
     _setProcedureHelpFromPubs(procName, data[0]);
     const opts = data[0].arguments;
@@ -973,10 +1012,7 @@ function _setProcedure(
     });
   }
 }
-function _setProcedureHelpFromPubs(
-  procName: string,
-  data: { description: any; help: any }
-) {
+function _setProcedureHelpFromPubs(procName: string, data: Statement) {
   // data is json format
   db.procOpts[procName][ID_HELP] = data.description;
   db.procOpts[procName][ID_SYNTAX] = data.help;
@@ -988,7 +1024,7 @@ function _setProcedureHelp(procName: string, data: any) {
 function _setProcedureOptionHelpFromPubs(
   procName: string,
   optName: string,
-  data: { description: any; help: any; supportSiteTargetFragment: any }
+  data: StatementOption
 ) {
   db.procOpts[procName][optName][ID_HELP] = data.description;
   db.procOpts[procName][optName][ID_SYNTAX] = data.help;
@@ -998,13 +1034,17 @@ function _setProcedureOptionHelpFromPubs(
 function _setProcedureOptionHelp(procName: string, optName: string, data: any) {
   db.procOpts[procName][optName][ID_HELP] = _getHelp(data);
 }
-function _setProcedureOptionType(procName: string, optName: string, data: any) {
+function _setProcedureOptionType(
+  procName: string,
+  optName: string,
+  data: string
+) {
   db.procOpts[procName][optName][ID_TYPE] = data;
 }
 function _setProcedureOptionAliasFromPubs(
   procName: string,
   optName: string,
-  data: any
+  data?: string[]
 ) {
   db.procOpts[procName][optName][ID_ALIAS] = data;
 }
@@ -1018,18 +1058,13 @@ function _setProcedureOptionAlias(
 function _setProcedureOptionSubOptKeywordsFromPubs(
   procName: string,
   optName: string,
-  data: any[]
+  data: StatementOption[]
 ) {
   const list = db.procOpts[procName][optName][ID_SUB_OPTS] || {};
   if (!list[ID_KEYWORDS]) {
     list[ID_KEYWORDS] = [];
   }
-  data.forEach(function (arg: {
-    placeholder: any;
-    type: string;
-    name: any;
-    description: any;
-  }) {
+  data.forEach(function (arg) {
     if (arg.placeholder || arg.type === "standalone") return;
     const name = arg.name;
     list[ID_KEYWORDS].push(name);
@@ -1058,14 +1093,14 @@ function _setProcedureOptionValueHelp(
   procName: string,
   optName: string,
   valName: string,
-  data: any
+  data: string
 ) {
   db.procOpts[procName][optName][valName][ID_HELP] = data;
 }
 function _setProcedureOptionValueFromPubs(
   procName: string,
   optName: string,
-  val: { name: any; aliases: any; description: any }
+  val: StatementOption
 ) {
   const name = val.name.toUpperCase();
   if (db.procOpts[procName][optName][name] === undefined) {
@@ -1079,22 +1114,16 @@ function _setProcedureOptionValueFromPubs(
 function _setProcedureOptionValuesFromPubs(
   procName: string,
   optName: string,
-  values: any[]
+  values: StatementOption[]
 ) {
   const list: string[] = [];
-  values.forEach(function (val: {
-    placeholder: any;
-    type: string;
-    name: any;
-    aliases: any[];
-    description: string;
-  }) {
+  values.forEach(function (val) {
     if (val.placeholder || val.type !== "standalone") return;
     const name = val.name;
     list.push(name);
     _setProcedureOptionValueFromPubs(procName, optName, val);
     if (val.aliases && val.aliases.length) {
-      val.aliases.forEach(function (alias: any) {
+      val.aliases.forEach(function (alias) {
         list.push(alias);
         _setProcedureOptionValueFromPubs(
           procName,
@@ -1130,18 +1159,7 @@ function _setProcedureOptionValues(
 
   db.procOpts[procName][optName][ID_VALS] = list;
 }
-function _setProcedureOptionFromPubs(
-  procName: string,
-  data: {
-    name: any;
-    type: any;
-    aliases: any;
-    arguments: any;
-    description: any;
-    help: any;
-    supportSiteTargetFragment: any;
-  }
-) {
+function _setProcedureOptionFromPubs(procName: string, data: StatementOption) {
   const optName = _removeEqu(data.name).toUpperCase();
   if (db.procOpts[procName][optName] === undefined) {
     db.procOpts[procName][optName] = {};
@@ -1191,23 +1209,17 @@ function _setProcedureOption(
     );
   }
 }
-function _setProcedureOptionsFromPubs(procName: string, data: any[]) {
+function _setProcedureOptionsFromPubs(
+  procName: string,
+  data: StatementOption[]
+) {
   const keywords: string[] = [];
-  data.forEach(function (item: {
-    placeholder: any;
-    name: any;
-    aliases: any[];
-    type: any;
-    arguments: any;
-    description: any;
-    help: any;
-    supportSiteTargetFragment: any;
-  }) {
+  data.forEach(function (item) {
     if (!item.placeholder) {
       _setProcedureOptionFromPubs(procName, item);
       keywords.push(item.name);
       if (item.aliases && item.aliases.length) {
-        item.aliases.forEach(function (alias: any) {
+        item.aliases.forEach(function (alias) {
           _setProcedureOptionFromPubs(
             procName,
             _resolveAliasFromPubs(alias, item)
@@ -1239,7 +1251,7 @@ function _setProcedureOptions(procName: string, data: any[]) {
 function _setProcedureStatementHelpFromPubs(
   procName: string,
   stmtName: string,
-  data: { description: any; help: any; supportSiteTargetFile: any }
+  data: Statement
 ) {
   db.procStmts[procName][stmtName][ID_HELP] = data.description;
   db.procStmts[procName][stmtName][ID_SYNTAX] = data.help;
@@ -1256,7 +1268,7 @@ function _setProcedureStatementHelp(
 function _setProcedureStatementAliasFromPubs(
   procName: string,
   stmtName: string,
-  data: any
+  data?: string[]
 ) {
   db.procStmts[procName][stmtName][ID_ALIAS] = data;
 }
@@ -1270,16 +1282,7 @@ function _setProcedureStatementAlias(
 function _setProcedureStatementOptionFromPubs(
   procName: string,
   stmtName: string,
-  data: {
-    name: any;
-    type: any;
-    aliases: any;
-    arguments: any;
-    description: any;
-    help: any;
-    supportSiteTargetFragment: any;
-    supportSiteInformation: any;
-  }
+  data: StatementOption
 ) {
   const optName = _cleanName(data.name).toUpperCase(); //optName.replace('=','');
   if (db.procStmts[procName][stmtName][optName] === undefined) {
@@ -1370,12 +1373,7 @@ function _setProcedureStatementOptionHelpFromPubs(
   procName: string,
   stmtName: string,
   optName: string,
-  data: {
-    description: any;
-    help: any;
-    supportSiteTargetFragment: any;
-    supportSiteInformation: any;
-  }
+  data: StatementOption
 ) {
   db.procStmts[procName][stmtName][optName][ID_HELP] = data.description;
   db.procStmts[procName][stmtName][optName][ID_SYNTAX] = data.help;
@@ -1394,7 +1392,7 @@ function _setProcedureStatementOptionType(
   procName: string,
   stmtName: string,
   optName: string,
-  data: any
+  data: string
 ) {
   db.procStmts[procName][stmtName][optName][ID_TYPE] = data;
 }
@@ -1402,7 +1400,7 @@ function _setProcedureStatementOptionAliasFromPubs(
   procName: string,
   stmtName: string,
   optName: string,
-  data: any
+  data?: string[]
 ) {
   db.procStmts[procName][stmtName][optName][ID_ALIAS] = data;
 }
@@ -1422,7 +1420,7 @@ function _setProcedureStatementSubOptKeywordFromPubs(
   stmtName: string,
   optName: string,
   subOptName: string,
-  arg: { description: any; help: any; aliases: any }
+  arg: StatementOption
 ) {
   if (db.procStmts[procName][stmtName][optName][subOptName] === undefined) {
     db.procStmts[procName][stmtName][optName][subOptName] = {};
@@ -1443,20 +1441,13 @@ function _setProcedureStatementSubOptKeywordsFromPubs(
   procName: string,
   stmtName: string,
   optName: string,
-  data: any[]
+  data: StatementOption[]
 ) {
   const list = db.procStmts[procName][stmtName][optName][ID_SUB_OPTS] || {};
   if (!list[ID_KEYWORDS]) {
     list[ID_KEYWORDS] = [];
   }
-  data.forEach(function (arg: {
-    placeholder: any;
-    type: string;
-    name: any;
-    aliases: any[];
-    description: any;
-    help: any;
-  }) {
+  data.forEach(function (arg) {
     if (arg.placeholder || arg.type === "standalone") return;
     const name = arg.name;
     list[ID_KEYWORDS].push(name);
@@ -1469,7 +1460,7 @@ function _setProcedureStatementSubOptKeywordsFromPubs(
       arg
     );
     if (arg.aliases) {
-      arg.aliases.forEach(function (alias: any) {
+      arg.aliases.forEach(function (alias) {
         list[ID_KEYWORDS].push(alias);
         list[_removeEqu(alias)] = true;
         _setProcedureStatementSubOptKeywordFromPubs(
@@ -1501,7 +1492,7 @@ function _setProcedureStatementOptionValueHelp(
   stmtName: string,
   optName: string,
   valName: string,
-  data: any
+  data: string
 ) {
   db.procStmts[procName][stmtName][optName][valName][ID_HELP] = data;
 }
@@ -1509,7 +1500,7 @@ function _setProcedureStatementOptionValueFromPubs(
   procName: string,
   stmtName: string,
   optName: string,
-  val: { name: any; aliases: any; description: any }
+  val: StatementOption
 ) {
   const name = val.name.toUpperCase();
   if (db.procStmts[procName][stmtName][optName][name] === undefined) {
@@ -1530,22 +1521,16 @@ function _setProcedureStatementOptionValuesFromPubs(
   procName: string,
   stmtName: string,
   optName: string,
-  values: any[]
+  values: StatementOption[]
 ) {
-  const list: any[] = [];
-  values.forEach(function (val: {
-    placeholder: any;
-    type: string;
-    name: any;
-    aliases: any[];
-    description: any;
-  }) {
+  const list: string[] = [];
+  values.forEach(function (val) {
     if (val.placeholder || val.type !== "standalone") return;
     const name = val.name;
     list.push(name);
     _setProcedureStatementOptionValueFromPubs(procName, stmtName, optName, val);
     if (val.aliases && val.aliases.length) {
-      val.aliases.forEach(function (alias: any) {
+      val.aliases.forEach(function (alias) {
         list.push(alias);
         _setProcedureStatementOptionValueFromPubs(
           procName,
@@ -1592,22 +1577,11 @@ function _setProcedureStatementOptionValues(
 function _setProcedureStatementOptionsFromPubs(
   procName: string,
   stmtName: string,
-  data: any[]
+  data: StatementOption[]
 ) {
   let keywords: string[] = [],
     keywordsReq: string[] = [];
-  data.forEach(function (item: {
-    placeholder: any;
-    followsDelimiter: any;
-    name: any;
-    aliases: any[];
-    type: any;
-    arguments: any;
-    description: any;
-    help: any;
-    supportSiteTargetFragment: any;
-    supportSiteInformation: any;
-  }) {
+  data.forEach(function (item) {
     if (!item.placeholder) {
       _setProcedureStatementOptionFromPubs(procName, stmtName, item);
       if (item.followsDelimiter) {
@@ -1616,7 +1590,7 @@ function _setProcedureStatementOptionsFromPubs(
         keywordsReq.push(item.name);
       }
       if (item.aliases && item.aliases.length) {
-        item.aliases.forEach(function (alias: any) {
+        item.aliases.forEach(function (alias) {
           _setProcedureStatementOptionFromPubs(
             procName,
             stmtName,
@@ -1664,13 +1638,7 @@ function _setProcedureStatementOptions(
 function _setProcedureStatementFromPubs(
   procName: string,
   stmtName: string,
-  data: {
-    aliases: any;
-    arguments: any;
-    description: any;
-    help: any;
-    supportSiteTargetFile: any;
-  }
+  data: Statement
 ) {
   if (db.procStmts[procName][stmtName] === undefined) {
     db.procStmts[procName][stmtName] = {};
@@ -1705,16 +1673,9 @@ function _setProcedureStatement(
     );
   }
 }
-function _setProcedureStatementsFromPubs(procName: string, data: any[]) {
+function _setProcedureStatementsFromPubs(procName: string, data: Statement[]) {
   const keywords: string[] = [];
-  data.forEach(function (item: {
-    name: string;
-    aliases: string[];
-    arguments: any;
-    description: any;
-    help: any;
-    supportSiteTargetFile: any;
-  }) {
+  data.forEach(function (item) {
     const stmtName = _removeEqu(item.name.toUpperCase());
     _setProcedureStatementFromPubs(procName, stmtName, item);
     if (item.aliases) {
@@ -1831,7 +1792,7 @@ export class SyntaxDataProvider {
       return data;
     });
   }
-  getProcedureOptions(procName: string, cb: (data: string[]) => void) {
+  getProcedureOptions(procName: string, cb: (data?: string[]) => void) {
     procName = procName.toUpperCase();
     return _tryToLoadProcedure(procName, cb, function () {
       let data = _procOptObj(procName);
@@ -1844,7 +1805,7 @@ export class SyntaxDataProvider {
   getProcedureOptionHelp(
     procName: string,
     optName: string,
-    cb: (data: HelpData) => void
+    cb: (data?: HelpData) => void
   ) {
     procName = procName.toUpperCase();
     optName = optName.toUpperCase();
@@ -1877,7 +1838,7 @@ export class SyntaxDataProvider {
     procName: string,
     optName: string,
     valName: string,
-    cb: (data: HelpData) => void
+    cb: (data?: HelpData) => void
   ) {
     return _tryToLoadProcedure(procName, cb, function () {
       procName = procName.toUpperCase();
@@ -1935,7 +1896,7 @@ export class SyntaxDataProvider {
     procName: string,
     optName: string,
     subOptName: string,
-    cb: (data: HelpData) => void
+    cb: (data?: HelpData) => void
   ) {
     return _tryToLoadProcedure(procName, cb, function () {
       procName = procName.toUpperCase();
@@ -2025,7 +1986,7 @@ export class SyntaxDataProvider {
     procName: string,
     stmtName: string,
     optName: string,
-    cb?: (data: HelpData) => void
+    cb?: (data?: HelpData) => void
   ) {
     procName = procName.toUpperCase();
     stmtName = stmtName.toUpperCase();
@@ -2089,7 +2050,7 @@ export class SyntaxDataProvider {
     stmtName: string,
     optName: string,
     subOptName: string,
-    cb: (data: HelpData) => void
+    cb: (data?: HelpData) => void
   ) {
     procName = procName.toUpperCase();
     stmtName = stmtName.toUpperCase();
@@ -2122,7 +2083,7 @@ export class SyntaxDataProvider {
     stmtName: string,
     optName: string,
     valName: string,
-    cb?: (data: HelpData) => void
+    cb?: (data?: HelpData) => void
   ) {
     procName = procName.toUpperCase();
     stmtName = stmtName.toUpperCase();
@@ -2252,7 +2213,7 @@ export class SyntaxDataProvider {
     context: string,
     stmtName: string,
     optName: string,
-    cb?: (data: HelpData) => void
+    cb?: (data?: HelpData) => void
   ) {
     return _tryToLoadStatementsFromPubs(context, cb, function () {
       stmtName = stmtName.toUpperCase();
@@ -2275,7 +2236,7 @@ export class SyntaxDataProvider {
     stmtName: string,
     optName: string,
     valName: string,
-    cb?: (data: HelpData) => void
+    cb?: (data?: HelpData) => void
   ) {
     return _tryToLoadStatementsFromPubs(context, cb, function () {
       stmtName = stmtName.toUpperCase();
@@ -2384,7 +2345,7 @@ export class SyntaxDataProvider {
     stmtName: string,
     optName: string,
     subOptName: string,
-    cb?: (data: HelpData) => void
+    cb?: (data?: HelpData) => void
   ) {
     return _tryToLoadStatementsFromPubs(context, cb, function () {
       stmtName = stmtName.toUpperCase();
@@ -2402,7 +2363,7 @@ export class SyntaxDataProvider {
       return data;
     });
   }
-  getDataStepOptions(cb?: any) {
+  getDataStepOptions(cb?: (data: string[]) => void) {
     return _getKeywords("datastep-option", cb);
   }
   getDataStepOptionHelp(
@@ -2415,7 +2376,7 @@ export class SyntaxDataProvider {
   getDataStepOptionValueHelp(
     optName: string,
     valName: string,
-    cb: (data: HelpData) => void
+    cb: (data?: HelpData) => void
   ) {
     this.getStatementOptionValueHelp("datastep", "DATA", optName, valName, cb);
   }
@@ -2435,7 +2396,7 @@ export class SyntaxDataProvider {
   // get all keyword's help, not only global statement, or global procedure statement
   getKeywordHelp(
     name: string,
-    cb: ((data: HelpData) => void) | null | undefined,
+    cb: ((data?: HelpData) => void) | null | undefined,
     type: string
   ) {
     if (type === "func") {
@@ -2493,30 +2454,30 @@ export class SyntaxDataProvider {
     return _tryToLoadColors(cb);
   }
   //ODS tagsets
-  getODSTagsets(cb?: any) {
+  getODSTagsets(cb?: (data: string[]) => void) {
     return _getKeywords(/*'ODSTagsets'*/ "ods-tagsets", cb);
   }
   //Style
-  getStyleAttributes(cb?: any) {
+  getStyleAttributes(cb?: (data: string[]) => void) {
     return _getKeywords(/*'styleAttributes'*/ "style-att", cb);
   }
-  getStyleElements(cb?: any) {
+  getStyleElements(cb?: (data: string[]) => void) {
     return _getKeywords(/*'styleElements'*/ "style-ele", cb);
   }
-  getStyleLocations(cb?: any) {
+  getStyleLocations(cb?: (data: string[]) => void) {
     return _getKeywords(/*'styleLocations'*/ "style-loc", cb);
   }
   // macro
   getARMMacros(cb?: (data: string[]) => void) {
     return _getKeywords(/*'ARMMacros'*/ "arm-macro", cb);
   }
-  getAutocallMacros(cb?: any) {
+  getAutocallMacros(cb?: (data: string[]) => void) {
     return _getKeywords(/*'autocallMacros'*/ "autocall-macro", cb);
   }
   getAutoVariables(cb?: (data: string[]) => void) {
     return _getKeywords(/*'autoVariables'*/ "auto-var", cb);
   }
-  getMacroDefinitionOptions(cb?: any) {
+  getMacroDefinitionOptions(cb?: (data: string[]) => void) {
     return _getKeywords("macro-def-opt", cb);
   }
   getGlobalStatements(cb?: (data: string[]) => void) {
@@ -2538,31 +2499,31 @@ export class SyntaxDataProvider {
       return data[ID_STMTS];
     });
   }
-  getFunctions(cb?: any) {
+  getFunctions(cb?: (data: string[]) => void) {
     return _tryToLoadFunctionsFromPubs("base", cb, function () {
       const data = db.functions["base"][ID_KEYWORDS];
       return data;
     });
   }
-  getCallRoutines(cb?: any) {
+  getCallRoutines(cb?: (data: string[]) => void) {
     return _getKeywords(/*'callRoutines'*/ "call-routines", cb);
   }
-  getMacroFunctions(cb?: any) {
+  getMacroFunctions(cb?: (data: string[]) => void) {
     return _tryToLoadFunctionsFromPubs("macro", cb, function () {
       const data = db.functions["macro"][ID_KEYWORDS];
       return data;
     });
   }
-  getHashPackageMethods(cb?: any) {
+  getHashPackageMethods(cb?: (data: string[]) => void) {
     return _getKeywords(/*'hashPackageMethods'*/ "hash-pack-method", cb);
   }
-  getFormats(cb?: any) {
+  getFormats(cb?: (data: string[]) => void) {
     return _getKeywords("formats", cb);
   }
-  getInformats(cb?: any) {
+  getInformats(cb?: (data: string[]) => void) {
     return _getKeywords("informats", cb);
   }
-  getStatisticsKeywords(cb?: any) {
+  getStatisticsKeywords(cb?: (data: string[]) => void) {
     return _getKeywords(/*'statisticsKeywords'*/ "stat-kw", cb);
   }
   getDSStatements(cb?: (data: string[]) => void) {
@@ -2571,7 +2532,7 @@ export class SyntaxDataProvider {
       return data[ID_STMTS];
     });
   }
-  getDSOptions(cb?: any) {
+  getDSOptions(cb?: (data: string[]) => void) {
     return _getKeywords(/*'datasetOptions'*/ "ds-option", cb);
   }
   getDSOptionHelp(optName: string, cb?: any) {
@@ -2583,7 +2544,7 @@ export class SyntaxDataProvider {
   getDS2Functions() {
     //TODO:
   }
-  getLibraryList(cb: any, type: any) {
+  getLibraryList(cb: any, type: string) {
     if (typeof libService === "function") {
       libService(null, function (data: any) {
         _notify(cb, { values: data, type: type });

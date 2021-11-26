@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 export const ResLoader = {
+  // eslint-disable-next-line
   get: function (url: string, cb: (arg0: any) => void, async?: boolean) {
     // have to explicitly write path for webpack to bundle
     const index = url.indexOf("/data/");

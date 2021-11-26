@@ -486,7 +486,7 @@ export class CompletionProvider {
         //_getMacroDef();
         break;
       case ZONE_TYPE.MACRO_DEF:
-        this.loader.getMacroDefinitions(cb);
+        this.loader.getMacroDefinitions();
         break;
       case ZONE_TYPE.MACRO_DEF_OPT:
         this.loader.getProcedureOptions("MACRO", cb);

@@ -11,4 +11,5 @@ tools
 .prettierignore
 **/tsconfig.json
 contributing.md
+ContributorAgreement.txt
 .travis.yml

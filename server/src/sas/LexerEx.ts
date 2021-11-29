@@ -1,6 +1,7 @@
 // Copyright © 2021, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+/* eslint-disable */
 import { arrayToMap, TextPosition } from "./utils";
 import { Lexer, Token } from "./Lexer";
 import { SyntaxDataProvider } from "./SyntaxDataProvider";
@@ -1590,7 +1591,6 @@ export class LexerEx {
     }
     return false;
   }
-  private isStmtEnd_(token: any) {}
   private getWord_(token: Token | undefined) {
     //always uppercase
     return this.lexer.getWord(token).toUpperCase();
@@ -1628,10 +1628,10 @@ export class LexerEx {
         word = token.text;
         switch (word) {
           case "PROC":
-          case "PROCEDURE":
+          case "PROCEDURE": {
             this.startFoldingBlock_(this.SEC_TYPE.PROC, token.start, word);
             token.type = Lexer.TOKEN_TYPES.SKEYWORD;
-            var procName = this.handleProcName_();
+            const procName = this.handleProcName_();
             this.stack.push({
               parse: this.readProc_,
               state: this.PARSING_STATE.IN_PROC,
@@ -1644,6 +1644,7 @@ export class LexerEx {
             });
             gbl = false;
             break;
+          }
           case "%MACRO":
             this.startFoldingBlock_(this.SEC_TYPE.MACRO, token.start, word);
             token.type = Lexer.TOKEN_TYPES.MSKEYWORD;
@@ -2464,12 +2465,12 @@ export class LexerEx {
             });
             break;
           case "PROC":
-          case "PROCEDURE":
+          case "PROCEDURE": {
             this.endFoldingBlock_(this.SEC_TYPE.PROC, this.lastToken.end);
             this.startFoldingBlock_(this.SEC_TYPE.PROC, token.start, word);
             token.type = Lexer.TOKEN_TYPES.SKEYWORD;
             this.popSMTo_(1);
-            var procName = this.handleProcName_();
+            const procName = this.handleProcName_();
             this.stack.push({
               parse: this.readProc_,
               state: this.PARSING_STATE.IN_PROC,
@@ -2481,6 +2482,7 @@ export class LexerEx {
               name: procName,
             });
             break;
+          }
           case "DATA":
             this.endFoldingBlock_(this.SEC_TYPE.PROC, this.lastToken.end);
             this.startFoldingBlock_(this.SEC_TYPE.DATA, token.start, word);
@@ -2764,14 +2766,14 @@ export class LexerEx {
          PROC ----> ignore
          *
          */
-  DS2_: any = {
+  DS2_: Record<string, 1> = {
     DS2: 1,
     HPDS2: 1,
   };
 
   private readProc_() {
-    let word = "",
-      token = this.getNext_(),
+    let word = "";
+    const token = this.getNext_(),
       procName = this.curr.name || "";
 
     if (!token) return;
@@ -2783,7 +2785,7 @@ export class LexerEx {
           state: this.PARSING_STATE.IN_PROC,
         });
       } else if (this.isAssignment_(token)) {
-        var validName = this._cleanKeyword(word);
+        const validName = this._cleanKeyword(word);
         this.stack.push({
           parse: this.readProcStmt_,
           state: this.PARSING_STATE.IN_PROC,
@@ -2824,7 +2826,7 @@ export class LexerEx {
             //this.stack.push({parse:this.readMend_, state:this.PARSING_STATE.IN_MACRO});
             break;
           case "PROC":
-          case "PROCEDURE":
+          case "PROCEDURE": {
             //no normal end, and another proc meet, there are syntax errors
             // ignore
             this.endFoldingBlock_(this.SEC_TYPE.PROC, this.lastToken.end);
@@ -2832,7 +2834,7 @@ export class LexerEx {
 
             token.type = Lexer.TOKEN_TYPES.SKEYWORD;
             this.stack.pop();
-            procName = this.handleProcName_();
+            const procName = this.handleProcName_();
             this.stack.push({
               parse: this.readProc_,
               state: this.PARSING_STATE.IN_PROC,
@@ -2844,6 +2846,7 @@ export class LexerEx {
               name: procName,
             });
             break;
+          }
           case "%MACRO":
             this.endFoldingBlock_(this.SEC_TYPE.PROC, this.lastToken.end);
             this.startFoldingBlock_(this.SEC_TYPE.MACRO, token.start, word);
@@ -2877,9 +2880,9 @@ export class LexerEx {
               break;
             } // not break
           // eslint-disable-next-line no-fallthrough
-          default:
+          default: {
             this.tryToHandleSectionEnd_(token);
-            var generalProcStmt = true;
+            let generalProcStmt = true;
             if (procName === "TEMPLATE") {
               if (word === "BEGINGRAPH") {
                 this.stack.push({
@@ -2926,7 +2929,7 @@ export class LexerEx {
               generalProcStmt = false;
             }
             if (generalProcStmt) {
-              var validName = this._cleanKeyword(word);
+              const validName = this._cleanKeyword(word);
               const state: any = {
                 parse: this.readProcStmt_,
                 state: this.PARSING_STATE.IN_PROC,
@@ -2942,6 +2945,7 @@ export class LexerEx {
                 obj.stmtName
               );
             }
+          }
         }
       }
     }
@@ -2950,8 +2954,8 @@ export class LexerEx {
   private hasRunCancelFollowed_() {
     let next1,
       next2,
-      ret = false,
-      it = { pos: 1 };
+      ret = false;
+    const it = { pos: 1 };
     do {
       next1 = this.prefetch_(it);
     } while (next1 && next1.text !== ";");
@@ -2978,8 +2982,8 @@ export class LexerEx {
    *           DATA ----> ignore
    */
   private readData_() {
-    let word = "",
-      token = this.getNext_();
+    let word = "";
+    const token = this.getNext_();
 
     if (!token) return;
 
@@ -2990,7 +2994,7 @@ export class LexerEx {
           state: this.PARSING_STATE.IN_DATA,
         });
       } else if (this.isAssignment_(token)) {
-        var validName = this._cleanKeyword(word);
+        const validName = this._cleanKeyword(word);
         this.stack.push({
           parse: this.readDataStmt_,
           state: this.PARSING_STATE.IN_DATA,
@@ -3031,13 +3035,13 @@ export class LexerEx {
             });
             break;
           case "PROC":
-          case "PROCEDURE":
+          case "PROCEDURE": {
             this.endFoldingBlock_(this.SEC_TYPE.DATA, this.lastToken.end);
             this.startFoldingBlock_(this.SEC_TYPE.PROC, token.start, word);
 
             token.type = Lexer.TOKEN_TYPES.SKEYWORD;
             this.stack.pop(); //end data section
-            var procName = this.handleProcName_();
+            const procName = this.handleProcName_();
             this.stack.push({
               parse: this.readProc_,
               state: this.PARSING_STATE.IN_PROC,
@@ -3049,6 +3053,7 @@ export class LexerEx {
               name: procName,
             });
             break;
+          }
           case "%MACRO":
             this.endFoldingBlock_(this.SEC_TYPE.DATA, this.lastToken.end);
             this.startFoldingBlock_(this.SEC_TYPE.MACRO, token.start, word);
@@ -3096,7 +3101,7 @@ export class LexerEx {
               this.handleMref_(this.PARSING_STATE.IN_DATA);
             } else {
               //handle the statements in data section
-              var validName = this._cleanKeyword(word);
+              const validName = this._cleanKeyword(word);
               const state: any = {
                 parse: this.readDataStmt_,
                 state: this.PARSING_STATE.IN_DATA,
@@ -3122,8 +3127,8 @@ export class LexerEx {
    *  PROC, DATA %MACRO -----> ignore
    */
   private readMacro_() {
-    let word = "",
-      token = this.getNext_();
+    let word = "";
+    const token = this.getNext_();
 
     if (!token) return;
 
@@ -3134,7 +3139,7 @@ export class LexerEx {
           state: this.PARSING_STATE.IN_MACRO,
         });
       } else if (this.isAssignment_(token)) {
-        var validName = this._cleanKeyword(word);
+        const validName = this._cleanKeyword(word);
         this.stack.push({
           parse: this.readMacroStmt_,
           state: this.PARSING_STATE.IN_MACRO,
@@ -3168,10 +3173,10 @@ export class LexerEx {
             });
             break;
           case "PROC":
-          case "PROCEDURE":
+          case "PROCEDURE": {
             this.startFoldingBlock_(this.SEC_TYPE.PROC, token.start, word);
             token.type = Lexer.TOKEN_TYPES.SKEYWORD;
-            var procName = this.handleProcName_();
+            const procName = this.handleProcName_();
             this.stack.push({
               parse: this.readProc_,
               state: this.PARSING_STATE.IN_PROC,
@@ -3183,6 +3188,7 @@ export class LexerEx {
               name: procName,
             });
             break;
+          }
           case "DATA":
             this.startFoldingBlock_(this.SEC_TYPE.DATA, token.start, word);
             token.type = Lexer.TOKEN_TYPES.SKEYWORD;
@@ -3196,7 +3202,7 @@ export class LexerEx {
             });
             break;
           default: {
-            var validName = this._cleanKeyword(word);
+            const validName = this._cleanKeyword(word);
             const state: any = {
               parse: this.readMacroStmt_,
               state: this.PARSING_STATE.IN_MACRO,
@@ -3218,8 +3224,8 @@ export class LexerEx {
     return token;
   }
   private readGbl_() {
-    let word = "",
-      token = this.getNext_();
+    let word = "";
+    const token = this.getNext_();
 
     if (!token) return;
 
@@ -3230,7 +3236,7 @@ export class LexerEx {
           state: this.PARSING_STATE.IN_GBL,
         });
       } else if (this.isAssignment_(token)) {
-        var validName = this._cleanKeyword(word);
+        const validName = this._cleanKeyword(word);
         this.stack.push({
           parse: this.readGblStmt_,
           state: this.PARSING_STATE.IN_GBL,
@@ -3283,7 +3289,7 @@ export class LexerEx {
         } else if (token.type === Lexer.TOKEN_TYPES.MREF) {
           this.handleMref_(this.PARSING_STATE.IN_GBL);
         } else {
-          var validName = this._cleanKeyword(word);
+          const validName = this._cleanKeyword(word);
           const state: any = {
             parse: this.readGblStmt_,
             state: this.PARSING_STATE.IN_GBL,

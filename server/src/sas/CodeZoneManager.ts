@@ -1,6 +1,8 @@
 // Copyright © 2021, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+/* eslint-disable @typescript-eslint/no-non-null-assertion,
+@typescript-eslint/no-unused-vars,@typescript-eslint/no-explicit-any */
 import { arrayToMap } from "./utils";
 import { LexerEx } from "./LexerEx";
 import { Lexer, Token } from "./Lexer";
@@ -2413,6 +2415,7 @@ export class CodeZoneManager {
   getSubOptionName(): string {
     return this._subOptName;
   }
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   getCurrentZone(line: number, col: number) {
     try {
       return this._currentZone(line, col);

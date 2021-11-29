@@ -1,7 +1,8 @@
 // Copyright © 2021, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types,
+@typescript-eslint/no-unused-vars,@typescript-eslint/no-explicit-any */
 
 import { arrayToMap } from "./utils";
 import { ResLoader } from "../node/ResLoader";
@@ -168,16 +169,10 @@ function _notify<T>(cb: ((arg0: T) => void) | null | undefined, data: T) {
 }
 
 function _obj(root: any, ...other: any[]) {
-  let i = 1,
+  let i = 0,
     obj = root;
-  for (
-    ;
-    // eslint-disable-next-line prefer-rest-params
-    obj && (arguments[i] !== undefined || arguments[i + 1] !== undefined);
-    i++
-  ) {
-    // eslint-disable-next-line prefer-rest-params
-    obj = obj[arguments[i]];
+  for (; obj && (other[i] !== undefined || other[i + 1] !== undefined); i++) {
+    obj = obj[other[i]];
   }
   return obj;
 }
@@ -829,6 +824,7 @@ function _setKeywords(type: string, keywords: any) {
 }
 
 function _loadKeywords(type: string, cb: any) {
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const url = _resolveURL(type)!;
   ResLoader.get(
     url,
@@ -2586,6 +2582,7 @@ export class SyntaxDataProvider {
       }
       if (obj[ID_HAS_OPT_DELIMITER] === undefined) {
         obj[ID_HAS_OPT_DELIMITER] = /Syntax:(.|\n)*\/(.|\n)*;/i.test(
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           help.data!
         );
       }

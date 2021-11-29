@@ -1,6 +1,9 @@
 // Copyright © 2021, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types,
+@typescript-eslint/no-unused-vars,@typescript-eslint/no-explicit-any */
+
 import { Token } from "./Lexer";
 import { FoldingBlock, LexerEx } from "./LexerEx";
 import { Model } from "./Model";
@@ -130,6 +133,7 @@ export class SyntaxProvider {
       this.parsingState === 2 /*LanguageService.ParsingState.ENDED*/ &&
       this.parsingQueue.length
     ) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const change = this.parsingQueue.shift()!;
       this._startParse(change);
     }

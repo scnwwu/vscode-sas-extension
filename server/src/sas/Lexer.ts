@@ -2,99 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { Model } from "./Model";
+import { SyntaxDataProvider } from "./SyntaxDataProvider";
 import { TextPosition, arrayToMap } from "./utils";
-
-const macroKwMap = arrayToMap([
-  "BQUOTE",
-  "BY",
-  "CMS",
-  "DISPLAY",
-  "DO",
-  "ELSE",
-  "END",
-  "EVAL",
-  "GLOBAL",
-  "GO",
-  "IF",
-  "INC",
-  "INCLUDE",
-  "INDEX",
-  "INPUT",
-  "KEYDEF",
-  "LENGTH",
-  "LET",
-  "LOCAL",
-  "MACRO",
-  "MEND",
-  "NRBQUOTE",
-  "NRQUOTE",
-  "NRSTR",
-  "PUT",
-  "QSCAN",
-  "QSUBSTR",
-  "QSYSFUNC",
-  "QUOTE",
-  "QUPCASE",
-  "SCAN",
-  "STR",
-  "SUBSTR",
-  "SUPERQ",
-  "SYSCALL",
-  "SYSEVALF",
-  "SYSEXEC",
-  "SYSFUNC",
-  "SYSGET",
-  "SYSPROD",
-  "SYSRPUT",
-  "THEN",
-  "TO",
-  "TSO",
-  "UNQUOTE",
-  "UNTIL",
-  "UPCASE",
-  "WHILE",
-  "WINDOW", //from SasKeywordManager.java
-  "DEQUOTE",
-  "SYMEXIST",
-  "SYMGLOBL",
-  "SYMLOCAL",
-  "LOWCASE",
-  "QLOWCASE",
-  "TPLOT",
-  "SYSMACEXEC",
-  "SYSMACEXIST",
-  "SYSMEXECDEPTH",
-  "SYSMEXECNAME",
-  "CMPRES",
-  "QCMPRES",
-  "QCMPRES",
-  "COMPSTOR",
-  "DATATYP",
-  "LEFT",
-  "QLEFT",
-  "SYSRC",
-  "TRIM",
-  "QTRIM",
-  "VERIFY",
-  "DQLOAD",
-  "DQPUTLOC",
-  "DQUNLOAD",
-  "KLOWCASE",
-  "QKLOWCAS",
-  "KTRIM",
-  "QKTRIM",
-  "KVERIFY", // from SASMacroFunctions.xml
-  "ABORT",
-  "COPY" /*"DISPLAY","DO","UNTIL","WHILE","END","GLOBAL",*/,
-  "GOTO" /*"IF","THEN","ELSE","INPUT","LET","LOCAL","MACRO","MEND","PUT",*/,
-  "RETURN",
-  "SYMDEL" /*"SYSCALL","SYSEXEC","WHILE","UNTIL",*/,
-  "SYSLPUT" /*"SYSRPUT","WINDOW","INCLUDE",*/,
-  "LIST",
-  "RUN",
-  "SYSMSTORECLEAR",
-  "SYSMACDELETE",
-]); // from SASMacroStatements.xml
 
 //TODO
 // var unicode = window.ace.require('ace/unicode');
@@ -173,11 +82,21 @@ export class Lexer {
   private quoting = -1;
   private bquoting = -1;
   private ignoreFormat = false;
+  private syntaxDb = new SyntaxDataProvider();
+  private macroKwMap: Record<string, 1> = {};
   private context: {
     lastNoncommentToken?: Token | null;
   } = {};
 
-  constructor(private model: Model) {}
+  constructor(private model: Model) {
+    const macroStmts = this.syntaxDb
+      .getMacroStatements()
+      ?.map((name) => name.slice(1));
+    const macroFuncs = this.syntaxDb
+      .getMacroFunctions()
+      ?.map((name) => name.slice(1));
+    this.macroKwMap = arrayToMap(macroStmts?.concat(macroFuncs ?? []) ?? []);
+  }
 
   static readonly TOKEN_TYPES = {
     SEP: "sep",
@@ -836,7 +755,7 @@ export class Lexer {
     return end;
   }
   isMacroKeyword(word: string): boolean {
-    return macroKwMap[word.toUpperCase()] ? true : false;
+    return this.macroKwMap[word.toUpperCase()] ? true : false;
   }
   getWord(token: Token | undefined): string {
     //token must be related to a word

@@ -5,6 +5,7 @@ import { Model } from "./Model";
 import { SyntaxDataProvider } from "./SyntaxDataProvider";
 import { TextPosition, arrayToMap } from "./utils";
 
+let macroKwMap: Record<string, 1> | undefined = undefined;
 //TODO
 // var unicode = window.ace.require('ace/unicode');
 // wordReg = new RegExp("["
@@ -83,19 +84,20 @@ export class Lexer {
   private bquoting = -1;
   private ignoreFormat = false;
   private syntaxDb = new SyntaxDataProvider();
-  private macroKwMap: Record<string, 1> = {};
   private context: {
     lastNoncommentToken?: Token | null;
   } = {};
 
   constructor(private model: Model) {
-    const macroStmts = this.syntaxDb
-      .getMacroStatements()
-      ?.map((name) => name.slice(1));
-    const macroFuncs = this.syntaxDb
-      .getMacroFunctions()
-      ?.map((name) => name.slice(1));
-    this.macroKwMap = arrayToMap(macroStmts?.concat(macroFuncs ?? []) ?? []);
+    if (!macroKwMap) {
+      const macroStmts = this.syntaxDb
+        .getMacroStatements()
+        ?.map((name) => name.slice(1));
+      const macroFuncs = this.syntaxDb
+        .getMacroFunctions()
+        ?.map((name) => name.slice(1));
+      macroKwMap = arrayToMap(macroStmts?.concat(macroFuncs ?? []) ?? []);
+    }
   }
 
   static readonly TOKEN_TYPES = {
@@ -755,7 +757,7 @@ export class Lexer {
     return end;
   }
   isMacroKeyword(word: string): boolean {
-    return this.macroKwMap[word.toUpperCase()] ? true : false;
+    return macroKwMap?.[word.toUpperCase()] ? true : false;
   }
   getWord(token: Token | undefined): string {
     //token must be related to a word

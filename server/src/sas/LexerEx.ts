@@ -1,7 +1,6 @@
 // Copyright © 2021, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-/* eslint-disable */
 import { arrayToMap, TextPosition } from "./utils";
 import { Lexer, Token } from "./Lexer";
 import { SyntaxDataProvider } from "./SyntaxDataProvider";
@@ -105,7 +104,7 @@ const regComment =
 export class LexerEx {
   lexer: Lexer;
   expr: Expression;
-  langSrv: SyntaxDataProvider;
+  syntaxDb: SyntaxDataProvider;
   SEC_TYPE: any;
   PARSING_STATE: {
     IN_GBL: number;
@@ -150,7 +149,7 @@ export class LexerEx {
   constructor(private model: Model) {
     this.lexer = new Lexer(model);
     this.expr = new Expression(this);
-    this.langSrv = new SyntaxDataProvider();
+    this.syntaxDb = new SyntaxDataProvider();
     this.SEC_TYPE = LexerEx.SEC_TYPE;
     this.PARSING_STATE = {
       IN_GBL: 0,
@@ -823,7 +822,7 @@ export class LexerEx {
       let sectionIdx = this.sections.length;
       let i,
         j = 0;
-      this.tailSections.forEach((section: any) => {
+      this.tailSections.forEach((section) => {
         if (section.specialBlks) {
           i = 0;
           len = section.specialBlks.length;
@@ -1706,7 +1705,7 @@ export class LexerEx {
           const obj = this.handleLongStmtName_("", validName);
           state.name = obj.stmtName;
           this.setKeyword_(token, obj.isKeyword);
-          state.hasSlashOptionDelimiter = this.langSrv.hasOptionDelimiter(
+          state.hasSlashOptionDelimiter = this.syntaxDb.hasOptionDelimiter(
             "",
             obj.stmtName
           );
@@ -1732,26 +1731,26 @@ export class LexerEx {
   OptionCheckers_ = {
     "proc-def": {
       getOptionType: function (this: LexerEx, optName: string) {
-        return this.langSrv.getProcedureOptionType(this.curr.name, optName);
+        return this.syntaxDb.getProcedureOptionType(this.curr.name, optName);
       },
       checkSubOption: function (
         this: LexerEx,
         optName: string,
         subOptName: string
       ) {
-        return this.langSrv.isProcedureSubOptKeyword(
+        return this.syntaxDb.isProcedureSubOptKeyword(
           this.curr.name,
           optName,
           subOptName
         );
       },
       checkOption: function (this: LexerEx, optName: string) {
-        return this.langSrv.isProcedureOptionKeyword(this.curr.name, optName);
+        return this.syntaxDb.isProcedureOptionKeyword(this.curr.name, optName);
       },
     },
     "proc-stmt": {
       getOptionType: function (this: LexerEx, optName: string) {
-        return this.langSrv.getProcedureStatementOptionType(
+        return this.syntaxDb.getProcedureStatementOptionType(
           this.curr.procName,
           this.curr.name,
           optName
@@ -1781,7 +1780,7 @@ export class LexerEx {
           (this.stmtWithDatasetOption_[
             this.curr.procName + "/" + this.curr.name
           ]
-            ? this.langSrv.isDatasetKeyword(subOptName)
+            ? this.syntaxDb.isDatasetKeyword(subOptName)
             : false)
         );
         //e.g. proc sql;    create view proclib.jobs(pw=red) as ....
@@ -1805,15 +1804,15 @@ export class LexerEx {
         optName: string,
         subOptName: string
       ) {
-        return this.langSrv.isDatasetKeyword(subOptName);
+        return this.syntaxDb.isDatasetKeyword(subOptName);
       },
       checkOption: function (this: LexerEx, optName: string) {
-        return this.langSrv.isProcedureOptionKeyword("DATA", optName);
+        return this.syntaxDb.isProcedureOptionKeyword("DATA", optName);
       },
     },
     "data-stmt": {
       getOptionType: function (this: LexerEx, optName: string) {
-        return this.langSrv.getProcedureStatementOptionType(
+        return this.syntaxDb.getProcedureStatementOptionType(
           "DATA",
           this.curr.name,
           optName
@@ -1824,7 +1823,7 @@ export class LexerEx {
         optName: string,
         subOptName: string
       ) {
-        let isKeyword = this.langSrv.isProcedureStatementSubOptKeyword(
+        let isKeyword = this.syntaxDb.isProcedureStatementSubOptKeyword(
           "DATA",
           this.curr.name,
           optName,
@@ -1832,13 +1831,13 @@ export class LexerEx {
         );
         if (!isKeyword) {
           if (this.stmtWithDatasetOption_["DATA/" + this.curr.name]) {
-            isKeyword = this.langSrv.isDatasetKeyword(subOptName);
+            isKeyword = this.syntaxDb.isDatasetKeyword(subOptName);
           }
         }
         return isKeyword;
       },
       checkOption: function (this: LexerEx, optName: string) {
-        return this.langSrv.isProcedureStatementKeyword(
+        return this.syntaxDb.isProcedureStatementKeyword(
           "DATA",
           this.curr.name,
           optName
@@ -1847,26 +1846,26 @@ export class LexerEx {
     },
     "macro-def": {
       getOptionType: function (this: LexerEx, optName: string) {
-        return this.langSrv.getProcedureOptionType("MACRO", optName);
+        return this.syntaxDb.getProcedureOptionType("MACRO", optName);
       },
       checkSubOption: function (
         this: LexerEx,
         optName: string,
         subOptName: string
       ) {
-        return this.langSrv.isProcedureSubOptKeyword(
+        return this.syntaxDb.isProcedureSubOptKeyword(
           "MACRO",
           optName,
           subOptName
         );
       },
       checkOption: function (this: LexerEx, optName: string) {
-        return this.langSrv.isProcedureOptionKeyword("MACRO", optName);
+        return this.syntaxDb.isProcedureOptionKeyword("MACRO", optName);
       },
     },
     "macro-stmt": {
       getOptionType: function (this: LexerEx, optName: string) {
-        return this.langSrv.getProcedureStatementOptionType(
+        return this.syntaxDb.getProcedureStatementOptionType(
           "MACRO",
           this.curr.name,
           optName
@@ -1877,7 +1876,7 @@ export class LexerEx {
         optName: string,
         subOptName: string
       ) {
-        return this.langSrv.isProcedureStatementSubOptKeyword(
+        return this.syntaxDb.isProcedureStatementSubOptKeyword(
           "MACRO",
           this.curr.name,
           optName,
@@ -1885,7 +1884,7 @@ export class LexerEx {
         );
       },
       checkOption: function (this: LexerEx, optName: string) {
-        return this.langSrv.isProcedureStatementKeyword(
+        return this.syntaxDb.isProcedureStatementKeyword(
           "MACRO",
           this.curr.name,
           optName
@@ -1894,7 +1893,7 @@ export class LexerEx {
     },
     "gbl-stmt": {
       getOptionType: function (this: LexerEx, optName: string) {
-        return this.langSrv.getStatementOptionType(
+        return this.syntaxDb.getStatementOptionType(
           this._cleanKeyword(this.curr.name),
           optName
         );
@@ -1904,20 +1903,20 @@ export class LexerEx {
         optName: string,
         subOptName: string
       ) {
-        return this.langSrv.isStatementSubOptKeyword(
+        return this.syntaxDb.isStatementSubOptKeyword(
           this._cleanKeyword(this.curr.name),
           optName,
           subOptName
         );
       },
       checkOption: function (this: LexerEx, optName: string) {
-        const isGlobal = this.langSrv.isStatementKeyword(
+        const isGlobal = this.syntaxDb.isStatementKeyword(
           "global",
           this._cleanKeyword(this.curr.name),
           optName
         );
         if (!isGlobal) {
-          return this.langSrv.isStatementKeyword(
+          return this.syntaxDb.isStatementKeyword(
             "standalone",
             this._cleanKeyword(this.curr.name),
             optName
@@ -1929,7 +1928,7 @@ export class LexerEx {
     "sg-def": {
       // statgraph
       getOptionType: function (this: LexerEx, optName: string) {
-        return this.langSrv.getProcedureStatementOptionType(
+        return this.syntaxDb.getProcedureStatementOptionType(
           "TEMPLATE",
           "BEGINGRAPH",
           optName
@@ -1940,7 +1939,7 @@ export class LexerEx {
         optName: string,
         subOptName: string
       ) {
-        return this.langSrv.isProcedureStatementSubOptKeyword(
+        return this.syntaxDb.isProcedureStatementSubOptKeyword(
           "TEMPLATE",
           "BEGINGRAPH",
           optName,
@@ -1948,7 +1947,7 @@ export class LexerEx {
         );
       },
       checkOption: function (this: LexerEx, optName: string) {
-        return this.langSrv.isProcedureStatementKeyword(
+        return this.syntaxDb.isProcedureStatementKeyword(
           "TEMPLATE",
           "BEGINGRAPH",
           optName
@@ -1957,7 +1956,7 @@ export class LexerEx {
     },
     "sg-stmt": {
       getOptionType: function (this: LexerEx, optName: string) {
-        return this.langSrv.getProcedureStatementOptionType(
+        return this.syntaxDb.getProcedureStatementOptionType(
           "STATGRAPH",
           this.curr.name,
           optName
@@ -1968,7 +1967,7 @@ export class LexerEx {
         optName: string,
         subOptName: string
       ) {
-        return this.langSrv.isProcedureStatementSubOptKeyword(
+        return this.syntaxDb.isProcedureStatementSubOptKeyword(
           "STATGRAPH",
           this.curr.name,
           optName,
@@ -1976,7 +1975,7 @@ export class LexerEx {
         );
       },
       checkOption: function (this: LexerEx, optName: string) {
-        return this.langSrv.isProcedureStatementKeyword(
+        return this.syntaxDb.isProcedureStatementKeyword(
           "STATGRAPH",
           this.curr.name,
           optName
@@ -1986,7 +1985,7 @@ export class LexerEx {
     "dt-def": {
       // dt = define tagset
       getOptionType: function (this: LexerEx, optName: string) {
-        return this.langSrv.getProcedureStatementOptionType(
+        return this.syntaxDb.getProcedureStatementOptionType(
           "TEMPLATE",
           "DEFINE TAGSET",
           optName
@@ -1997,7 +1996,7 @@ export class LexerEx {
         optName: string,
         subOptName: string
       ) {
-        return this.langSrv.isProcedureStatementSubOptKeyword(
+        return this.syntaxDb.isProcedureStatementSubOptKeyword(
           "TEMPLATE",
           this.curr.name,
           optName,
@@ -2005,7 +2004,7 @@ export class LexerEx {
         );
       },
       checkOption: function (this: LexerEx, optName: string) {
-        return this.langSrv.isProcedureStatementKeyword(
+        return this.syntaxDb.isProcedureStatementKeyword(
           "TEMPLATE",
           "DEFINE TAGSET",
           optName
@@ -2014,7 +2013,7 @@ export class LexerEx {
     },
     "dt-stmt": {
       getOptionType: function (this: LexerEx, optName: string) {
-        return this.langSrv.getProcedureStatementOptionType(
+        return this.syntaxDb.getProcedureStatementOptionType(
           "DEFINE_TAGSET",
           this.curr.name,
           optName
@@ -2025,7 +2024,7 @@ export class LexerEx {
         optName: string,
         subOptName: string
       ) {
-        return this.langSrv.isProcedureStatementSubOptKeyword(
+        return this.syntaxDb.isProcedureStatementSubOptKeyword(
           "DEFINE_TAGSET",
           this.curr.name,
           optName,
@@ -2033,7 +2032,7 @@ export class LexerEx {
         );
       },
       checkOption: function (this: LexerEx, optName: string) {
-        return this.langSrv.isProcedureStatementKeyword(
+        return this.syntaxDb.isProcedureStatementKeyword(
           "DEFINE_TAGSET",
           this.curr.name,
           optName
@@ -2043,7 +2042,7 @@ export class LexerEx {
     "de-def": {
       // de = define event
       getOptionType: function (this: LexerEx, optName: string) {
-        return this.langSrv.getProcedureStatementOptionType(
+        return this.syntaxDb.getProcedureStatementOptionType(
           "TEMPLATE",
           "DEFINE EVENT",
           optName
@@ -2054,7 +2053,7 @@ export class LexerEx {
         optName: string,
         subOptName: string
       ) {
-        return this.langSrv.isProcedureStatementSubOptKeyword(
+        return this.syntaxDb.isProcedureStatementSubOptKeyword(
           "TEMPLATE",
           "DEFINE EVENT",
           optName,
@@ -2062,7 +2061,7 @@ export class LexerEx {
         );
       },
       checkOption: function (this: LexerEx, optName: string) {
-        return this.langSrv.isProcedureStatementKeyword(
+        return this.syntaxDb.isProcedureStatementKeyword(
           "TEMPLATE",
           "DEFINE EVENT",
           optName
@@ -2071,7 +2070,7 @@ export class LexerEx {
     },
     "de-stmt": {
       getOptionType: function (this: LexerEx, optName: string) {
-        return this.langSrv.getProcedureStatementOptionType(
+        return this.syntaxDb.getProcedureStatementOptionType(
           "DEFINE_EVENT",
           this.curr.name,
           optName
@@ -2082,7 +2081,7 @@ export class LexerEx {
         optName: string,
         subOptName: string
       ) {
-        return this.langSrv.isProcedureStatementSubOptKeyword(
+        return this.syntaxDb.isProcedureStatementSubOptKeyword(
           "DEFINE_EVENT",
           this.curr.name,
           optName,
@@ -2090,7 +2089,7 @@ export class LexerEx {
         );
       },
       checkOption: function (this: LexerEx, optName: string) {
-        return this.langSrv.isProcedureStatementKeyword(
+        return this.syntaxDb.isProcedureStatementKeyword(
           "DEFINE_EVENT",
           this.curr.name,
           optName
@@ -2128,7 +2127,7 @@ export class LexerEx {
       if (obj.stmtNameLen === 1 && !obj.isKeyword) {
         // try it in general statments
         this.curr.fullName = stmtName;
-        isKeyword = this.langSrv._isStatementKeyword(stmtName, currName);
+        isKeyword = this.syntaxDb._isStatementKeyword(stmtName, currName);
       } else {
         this.curr.fullName = obj.stmtName;
         isKeyword = obj.isKeyword;
@@ -2136,9 +2135,9 @@ export class LexerEx {
     } else {
       if (this.curr.fullName === this.curr.name) {
         // "ODS"
-        isKeyword = this.langSrv._isStatementKeyword(stmtName, currName);
+        isKeyword = this.syntaxDb._isStatementKeyword(stmtName, currName);
       } else {
-        isKeyword = this.langSrv.isProcedureStatementKeyword(
+        isKeyword = this.syntaxDb.isProcedureStatementKeyword(
           procName,
           this.curr.fullName,
           currName
@@ -2174,7 +2173,7 @@ export class LexerEx {
     }
 
     if (name4) {
-      isKeyword = this.langSrv.isProcedureStatementKeyword(procName, name4);
+      isKeyword = this.syntaxDb.isProcedureStatementKeyword(procName, name4);
       if (isKeyword) {
         stmtNameLen = 4;
         fullStmtName = name4;
@@ -2184,7 +2183,7 @@ export class LexerEx {
       }
     }
     if (!isKeyword && name3) {
-      isKeyword = this.langSrv.isProcedureStatementKeyword(procName, name3);
+      isKeyword = this.syntaxDb.isProcedureStatementKeyword(procName, name3);
       if (isKeyword) {
         stmtNameLen = 3;
         fullStmtName = name3;
@@ -2193,7 +2192,7 @@ export class LexerEx {
       }
     }
     if (!isKeyword && name2) {
-      isKeyword = this.langSrv.isProcedureStatementKeyword(procName, name2);
+      isKeyword = this.syntaxDb.isProcedureStatementKeyword(procName, name2);
       if (isKeyword) {
         stmtNameLen = 2;
         fullStmtName = name2;
@@ -2201,7 +2200,7 @@ export class LexerEx {
       }
     }
     if (!isKeyword) {
-      isKeyword = this.langSrv.isProcedureStatementKeyword(procName, name1);
+      isKeyword = this.syntaxDb.isProcedureStatementKeyword(procName, name1);
     }
     return {
       isKeyword: isKeyword,
@@ -2225,7 +2224,7 @@ export class LexerEx {
         context: { procName: any; stmtName: any },
         name: any
       ) {
-        return this.langSrv.isProcedureStatementKeyword(
+        return this.syntaxDb.isProcedureStatementKeyword(
           context.procName,
           context.stmtName,
           name
@@ -2252,7 +2251,7 @@ export class LexerEx {
         context: { procName: any; stmtName: any; optName: any },
         name: any
       ) {
-        return this.langSrv.isProcedureStatementSubOptKeyword(
+        return this.syntaxDb.isProcedureStatementSubOptKeyword(
           context.procName,
           context.stmtName,
           context.optName,
@@ -2348,7 +2347,7 @@ export class LexerEx {
         startPos = 0;
       if (Lexer.isWord[token.type]) {
         const next = this.prefetch_({ pos: 1 }),
-          exprBeg: any = { "=": 1, "(": 1 };
+          exprBeg: Record<string, 1> = { "=": 1, "(": 1 };
         if (next && exprBeg[next.text]) {
           if (next.text === "=") {
             startPos = 1;
@@ -2356,7 +2355,7 @@ export class LexerEx {
           needToHandleExpr = true;
         }
         if (next && next.text === "(") {
-          if (this.langSrv.isSasFunction(token.text)) {
+          if (this.syntaxDb.isSasFunction(token.text)) {
             this.setKeyword_(token, true);
           }
         }
@@ -2371,8 +2370,8 @@ export class LexerEx {
           function (subOptToken: { text: string }, pos: any) {
             const type = optChecker.getOptionType.call(self, token.text) || "";
             let isKeyword;
-            if (self.langSrv.isDataSetType(type)) {
-              isKeyword = self.langSrv.isDatasetKeyword(subOptToken.text);
+            if (self.syntaxDb.isDataSetType(type)) {
+              isKeyword = self.syntaxDb.isDatasetKeyword(subOptToken.text);
             } else {
               isKeyword = optChecker.checkSubOption.call(
                 self,
@@ -2606,7 +2605,7 @@ export class LexerEx {
         };
         this.stack.push(state);
         let next = null,
-          isKeyword = this.langSrv.isProcedureStatementKeyword(
+          isKeyword = this.syntaxDb.isProcedureStatementKeyword(
             "STATGRAPH",
             this._cleanKeyword(token.text)
           );
@@ -2614,7 +2613,7 @@ export class LexerEx {
           next = this.prefetch_({ pos: 1 });
           if (next) {
             const word = token.text + " " + next.text;
-            isKeyword = this.langSrv.isProcedureStatementKeyword(
+            isKeyword = this.syntaxDb.isProcedureStatementKeyword(
               "STATGRAPH",
               word
             );
@@ -2679,14 +2678,14 @@ export class LexerEx {
           };
           this.stack.push(state);
           // keyword checking
-          let isKeyword = this.langSrv.isProcedureStatementKeyword(
+          let isKeyword = this.syntaxDb.isProcedureStatementKeyword(
             "DEFINE_TAGSET",
             this._cleanKeyword(word)
           );
           if (!isKeyword) {
             if (next) {
               word += " " + next.text;
-              isKeyword = this.langSrv.isProcedureStatementKeyword(
+              isKeyword = this.syntaxDb.isProcedureStatementKeyword(
                 "DEFINE_TAGSET",
                 word
               );
@@ -2729,7 +2728,7 @@ export class LexerEx {
         };
         this.stack.push(state);
         let next = null,
-          isKeyword = this.langSrv.isProcedureStatementKeyword(
+          isKeyword = this.syntaxDb.isProcedureStatementKeyword(
             "DEFINE_EVENT",
             this._cleanKeyword(word)
           );
@@ -2737,7 +2736,7 @@ export class LexerEx {
           next = this.prefetch_({ pos: 1 });
           if (next) {
             word += " " + next.text;
-            isKeyword = this.langSrv.isProcedureStatementKeyword(
+            isKeyword = this.syntaxDb.isProcedureStatementKeyword(
               "DEFINE_EVENT",
               word
             );
@@ -2794,7 +2793,7 @@ export class LexerEx {
       } else {
         word = token.text;
         switch (word) {
-          case this.langSrv.isInteractiveProc(procName) ? "QUIT" : "RUN":
+          case this.syntaxDb.isInteractiveProc(procName) ? "QUIT" : "RUN":
           case "QUIT":
             //normal section end
             token.type = Lexer.TOKEN_TYPES.SKEYWORD;
@@ -2938,7 +2937,7 @@ export class LexerEx {
               const obj = this.handleLongStmtName_(procName, validName);
               state.name = obj.stmtName;
               this.setKeyword_(token, obj.isKeyword);
-              state.hasSlashOptionDelimiter = this.langSrv.hasOptionDelimiter(
+              state.hasSlashOptionDelimiter = this.syntaxDb.hasOptionDelimiter(
                 procName,
                 obj.stmtName
               );
@@ -3091,7 +3090,7 @@ export class LexerEx {
               });
               this.setKeyword_(
                 token,
-                this.langSrv.isProcedureStatementKeyword("DATA", word)
+                this.syntaxDb.isProcedureStatementKeyword("DATA", word)
               );
             } else if (token.type === Lexer.TOKEN_TYPES.MREF) {
               this.handleMref_(this.PARSING_STATE.IN_DATA);
@@ -3109,10 +3108,8 @@ export class LexerEx {
                 const obj = this.handleLongStmtName_("DATA", validName);
                 state.name = obj.stmtName;
                 this.setKeyword_(token, obj.isKeyword);
-                state.hasSlashOptionDelimiter = this.langSrv.hasOptionDelimiter(
-                  "DATA",
-                  obj.stmtName
-                );
+                state.hasSlashOptionDelimiter =
+                  this.syntaxDb.hasOptionDelimiter("DATA", obj.stmtName);
               }
             }
         }
@@ -3210,7 +3207,7 @@ export class LexerEx {
             const obj = this.handleLongStmtName_("MACRO", validName);
             state.name = obj.stmtName;
             this.setKeyword_(token, obj.isKeyword);
-            state.hasSlashOptionDelimiter = this.langSrv.hasOptionDelimiter(
+            state.hasSlashOptionDelimiter = this.syntaxDb.hasOptionDelimiter(
               "DATA",
               obj.stmtName
             );
@@ -3298,7 +3295,7 @@ export class LexerEx {
             const obj = this.handleLongStmtName_("", validName);
             state.name = obj.stmtName;
             this.setKeyword_(token, obj.isKeyword);
-            state.hasSlashOptionDelimiter = this.langSrv.hasOptionDelimiter(
+            state.hasSlashOptionDelimiter = this.syntaxDb.hasOptionDelimiter(
               "",
               obj.stmtName
             );
@@ -3514,7 +3511,7 @@ class Expression {
           if (Lexer.isWord[token.type] && text === "(") {
             //TODO: Improve this
             //function call
-            if (parser.langSrv.isSasFunction(token.text)) {
+            if (parser.syntaxDb.isSasFunction(token.text)) {
               parser.setKeyword_(token, true);
             }
           }

@@ -497,7 +497,7 @@ export class CodeZoneManager {
   }
   private _transToken(token: Token) {
     if (token) {
-      const nToken: any = {
+      const nToken: TokenEx = {
         type: token.type,
         line: token.start.line,
         col: token.start.column,

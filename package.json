@@ -104,6 +104,16 @@
         "uiTheme": "hc-black",
         "path": "./themes/sas-highcontrast-color-theme.json"
       }
+    ],
+    "snippets": [
+      {
+        "language": "SAS",
+        "path": "./snippets/proc-snippets.json"
+      },
+      {
+        "language": "SAS",
+        "path": "./snippets/function-snippets.json"
+      }
     ]
   },
   "scripts": {

@@ -484,12 +484,12 @@ export class Lexer {
           }
           break;
         case "\t": /*
-                     this.curr.column++;
-                     return {
-                     type: SasLexer.TOKEN_TYPES.WORD,
-                     start: this.start,
-                     end: this.curr
-                     };*/
+          this.curr.column++;
+          return {
+            type: SasLexer.TOKEN_TYPES.WORD,
+            start: this.start,
+            end: this.curr
+          };*/
         // eslint-disable-next-line no-fallthrough
         case " ": //space
         case "\u00a0":

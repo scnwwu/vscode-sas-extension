@@ -309,8 +309,6 @@ export class CodeZoneManager {
     return null;
   }
   private _getPrev(context: Context): TokenEx | null {
-    //var line = _model.getLine(context.line), lineLen = line.length,
-    //    syntax = _langServ.getSyntax(context.line), syntaxLen = syntax.length,
     let line = "",
       lineLen = 0,
       syntax = [],
@@ -1075,15 +1073,12 @@ export class CodeZoneManager {
       }
     }
 
-    //sas.log.info('zone:'+_getZoneName(type));
-    //sas.log.info('call:'+zone['callName']+',current arg:'+zone['argIdx']);
-
     return { type };
   }
   private _isCall(zone: any) {
     /*if (zone.callName && (zone.type === ZONE_TYPE.OPT_NAME || zone.type === ZONE_TYPE.OPT_VALUE)) {
-            return true;
-        }*/ // S1224156
+          return true;
+      }*/ // S1224156
     return false;
   }
   private _procStmt(context: Context, stmt: TokenWithPos) {
@@ -1310,7 +1305,6 @@ export class CodeZoneManager {
     const ret = this._tryGetOpr(context);
     let token;
     if (ret.token.text === "/") {
-      //
       this._copyContext(ret.context, context); //ignore '/'
     } else if (Lexer.isBinaryOpr[ret.token.text]) {
       //This statement is only a expression.

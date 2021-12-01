@@ -563,10 +563,6 @@ function _tryToLoadProceduresFromPubs<T>(
   });
 }
 
-// Context Prompt
-/*function _loadContextPrompt() {
-        }*/
-
 // Statements
 function _setStatementOptionValueHelp(
   stmtName: string,
@@ -803,7 +799,6 @@ function _setKeyword(
   name: string,
   data: { Help: any; Name: any; Attributes: any }
 ) {
-  //TODO:
   if (db.kwPool[type][name] === undefined) {
     db.kwPool[type][name] = {};
   }
@@ -1009,7 +1004,6 @@ function _setProcedure(
   }
 }
 function _setProcedureHelpFromPubs(procName: string, data: Statement) {
-  // data is json format
   db.procOpts[procName][ID_HELP] = data.description;
   db.procOpts[procName][ID_SYNTAX] = data.help;
 }
@@ -2145,49 +2139,7 @@ export class SyntaxDataProvider {
   getFilenameOrLibnameOptions() {
     //TODO:
   }
-  /*
-   * How to use parameter 'type'?
-   * The caller may use 'type' parameter or not, if to set this parameter, please use the following values :
-   *      automatic_variable
-   *      c  //not used
-   *      call_routine
-   *      datapassword_option_v
-   *      dataset_option_cv
-   *      dataset_option_v
-   *      datasetindex_option_s
-   *      datastep_definition
-   *      datastep_option
-   *      datastep_option_v
-   *      datastep_or_proc_statement
-   *      datastep_statement
-   *      dataviewpgm_option_s
-   *      gbl-stmt //global_statement
-   *      gbl-proc-stmt //added
-   *      hash_package
-   *      hashiterator_package
-   *      hashorhiter_package
-   *      macro_arm
-   *      macro_autocall
-   *      macro_definition_option
-   *      macro_function
-   *      macrodefonly
-   *      opencode
-   *      opencode_or_macrodef
-   *      package_method
-   *      s  //not used
-   *      s|v  //not used
-   *      sas_formats
-   *      sas_function
-   *      sas_informat
-   *      sas_procedure
-   *      setkey_option_s
-   *      setstatement_option_v
-   *      special_saskeyword
-   *      table_option
-   *      v //not used
-   *      validanywhere
-   *
-   */
+
   // access Statements/*.xml, mainly global statements or global procedure statements
   getStatementOptions(
     context: string,

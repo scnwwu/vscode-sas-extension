@@ -30,7 +30,6 @@ export class SyntaxProvider {
   private currTokenIndex = 0;
   private parsedRange: any = {};
   private tailUnchangedSyntaxTable: SyntaxToken[][] = [];
-  //private timer = null;
   private removedSyntaxTable: SyntaxToken[][] = [];
   private _tokenCallback: ((token: Token) => void) | undefined;
 
@@ -51,7 +50,7 @@ export class SyntaxProvider {
     this.lastToken = null;
     this.parsingState = 1; //LanguageService.ParsingState.STARTING;
     this.parsedRange = this.lexer.start(change);
-    // jQuery(self).triggerHandler({type: "parsingStateEvent", state: parsingState, change: change, parsedRange: parsedRange});
+
     startLine = this.parsedRange.endLine + 1;
     this.tailUnchangedSyntaxTable = this.syntaxTable.splice(
       startLine,
@@ -63,20 +62,20 @@ export class SyntaxProvider {
     );
 
     /*
-               (1) ^ removed
-               -----^^^^^     //keep the head part
-               ^^^^^^^^^^
-               ^^^-------   //keep the tail part
-               (2)
-               ---^^^^---    //keep the tail part and the head part
-               (3)
-               ----|-----   //no removed. keep the head part and tail part
-               (4)
-               --------
-               ~~~~~~~~  // parsed
-               ~~~~~~~~
-               --------
-               */
+      (1) ^ removed
+      -----^^^^^     //keep the head part
+      ^^^^^^^^^^
+      ^^^-------   //keep the tail part
+      (2)
+      ---^^^^---    //keep the tail part and the head part
+      (3)
+      ----|-----   //no removed. keep the head part and tail part
+      (4)
+      --------
+      ~~~~~~~~  // parsed
+      ~~~~~~~~
+      --------
+      */
     const syntaxLine: SyntaxToken[] = [];
     let i = 0;
     const tmpSyntaxLine = this.removedSyntaxTable[0];
@@ -125,7 +124,6 @@ export class SyntaxProvider {
   private _endParse(change: Change) {
     this.parsingState = 2; //LanguageService.ParsingState.ENDED;
 
-    // jQuery(self).triggerHandler({type: "parsingStateEvent", state:parsingState, change: change});
     this._schedule();
   }
   private _schedule() {
@@ -139,8 +137,7 @@ export class SyntaxProvider {
     }
   }
   private _parse(change: Change) {
-    let //time = new Date().getTime() + 100,
-      token = null;
+    let token = null;
     try {
       for (;;) {
         token = this.lexer.getNext();
@@ -149,10 +146,6 @@ export class SyntaxProvider {
           this._endParse(change);
           break;
         }
-        // if (new Date().getTime() > time) {
-        //   timer = setTimeout(_parse.bind(self), 0, change);
-        //   break;
-        // }
       }
     } catch (e: any) {
       if (e && e.changedLineCount !== undefined) {
@@ -193,14 +186,14 @@ export class SyntaxProvider {
             this.syntaxTable[line] = this.syntaxTable[line].concat(tailPart);
           }
         } /*else if (parsedRange.startLine === parsedRange.endLine) {
-                                 tailPart = removedSyntaxTable[0];
-                                 tailPart.forEach(function(item) {
-                                 item.start += e.changedColCount;
-                                 });
-                                 if (syntaxTable[parsedRange.startLine]) {//FIXID S1159519
-                                 syntaxTable[parsedRange.startLine] = syntaxTable[parsedRange.startLine].concat(tailPart);
-                                 }
-                                 }*/
+          tailPart = removedSyntaxTable[0];
+          tailPart.forEach(function(item) {
+            item.start += e.changedColCount;
+          });
+          if (syntaxTable[parsedRange.startLine]) {//FIXID S1159519
+           syntaxTable[parsedRange.startLine] = syntaxTable[parsedRange.startLine].concat(tailPart);
+          }
+        }*/
 
         // merge syntax table
         //_addEndMarkForSkippedLines(token, e.token.start.line);
@@ -349,11 +342,7 @@ export class SyntaxProvider {
       end: { line: token.end.line, column: token.end.column },
     }; // jpnjfk
 
-    /*if (self.tokens) {    // The property "tokens" is added by only SASCodeChecker.// jpnjfk
-                        self.tokens.push({text: lexer.lexer.getWord(token), type: token.type,    // jpnjfk
-                            start: {line: token.start.line, column: token.start.column},             // jpnjfk
-                            end: {line: token.end.line, column: token.end.column}});                 // jpnjfk
-                    }*/ if (this._tokenCallback) {
+    if (this._tokenCallback) {
       this._tokenCallback({
         text: this.model.getText(token),
         type: token.type,
@@ -403,11 +392,5 @@ export class SyntaxProvider {
   }
   setTokenCallback(cb: ((token: Token) => void) | undefined): void {
     this._tokenCallback = cb;
-  }
-  destroy(): void {
-    // if (this.timer) {
-    //   clearTimeout(this.timer);
-    //   this.timer = null;
-    // }
   }
 }

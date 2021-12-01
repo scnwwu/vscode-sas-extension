@@ -209,8 +209,8 @@ export class LexerEx {
 
     if (this._isBefore(pos, this._startPos(block))) {
       /*
-                 |[] <-
-                 */
+        |[] <-
+      */
       do {
         i--;
         block = blocks[i];
@@ -219,8 +219,8 @@ export class LexerEx {
       return ++i;
     } else {
       /*
-                 []| ->
-                 */
+        []| ->
+      */
       do {
         i++;
         block = blocks[i];
@@ -290,9 +290,7 @@ export class LexerEx {
     function _removeDataLines(text: string) {
       let start, cards, end, len;
       const parts = [];
-      //if (sap.ui.Device.browser.msie) {
-      //    CollectGarbage();
-      //}
+
       done = true;
       for (;;) {
         start = regExp.start.exec(text); //find start statement
@@ -661,7 +659,7 @@ export class LexerEx {
         }
         this.push_(block);
       }
-      //sas.log.info('block('+currSection.startLine + ',' + currSection.endLine + ')');
+
       this.currSection.startLine = -1;
     }
   }
@@ -775,7 +773,7 @@ export class LexerEx {
           }
         }
       }
-    } //sas.log.info('BlockRange:'+first+'-'+second);
+    }
     return 0;
   }
   private resetFoldingBlockCache_() {
@@ -1145,7 +1143,6 @@ export class LexerEx {
       }
     }
 
-    //sas.log.info("parseRange:("+range.startLine+","+range.startCol+")-("+range.endLine+","+range.endCol+");blocks:["+range.removedBlocks.start+"-"+range.removedBlocks.end+"]");
     return range;
   }
   private trimRange_(range: { endLine: number; endCol: number }) {
@@ -1464,36 +1461,36 @@ export class LexerEx {
     }
   }
   /*this.tryToAddStmtBlock_ = function(token) {
-            if (!token) {
-                if (!isStmtStart) {
-                    this.endStmtBlock_();
-                }
-                return;
-            }
-            if (isStmtStart) {
-                currStmt.startLine = token.start.line;
-                currStmt.startCol = token.start.column;
-                isStmtStart = false;
-            }
-            //TODO: Not always do this
-            currStmt.endLine = token.end.line;
-            currStmt.endCol = token.end.column;
-            if (this.isTokenWithScopeMarks[token.type]) {
-                if (!currStmt.specialBlks) {
-                    currStmt.specialBlks = [];
-                }
-                currStmt.specialBlks.push(token);
-            }
-
-            if (token.text ===";") {
+        if (!token) {
+            if (!isStmtStart) {
                 this.endStmtBlock_();
             }
-        };
-        this.endStmtBlock_ = function() {
-            isStmtStart = true;
-            stmts.push(new StmtBlock(currStmt));
-            currStmt.endLine = -1;
-        };*/
+            return;
+        }
+        if (isStmtStart) {
+            currStmt.startLine = token.start.line;
+            currStmt.startCol = token.start.column;
+            isStmtStart = false;
+        }
+        //TODO: Not always do this
+        currStmt.endLine = token.end.line;
+        currStmt.endCol = token.end.column;
+        if (this.isTokenWithScopeMarks[token.type]) {
+            if (!currStmt.specialBlks) {
+                currStmt.specialBlks = [];
+            }
+            currStmt.specialBlks.push(token);
+        }
+
+        if (token.text ===";") {
+            this.endStmtBlock_();
+        }
+    };
+    this.endStmtBlock_ = function() {
+        isStmtStart = true;
+        stmts.push(new StmtBlock(currStmt));
+        currStmt.endLine = -1;
+    };*/
 
   /*
    * public method definitions

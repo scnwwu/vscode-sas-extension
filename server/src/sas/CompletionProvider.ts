@@ -127,14 +127,6 @@ function _cleanUpODSStmtName(name: string) {
   return name === "" ? "ODS" : "ODS " + name;
 }
 
-function _cleanUpStmtOpts(data: string[]) {
-  // var stmtName = czMgr.getStmtName();
-  // if (stmtName === "LIBNAME") {
-  //   data = _distinctList(data);
-  // }
-  return data;
-}
-
 function _cleanUpKeyword(keyword: string) {
   if (keyword === undefined) {
     //TODO: this check will be removed in the future.
@@ -301,13 +293,6 @@ export class CompletionProvider {
   }
 
   private _loadAutoCompleteItems(zone: number, cb: (data?: string[]) => void) {
-    // var cb = (function (prf) {
-    //     return function () {
-    //       if (prf === prefix) {
-    //         _onLoadCompleted.apply(this, arguments);
-    //       }
-    //     };
-    //   })(prefix),
     let stmtName = _cleanUpKeyword(this.czMgr.getStmtName());
     const optName = _cleanUpKeyword(this.czMgr.getOptionName()),
       procName = _cleanUpKeyword(this.czMgr.getProcName());
@@ -352,9 +337,7 @@ export class CompletionProvider {
         this.loader.getProcedureStatementOptions(
           procName,
           stmtName,
-          function (data) {
-            cb(_cleanUpStmtOpts(data));
-          },
+          cb,
           zone === ZONE_TYPE.PROC_STMT_OPT_REQ
         );
         break;
@@ -451,7 +434,7 @@ export class CompletionProvider {
           if (!data) {
             this.loader.getProcedureStatementOptions("DATA", stmtName, cb);
           } else {
-            cb(_cleanUpStmtOpts(data));
+            cb(data);
           }
         });
         //}
@@ -523,15 +506,9 @@ export class CompletionProvider {
       case ZONE_TYPE.GBL_STMT_OPT:
         this.loader.getStatementOptions("global", stmtName, (data) => {
           if (!data) {
-            this.loader.getStatementOptions(
-              "standalone",
-              stmtName,
-              function (data) {
-                cb(_cleanUpStmtOpts(data));
-              }
-            );
+            this.loader.getStatementOptions("standalone", stmtName, cb);
           } else {
-            cb(_cleanUpStmtOpts(data));
+            cb(data);
           }
         });
         break;
@@ -898,10 +875,6 @@ export class CompletionProvider {
         break;
       case ZONE_TYPE.ODS_STMT:
         keyword = _cleanUpODSStmtName(keyword);
-        /*if (keyword === 'ODS MARKUP') {
-                        preparingHelper = name; //TODO: this is not very good!
-                    }
-                    help = this.loader.getProcedureStatementHelp('ODS', keyword, cb);*/
         help = this.loader.getKeywordHelp(keyword, cb, "gbl-proc-stmt");
         break;
       case ZONE_TYPE.ODS_STMT_OPT:
@@ -1243,7 +1216,7 @@ export class CompletionProvider {
       contextText = "\n\n";
     } else {
       contextText =
-        "**" +
+        "\\\n**" +
         getText("ce_ac_context_txt") +
         " [" +
         contextText +
@@ -1258,7 +1231,7 @@ export class CompletionProvider {
     }
     if (content.alias && content.alias.length) {
       alias =
-        getText("ce_ac_alias_txt") + " " + content.alias.join(", ") + "\\\n";
+        "\\\n" + getText("ce_ac_alias_txt") + " " + content.alias.join(", ");
     }
     help = "&lt;no help>";
     if (content.data) {
@@ -1284,13 +1257,7 @@ export class CompletionProvider {
       }
     }
     return (
-      getText("ce_ac_keyword_txt") +
-      "  " +
-      keyword +
-      "\\\n" +
-      alias +
-      contextText +
-      help
+      getText("ce_ac_keyword_txt") + "  " + keyword + alias + contextText + help
       // "\n<br />" +
       // getText("ce_ac_search_txt") +
       // "   " +
@@ -1431,16 +1398,16 @@ export class CompletionProvider {
     }
     return macroVarList;
     /*var re = textarea.value.match(/%let\s+\w+(?=\s*=)/mgi);
-        if (re) {
-            re.forEach(function(item) {
-                macroVarList.push(item.match(/%let\s+(\w+)/mi)[1]);
-            });
-        }
-        re = textarea.value.match(/call\s+symput\s*\(\s*('\w+'|"\w+")(?=\s*,)/mgi);
-        if (re) {
-            re.forEach(function(item) {
-                macroVarList.push(item.match(/call\s+symput\s*\(\s*['"](\w+)['"]/mi)[1]);
-            });
-        }*/
+      if (re) {
+          re.forEach(function(item) {
+              macroVarList.push(item.match(/%let\s+(\w+)/mi)[1]);
+          });
+      }
+      re = textarea.value.match(/call\s+symput\s*\(\s*('\w+'|"\w+")(?=\s*,)/mgi);
+      if (re) {
+          re.forEach(function(item) {
+              macroVarList.push(item.match(/call\s+symput\s*\(\s*['"](\w+)['"]/mi)[1]);
+          });
+      }*/
   }
 }

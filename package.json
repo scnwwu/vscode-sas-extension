@@ -62,19 +62,30 @@
       {
         "command": "SAS.session.close",
         "title": "%commands.SAS.session.close%",
+        "icon": {
+          "light": "icons/light/disconnect.svg",
+          "dark": "icons/dark/disconnect.svg"
+        },
         "category": "SAS Session"
       }
     ],
     "menus": {
       "editor/title/run": [
         {
-          "when": "editorLangId == SAS && !isWeb",
+          "when": "editorFocus && editorLangId == SAS && !isWeb",
           "command": "SAS.session.run"
+        }
+      ],
+      "editor/title": [
+        {
+          "when": "editorLangId == SAS && !isWeb",
+          "command": "SAS.session.close",
+          "group": "navigation"
         }
       ],
       "commandPalette": [
         {
-          "when": "editorLangId == SAS && !isWeb",
+          "when": "editorFocus && editorLangId == SAS && !isWeb",
           "command": "SAS.session.run"
         }
       ]

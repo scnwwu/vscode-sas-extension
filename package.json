@@ -17,6 +17,12 @@
   ],
   "main": "./client/dist/node/extension",
   "browser": "./client/dist/browser/extension",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": true
+  },
   "contributes": {
     "configuration": {
       "title": "SAS",

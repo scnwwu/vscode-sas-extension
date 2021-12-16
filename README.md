@@ -11,7 +11,6 @@ Welcome to the SAS extension for Visual Studio Code! This extension provides sup
 - The ability to run SAS code
 
 
-
 ## Features
 
 ### SAS Syntax Highlighting
@@ -117,9 +116,9 @@ Note:
 - To reset your connection to the SAS Viya server, enter Close current session in a SAS program tab and submit the code.
 
 
-### Contributing to the SAS Extension
+## Contributing to the SAS Extension
 We welcome your contributions! Please read CONTRIBUTING.md for details on how to submit contributions to this project.
 
-### License
+## License
 
 This project is licensed under ...

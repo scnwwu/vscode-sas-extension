@@ -41,7 +41,7 @@ You can choose from among different color themes that control the color of the a
 
 To specify the color theme:
 
-- Select File > Preferences > Color Theme and select the theme that you want to use.  The SAS Extension includes three color themes:  SAS Illuminate, SAS Ignite, and SAS High Contrast.
+- Select `File > Preferences > Color Theme` and select the theme that you want to use.  The SAS Extension includes three color themes:  SAS Illuminate, SAS Ignite, and SAS High Contrast.
 
 Provides 3 color themes that control the coloring for the SAS syntax elements. To choose a color theme, select one of them from `Manage > Color Theme`
 
@@ -70,9 +70,9 @@ The syntax help can get you started with a hint about the syntax or a brief desc
 To view the syntax help:
 - Move the mouse pointer over a valid SAS keyword in the code. 
 
-In the following example, the help panel displays syntax help for the DATA= option in the PROC PRINT statement. 
-_Tip_: Click the links in the syntax help window to navigate to the SAS online help. 
+In the following example, the help panel displays syntax help for the DATA= option in the PROC PRINT statement.
 
+_Tip_: Click the links in the syntax help window to navigate to the SAS online help. 
 <img src="doc/images/CodeCompletion.PNG"/>
 
 ### Snippets
@@ -85,37 +85,41 @@ To access the list of snippets for a function or procedure:
 
 ### Code folding and outline
 
-Provides code folding and outline for data steps, procedures, macro sections and user-defined regions.
-
+Regions of code are identified in your SAS program as blocks of code that can be collapsed and expanded. You can also view an outline of your program that identifies DATA steps, procedures, macro sections, and user-defined regions of code. 
+_Tip_: You can define a custom region by adding /*region*/ and /*endregion*/ tags to the start and end of the block of code.
 <img src="doc/images/Folding.PNG"/>
 
-_Tip_: Define custom region with `/*region*/` and `/*endregion*/`
+
+### Configuring the SAS Extension 
+Before you can run SAS code, you must configure the SAS Extension to access a SAS Viya 4 server. You must license SAS Viya 4 to run SAS code.
+
+To configure the SAS Extension:
+
+1. Open the Settings editor for the SAS Extension by selecting `File > Preferences > Settings`. Expand the Extensions folder and select SAS. Specify your client ID, client secret, SAS Viya server URL and username.  For information about your client ID and client secret, contact your SAS administrator. For more information, see Register a New Client ID.  Alternatively the access token can be stored in a file. Set the path to the token file in the settings, the extension will use it.
+
+2. If you do not want to generate results in HTML format, clear the Get ODS HTML5 Output option. This option is selected by default.
+
 
 ### Run SAS code
 
-Submit SAS code to Viya server. (A licensed Viya 4 system is needed to run SAS Code.)
+After you configure the SAS Extension, you can run your SAS program and view the log and results. 
 
-- Before running SAS code, go to `Settings > Extensions > SAS` to configure the Viya server, client ID/Secret and User name. Currently, only Viya 4 servers are supported.
-
-  - Please contact your SAS administrator for the Client ID and Client Secret. [Register a New Client ID](https://go.documentation.sas.com/doc/en/sasadmincdc/v_019/calauthmdl/p1gq6q7zzt52win1jwhc2b5kuc1z.htm#n0brttsp1nuzzkn1njvr535txk86).
-  - Alternatively the access token can be stored in a file. Set the path to the token file in the settings, the extension will use it.
-
-- Click the Run<img src="icons/light/submitSASCode.svg"/> icon on the top right on a SAS file.
-- Enter password when prompted.
-- The SAS log and HTML output will be displayed if there is any.
+To run a SAS program:
+1.	Click Run<img src="icons/light/submitSASCode.svg"/> in the upper right corner of your SAS program window. 
+2.	When you are prompted, enter your password. Your SAS log and any results are displayed in the application.
 
 <img src="doc/images/RunResult.PNG"/>
 
-- Notes
-  - A session will be created the first time when running SAS code, which may take 10-60 seconds based on the server connections.
-  - Currently only HTML output is supported. By default it will wrap `ods html5` to the code submitted. Can disable it by unchecking `Get ODS HTML5 output` in the settings.
-  - The code in the "current" editor will be submitted. Please make sure to focus on the code tab before clicking the `Run` button.
-  - User can run `Close current session` command to reset the connections if anything goes wrong.
+Note:
+- A new session must be created the first time you run SAS code, which can take 10 – 60 seconds, depending on the server connection.
+- Currently, only HTML output is supported. By default, the ODS HTML5 statement is added to the code that you are submitting. You can clear the Get ODS HTML5 Output option in the Settings editor for the SAS Extension to disable this output.
+- When you click  , the code in the active tab in the editor is submitted. Make sure that the correct tab is active when you run your program.
+- To reset your connection to the SAS Viya server, enter Close current session in a SAS program tab and submit the code.
 
-## Contributing
 
-We welcome your contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to submit contributions to this project.
+### Contributing to the SAS Extension
+We welcome your contributions! Please read CONTRIBUTING.md for details on how to submit contributions to this project.
 
-## License
+### License
 
-This project is licensed under the [Apache 2.0 License](LICENSE).
+This project is licensed under ...

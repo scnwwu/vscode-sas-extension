@@ -92,7 +92,7 @@ Before you can run SAS code, you must configure the SAS Extension to access a SA
 
 To configure the SAS Extension:
 
-1. Open the Settings editor for the SAS Extension by selecting `File > Preferences > Settings`. Expand the Extensions folder and select SAS. Specify your client ID, client secret, SAS Viya server URL and username.  For information about your client ID and client secret, contact your SAS administrator. For more information, see Register a New Client ID.  Alternatively the access token can be stored in a file. Set the path to the token file in the settings, the extension will use it.
+1. Open the Settings editor for the SAS Extension by selecting `File > Preferences > Settings`. Expand the Extensions folder and select SAS. Specify your client ID, client secret, SAS Viya server URL and username.  For information about your client ID and client secret, contact your SAS administrator.  _Tip_:  You can also specify the full path for a token file to authenticate with your SAS Viya 4 server.
 
 2. If you do not want to generate results in HTML format, clear the Get ODS HTML5 Output option. This option is selected by default.
 
@@ -111,7 +111,7 @@ To run a SAS program:
 - A new session must be created the first time you run SAS code, which can take 10 – 60 seconds, depending on the server connection.
 - Currently, only HTML output is supported. By default, the ODS HTML5 statement is added to the code that you are submitting. You can clear the Get ODS HTML5 Output option in the Settings editor for the SAS Extension to disable this output.
 - When you click Run<img src="icons/light/submitSASCode.svg"/>, the code in the active tab in the editor is submitted. Make sure that the correct tab is active when you run your program.
-- To reset your connection to the SAS Viya server, enter Close current session in a SAS program tab and submit the code.
+- To reset your connection to the SAS Viya server, enter `Close current session` in a SAS program tab and submit the code.
 
 
 ## Contributing to the SAS Extension
@@ -119,4 +119,4 @@ We welcome your contributions! Please read [CONTRIBUTING.md](/CONTRIBUTING.md) f
 
 ## License
 
-This project is licensed under ...
+This project is under MIT License.

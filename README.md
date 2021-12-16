@@ -43,7 +43,6 @@ To specify the color theme:
 
 - Select `File > Preferences > Color Theme` and select the theme that you want to use.  The SAS Extension includes three color themes:  SAS Illuminate, SAS Ignite, and SAS High Contrast.
 
-Provides 3 color themes that control the coloring for the SAS syntax elements. To choose a color theme, select one of them from `Manage > Color Theme`
 
 - SAS Illuminate (light theme)
 
@@ -86,6 +85,7 @@ To access the list of snippets for a function or procedure:
 ### Code folding and outline
 
 Regions of code are identified in your SAS program as blocks of code that can be collapsed and expanded. You can also view an outline of your program that identifies DATA steps, procedures, macro sections, and user-defined regions of code. 
+
 _Tip_: You can define a custom region by adding `/*region*/` and `/*endregion*/` tags to the start and end of the block of code.
 <img src="doc/images/Folding.PNG"/>
 

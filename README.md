@@ -115,7 +115,7 @@ To run a SAS program:
 
 
 ## Contributing to the SAS Extension
-We welcome your contributions! Please read CONTRIBUTING.md for details on how to submit contributions to this project.
+We welcome your contributions! Please read [CONTRIBUTING.md](/CONTRIBUTING.md) for details on how to submit contributions to this project.
 
 ## License
 

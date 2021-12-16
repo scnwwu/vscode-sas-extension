@@ -1,14 +1,15 @@
 # SAS Extension for Visual Studio Code
 
 Welcome to the SAS extension for Visual Studio Code! This extension provides support for the [SAS language](https://go.documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/lrcon/titlepage.htm), including the following features:
-•	SAS Syntax highlighting
-•	Color themes
-•	Code completion
-•	Pop-up syntax help
-•	Snippets
-•	Code folding 
-•	Code outline
-•	The ability to run SAS code
+- SAS Syntax highlighting
+- Color themes
+- Code completion
+- Pop-up syntax help
+- Snippets
+- Code folding 
+- Code outline
+- The ability to run SAS code
+
 
 
 ## Features
@@ -16,23 +17,23 @@ Welcome to the SAS extension for Visual Studio Code! This extension provides sup
 ### SAS Syntax Highlighting
 
 The SAS Extension highlights these syntax elements in your program:
-•	Global statements 
-•	SAS procedures 
-•	SAS procedure statements 
-•	Data step definition 
-•	Data step statements 
-•	SAS data sets 
-•	Macro definition 
-•	Macro statements 
-•	Functions 
-•	CALL routines 
-•	Formats and informats 
-•	Macro variables 
-•	SAS colors 
-•	Style elements and style attributes 
-•	Comment 
-•	Various constants 
-•	Options, enumerated option values, sub-options and sub-option values for various procedure definitions and statements
+- Global statements 
+- SAS procedures 
+- SAS procedure statements 
+- Data step definition 
+- Data step statements 
+- SAS data sets 
+- Macro definition 
+- Macro statements 
+- Functions 
+- CALL routines 
+- Formats and informats 
+- Macro variables 
+- SAS colors 
+- Style elements and style attributes 
+- Comment 
+- Various constants 
+- Options, enumerated option values, sub-options and sub-option values for various procedure definitions and statements
 
 
 ### Theme

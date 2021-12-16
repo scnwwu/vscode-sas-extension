@@ -1,15 +1,13 @@
 # SAS Extension for Visual Studio Code
-
 Welcome to the SAS extension for Visual Studio Code! This extension provides support for the [SAS language](https://go.documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/lrcon/titlepage.htm), including the following features:
-- SAS Syntax highlighting
-- Color themes
-- Code completion
-- Pop-up syntax help
-- Snippets
-- Code folding 
-- Code outline
-- The ability to run SAS code
-
+- [SAS Syntax Highlighting](#sas-syntax-highlighting)
+- [Color Themes](#color-themes)
+- [Code completion](#code-completion)
+- [Pop-up Syntax Help](#pop-up-syntax-help)
+- [Snippets](#snippets)
+- [Code folding and outline](#code-folding-and-outline)
+- [Configuring the SAS Extension](#configuring-the-sas-extension)
+- [Run SAS code](#run-sas-code)
 
 ## Features
 

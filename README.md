@@ -36,7 +36,12 @@ The SAS Extension highlights these syntax elements in your program:
 - Options, enumerated option values, sub-options and sub-option values for various procedure definitions and statements
 
 
-### Theme
+### Color Themes
+You can choose from among different color themes that control the color of the application and syntax elements.
+
+To specify the color theme:
+
+- Select File > Preferences > Color Theme and select the theme that you want to use.  The SAS Extension includes three color themes:  SAS Illuminate, SAS Ignite, and SAS High Contrast.
 
 Provides 3 color themes that control the coloring for the SAS syntax elements. To choose a color theme, select one of them from `Manage > Color Theme`
 
@@ -52,26 +57,30 @@ Provides 3 color themes that control the coloring for the SAS syntax elements. T
 
 <img src="doc/images/HighContrast.PNG"/>
 
-### Code completion and hover help
+### Code completion
 
-Provides code completion and mouse hover help for SAS keywords. The extension can display brief SAS syntax documents when editing SAS code. The help can be displayed in any of the following ways:
+The SAS Extension includes automatic code completion and pop-up syntax help for SAS keywords.  The autocomplete, or code completion, feature in the code editor can predict the next word that you want to enter in your SAS program before you actually enter it completely.
+ 
+To use the autocomplete feature: 
+- Start to type a valid SAS keyboard. Scroll through the pop-up list of suggested keywords by using your mouse or the up and down arrow keys.  
 
-- Move the mouse cursor over a valid SAS keyword in the code.
-- Start to type a valid SAS keyboard, and navigate the focus via the up/down arrows to a keyword in the autocompletion popup list.
+### Pop-up Syntax Help
+The syntax help can get you started with a hint about the syntax or a brief description of the keyword. You can get additional help by clicking the links in the syntax help window.
 
-Syntax help will display a brief description of a keyword. Additional help can be obtained by clicking the links in the syntax help.
+To view the syntax help:
+- Move the mouse pointer over a valid SAS keyword in the code. 
 
-In the following example, the panel displays help for the data option in the PROC Print procedure.
-_Tip_: Click the link on the help panel to navigate to the SAS online help.
+In the following example, the help panel displays syntax help for the DATA= option in the PROC PRINT statement. 
+_Tip_: Click the links in the syntax help window to navigate to the SAS online help. 
 
 <img src="doc/images/CodeCompletion.PNG"/>
 
 ### Snippets
 
-A snippet is a one or more defined words that are recognized by the extension and then replaced with a block of text. The extension defines a large number of built in snippets for SAS functions and procedures to help users quickly input SAS code blocks.
+Snippets are lines of commonly used code or text that you can insert into your program. The SAS Extension includes a large number of snippets for SAS functions and procedures to help you write SAS programs more quickly. 
 
-The extension defines a large number of snippets for SAS functions and procedures to help users input SAS code blocks. Type the name of a function or procedure directly to show them. The first line in the following screenshot is a snippet.
-
+To access the list of snippets for a function or procedure:
+- Type the name of a function or procedure in your SAS program.  This example shows a snippet for the PROC ACCESS statement. 
 <img src="doc/images/Snippets.PNG"/>
 
 ### Code folding and outline

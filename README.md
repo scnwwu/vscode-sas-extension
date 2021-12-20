@@ -8,6 +8,8 @@ Welcome to the SAS extension for Visual Studio Code! This extension provides sup
 - [Code folding and outline](#code-folding-and-outline)
 - [Configuring the SAS Extension](#configuring-the-sas-extension)
 - [Run SAS code](#run-sas-code)
+## Installation
+To install SAS extension, bring up the Extensions view by clicking on the Extensions icon in the Activity Bar on the side of VS Code, find the SAS extension and click the Install button. Once the installation is complete, the Install button will change to the Manage gear button.
 
 ## Features
 

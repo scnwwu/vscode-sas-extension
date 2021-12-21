@@ -40,7 +40,7 @@ You can choose from among different color themes that control the color of the a
 
 To specify the color theme:
 
-- Select `File > Preferences > Color Theme` and select the theme that you want to use.  The SAS Extension includes three color themes:  SAS Illuminate, SAS Ignite, and SAS High Contrast.
+- Select `File > Preferences > Color Theme` and select the theme that you want to use. The SAS Extension includes three color themes:  SAS Illuminate, SAS Ignite, and SAS High Contrast.
 
 
 - SAS Illuminate (light theme)
@@ -110,10 +110,10 @@ To run a SAS program:
 <img src="doc/images/RunResult.PNG"/>
 
 **Note**:
-- A new session must be created the first time you run SAS code, which can take 10 – 60 seconds, depending on the server connection.
+- A new session must be created the first time you run SAS code, which can take 10 - 60 seconds, depending on the server connection.
 - Currently, only HTML output is supported. By default, the ODS HTML5 statement is added to the code that you are submitting. You can clear the Get ODS HTML5 Output option in the Settings editor for the SAS Extension to disable this output.
 - When you click Run<img src="icons/light/submitSASCode.svg"/>, the code in the active tab in the editor is submitted. Make sure that the correct tab is active when you run your program.
-- To reset your connection to the SAS Viya server, run the `Close current session` command in VS code or click the `Close current session`button next to the Run button.
+- To reset your connection to the SAS Viya server, run the `Close current session` command in VS code or click the `Close current session` button next to the Run button.
 
 
 ## Contributing to the SAS Extension
@@ -121,4 +121,4 @@ We welcome your contributions! Please read [CONTRIBUTING.md](/CONTRIBUTING.md) f
 
 ## License
 
-This project is under Apache 2.0 license.
+This project is licensed under the [Apache 2.0 License](LICENSE).

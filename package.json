@@ -4,7 +4,8 @@
   "description": "A SAS language server for VSCode",
   "version": "0.0.1",
   "categories": [
-    "Programming Languages"
+    "Programming Languages",
+    "Data Science"
   ],
   "publisher": "sas",
   "license": "Apache-2.0",

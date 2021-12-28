@@ -13,7 +13,7 @@
     "vscode": "^1.52.0"
   },
   "activationEvents": [
-    "onLanguage:SAS"
+    "onLanguage:sas"
   ],
   "main": "./client/dist/node/extension",
   "browser": "./client/dist/browser/extension",
@@ -78,27 +78,30 @@
     "menus": {
       "editor/title/run": [
         {
-          "when": "editorFocus && editorLangId == SAS && !isWeb",
+          "when": "editorFocus && editorLangId == sas && !isWeb",
           "command": "SAS.session.run"
         }
       ],
       "editor/title": [
         {
-          "when": "editorLangId == SAS && !isWeb",
+          "when": "editorLangId == sas && !isWeb",
           "command": "SAS.session.close",
           "group": "navigation"
         }
       ],
       "commandPalette": [
         {
-          "when": "editorFocus && editorLangId == SAS && !isWeb",
+          "when": "editorLangId == sas && !isWeb",
           "command": "SAS.session.run"
         }
       ]
     },
     "languages": [
       {
-        "id": "SAS",
+        "id": "sas",
+        "aliases": [
+          "SAS"
+        ],
         "extensions": [
           ".sas"
         ],
@@ -124,11 +127,11 @@
     ],
     "snippets": [
       {
-        "language": "SAS",
+        "language": "sas",
         "path": "./snippets/proc-snippets.json"
       },
       {
-        "language": "SAS",
+        "language": "sas",
         "path": "./snippets/function-snippets.json"
       }
     ]

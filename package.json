@@ -106,6 +106,10 @@
         "extensions": [
           ".sas"
         ],
+        "icon": {
+          "dark": "icons/dark/sasProgramFile.svg",
+          "light": "icons/light/sasProgramFile.svg"
+        },
         "configuration": "./language-configuration.json"
       }
     ],

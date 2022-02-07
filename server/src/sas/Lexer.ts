@@ -30,7 +30,7 @@ const DAYS = {
   DEC: 31,
 };
 const DATE_DDMMMYY_YYQ_REG =
-  /\d{2}(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(\d{2}|\d{4})|\d{2}q[1234]\b/i;
+  /^\d{2}(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)(\d{2}|\d{4})|\d{2}q[1234]\b/i;
 
 function checkQuote(current: number, isHead: boolean, text: string) {
   if (current === -1 && isHead) {

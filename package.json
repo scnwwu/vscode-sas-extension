@@ -115,14 +115,14 @@
     ],
     "themes": [
       {
-        "label": "SAS Illuminate",
+        "label": "SAS Light",
         "uiTheme": "vs",
-        "path": "./themes/sas-illuminate-color-theme.json"
+        "path": "./themes/sas-light-color-theme.json"
       },
       {
-        "label": "SAS Ignite",
+        "label": "SAS Dark",
         "uiTheme": "vs-dark",
-        "path": "./themes/sas-ignite-color-theme.json"
+        "path": "./themes/sas-dark-color-theme.json"
       },
       {
         "label": "SAS High Contrast",

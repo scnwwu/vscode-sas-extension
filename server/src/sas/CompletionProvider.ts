@@ -518,7 +518,18 @@ export class CompletionProvider {
           stmtName,
           optName,
           (data) => {
-            this._notifyOptValue(cb, data, optName);
+            if (!data) {
+              this.loader.getStatementOptionValues(
+                "standalone",
+                stmtName,
+                optName,
+                (data) => {
+                  this._notifyOptValue(cb, data, optName);
+                }
+              );
+            } else {
+              this._notifyOptValue(cb, data, optName);
+            }
           }
         );
         break;

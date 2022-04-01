@@ -20,6 +20,9 @@
     "namebit": { "foreground": "#800080", "bold": true },
     "hex": { "foreground": "#800080", "bold": true },
     "numeric": { "foreground": "#08726d", "bold": true },
-    "format": { "foreground": "#08726d" }
+    "format": { "foreground": "#08726d" },
+    "error": { "foreground": "#ff0000" },
+    "warning": { "foreground": "#8f5f00" },
+    "note": { "foreground": "#0000ff" }
   }
 }

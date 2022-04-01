@@ -8,6 +8,7 @@ import {
   window,
   workspace,
 } from "vscode";
+import { appendLog } from "../LogViewer";
 import { setup, run as computeRun } from "../viya/compute";
 
 let outputChannel: OutputChannel;
@@ -39,9 +40,10 @@ async function _run() {
     () =>
       computeRun(code).then((results) => {
         if (!outputChannel)
-          outputChannel = window.createOutputChannel("SAS Log");
+          outputChannel = window.createOutputChannel("SAS Log", "sas-log");
         outputChannel.show();
         for (const line of results.log) {
+          appendLog(line.type);
           outputChannel.appendLine(line.line);
         }
         if (outputHtml) {

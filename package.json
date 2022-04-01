@@ -11,7 +11,7 @@
   "license": "Apache-2.0",
   "icon": "icons/sas.png",
   "engines": {
-    "vscode": "^1.52.0"
+    "vscode": "^1.66.0"
   },
   "activationEvents": [
     "onLanguage:sas"
@@ -111,6 +111,9 @@
           "light": "icons/light/sasProgramFile.svg"
         },
         "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "sas-log"
       }
     ],
     "themes": [

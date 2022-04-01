@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as path from "path";
-import { commands, ExtensionContext } from "vscode";
+import { commands, ExtensionContext, languages } from "vscode";
 import { run } from "../commands/run";
 import { closeSession } from "../commands/closeSession";
 import {
@@ -11,6 +11,7 @@ import {
   ServerOptions,
   TransportKind,
 } from "vscode-languageclient/node";
+import { LogTokensProvider, legend } from "../LogViewer";
 
 let client: LanguageClient;
 
@@ -53,7 +54,12 @@ export function activate(context: ExtensionContext): void {
 
   context.subscriptions.push(
     commands.registerCommand("SAS.session.run", run),
-    commands.registerCommand("SAS.session.close", closeSession)
+    commands.registerCommand("SAS.session.close", closeSession),
+    languages.registerDocumentSemanticTokensProvider(
+      { language: "sas-log" },
+      LogTokensProvider,
+      legend
+    )
   );
 }
 

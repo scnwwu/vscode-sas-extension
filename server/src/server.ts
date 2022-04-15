@@ -14,6 +14,7 @@ import { LanguageServiceProvider, legend } from "./sas/LanguageServiceProvider";
 import { CompletionProvider } from "./sas/CompletionProvider";
 
 const servicePool: Record<string, LanguageServiceProvider> = {};
+const documentPool: Record<string, TextDocument> = {};
 
 let completionProvider: CompletionProvider;
 
@@ -42,19 +43,19 @@ export const init = (connection: Connection): void => {
   });
 
   connection.onRequest(SemanticTokensRequest.type, (params) => {
-    const languageService = servicePool[params.textDocument.uri];
+    const languageService = getLanguageService(params.textDocument.uri);
 
     return { data: languageService.getTokens() };
   });
 
   connection.onHover((params) => {
-    const languageService = servicePool[params.textDocument.uri];
+    const languageService = getLanguageService(params.textDocument.uri);
 
     return languageService.completionProvider.getHelp(params.position);
   });
 
   connection.onCompletion((params) => {
-    const languageService = servicePool[params.textDocument.uri];
+    const languageService = getLanguageService(params.textDocument.uri);
     completionProvider = languageService.completionProvider;
 
     return completionProvider.getCompleteItems(params.position);
@@ -65,14 +66,14 @@ export const init = (connection: Connection): void => {
   });
 
   connection.onDocumentSymbol((params) => {
-    const languageService = servicePool[params.textDocument.uri];
+    const languageService = getLanguageService(params.textDocument.uri);
     return languageService
       .getFoldingBlocks()
       .filter((symbol) => symbol.name !== "custom");
   });
 
   connection.onFoldingRanges((params) => {
-    const languageService = servicePool[params.textDocument.uri];
+    const languageService = getLanguageService(params.textDocument.uri);
     return languageService.getFoldingBlocks().map((block) => ({
       startLine: block.range.start.line,
       endLine: block.range.end.line,
@@ -80,6 +81,10 @@ export const init = (connection: Connection): void => {
   });
 
   documents.onDidChangeContent((event) => {
+    if (servicePool[event.document.uri]) {
+      documentPool[event.document.uri] = event.document;
+      return;
+    }
     servicePool[event.document.uri] = new LanguageServiceProvider(
       event.document
     );
@@ -92,3 +97,12 @@ export const init = (connection: Connection): void => {
   // Listen on the connection
   connection.listen();
 };
+
+function getLanguageService(uri: string) {
+  if (documentPool[uri]) {
+    // re-create LanguageServer if document changed
+    servicePool[uri] = new LanguageServiceProvider(documentPool[uri]);
+    delete documentPool[uri];
+  }
+  return servicePool[uri];
+}

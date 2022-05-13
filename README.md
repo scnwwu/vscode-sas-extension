@@ -82,11 +82,11 @@ _Tip_: Click the links in the syntax help window to navigate to the SAS online h
 
 ### Snippets
 
-Snippets are lines of commonly used code or text that you can insert into your program. The SAS Extension includes a large number of snippets for SAS functions and procedures to help you write SAS programs more quickly.
+Snippets are lines of commonly used code or text that you can insert into your program. The SAS Extension includes a few snippets for SAS functions and procedures to help you write SAS programs more quickly.
 
 To access the list of snippets for a function or procedure:
 
-- Type the name of a function or procedure in your SAS program. This example shows a snippet for the PROC ACCESS statement.
+- Type the name of a function or procedure in your SAS program. This example shows a snippet for the PROC DS2.
   <img src="doc/images/Snippets.PNG"/>
 
 ### Code folding and outline
@@ -102,7 +102,7 @@ Before you can run SAS code, you must configure the SAS Extension to access a SA
 
 To configure the SAS Extension:
 
-1. Open the Settings editor for the SAS Extension by selecting `File > Preferences > Settings`. Expand the Extensions folder and select SAS. Specify your client ID, client secret, SAS Viya server URL and username. For information about your client ID and client secret, contact your SAS administrator. _Tip_: You can also specify the full path for a token file to authenticate with your SAS Viya server.
+1. Open the Settings editor for the SAS Extension by selecting `File > Preferences > Settings`. Expand the Extensions folder and select SAS. Specify your client ID, client secret, SAS Viya server URL and username. For information about your client ID and client secret, contact your SAS administrator. (SAS administrator can refers to this [documentation](https://go.documentation.sas.com/doc/en/sasadmincdc/v_022/calauthmdl/n1iyx40th7exrqn1ej8t12gfhm88.htm#n0brttsp1nuzzkn1njvr535txk86) for how to generate client IDs.) _Tip_: You can also specify the full path for a token file to authenticate with your SAS Viya server.
 
 2. If you do not want to generate results in HTML format, clear the Get ODS HTML5 Output option. This option is selected by default.
 
@@ -112,7 +112,7 @@ After you configure the SAS Extension, you can run your SAS program and view the
 
 To run a SAS program:
 
-1. Click Run<img src="icons/light/submitSASCode.svg"/> in the upper right corner of your SAS program window.
+1. Click Run in the upper right corner of your SAS program window.
 2. When you are prompted, enter your password. Your SAS log and any results are displayed in the application.
 
 <img src="doc/images/RunResult.PNG"/>
@@ -121,7 +121,7 @@ To run a SAS program:
 
 - A new session must be created the first time you run SAS code, which can take 10 - 60 seconds, depending on the server connection.
 - Currently, only HTML output is supported. By default, the ODS HTML5 statement is added to the code that you are submitting. You can clear the Get ODS HTML5 Output option in the Settings editor for the SAS Extension to disable this output.
-- When you click Run<img src="icons/light/submitSASCode.svg"/>, the code in the active tab in the editor is submitted. Make sure that the correct tab is active when you run your program.
+- When you click Run, the code in the active tab in the editor is submitted. Make sure that the correct tab is active when you run your program.
 - To reset your connection to the SAS Viya server, run the `Close current session` command in VS code or click the `Close current session` button next to the Run button.
 
 ## Contributing to the SAS Extension

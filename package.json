@@ -1,14 +1,14 @@
 {
   "name": "sas-lsp",
-  "displayName": "SAS Language Server",
-  "description": "A SAS language server for VSCode",
+  "displayName": "SAS",
+  "description": "Provides support for the SAS language",
   "version": "0.0.1",
   "categories": [
     "Programming Languages",
     "Data Science"
   ],
   "publisher": "sas",
-  "license": "Apache-2.0",
+  "license": "SAS Code Extension Terms",
   "icon": "icons/sas.png",
   "engines": {
     "vscode": "^1.66.0"
@@ -143,6 +143,10 @@
         "path": "./snippets/function-snippets.json"
       }
     ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sassoftware/vscode-sas-extension"
   },
   "scripts": {
     "vscode:prepublish": "npm run lint && npm run compile && npm run compile-browser",

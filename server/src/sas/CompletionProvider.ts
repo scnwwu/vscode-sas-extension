@@ -1,5 +1,5 @@
-// Copyright © 2021, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
-// SPDX-License-Identifier: Apache-2.0
+// Copyright © 2022, SAS Institute Inc., Cary, NC, USA. All Rights Reserved.
+// Licensed under SAS Code Extension Terms, available at Code_Extension_Agreement.pdf
 
 /* eslint-disable @typescript-eslint/no-explicit-any,@typescript-eslint/no-unused-vars */
 import {
@@ -1160,8 +1160,8 @@ export class CompletionProvider {
       // contextText = 'MACRO STATEMENT';
       // linkTail = '%22' + keyword + '+STATEMENT%22';
       // break;
-      default:
-        contextText = ""; //zone;
+      default: //zone;
+        contextText = "";
         linkTail = keyword.replace("%", "");
     }
     let addr =

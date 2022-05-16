@@ -1,10 +1,10 @@
 {
   "name": "sas-lsp-client",
-  "description": "VSCode client of SAS language server",
+  "description": "VS Code client for SAS language server",
   "author": "SAS Institute Inc.",
   "license": "SAS Code Extension Terms",
   "version": "0.0.1",
-  "publisher": "sas",
+  "publisher": "SAS",
   "engines": {
     "vscode": "^1.66.0"
   },

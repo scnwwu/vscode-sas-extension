@@ -2259,7 +2259,7 @@ export class LexerEx {
     };
     return this.handleLongOptionName_(context);
   }
-  //TODO: The pos argument looks ugly. pos is the offest of startWord from the current token in the state machine
+  // The pos is the offest of startWord from the current token in the state machine
   private handleLongOptionName_(context: {
     procName?: string;
     stmtName?: string;
@@ -2400,7 +2400,7 @@ export class LexerEx {
       Lexer.isWord[token.type] &&
       this.specialStmts_[this.curr.procName + "/" + this.curr.name]
     ) {
-      //A ugly but simple way to handle this condition :)
+      //A simple way to handle this condition :)
       let isKeyword = false;
       //TODO: Imrove this
       if (this.curr.optNameLen !== undefined && this.curr.optNameLen > 1) {

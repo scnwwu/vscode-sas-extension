@@ -179,7 +179,6 @@ export class SyntaxProvider {
           });
           tailPart.splice(0, validPos);
           if (this.syntaxTable[line]) {
-            //TODO: This is ugly.
             //add blank token.
             this._tryToAddBlank(line, this.syntaxTable[line], tailPart);
             //

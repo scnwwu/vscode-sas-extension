@@ -1045,7 +1045,6 @@ export class CodeZoneManager {
       type = CodeZoneManager.ZONE_TYPE.SUB_OPT_NAME; //if we set SUB_OPT_NAME, the _procStmt will check whether it is an OPT_NAME
     }
 
-    //UGLY!!
     if (
       this._stmtName.match(/ODS TAGSETS.\w*/gi) ||
       (this._stmtName === "ODS" && this._optName.match(/TAGSETS.\w*/gi))

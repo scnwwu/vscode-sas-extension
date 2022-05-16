@@ -3,9 +3,9 @@
 We'd love to accept your patches and contributions to this project. There are
 just a few small guidelines you need to follow.
 
-## Contributor License Agreement
+## Agreement Covering Contributions
 
-Contributions must follow the SAS Code Extension Terms, a copy of which is included as [Code_Extension_Agreement.pdf](Code_Extension_Agreement.pdf)
+Contributions are subject to the SAS Code Extension Terms, a copy of which is included as [Code_Extension_Agreement.pdf](Code_Extension_Agreement.pdf)
 
 ## Code reviews
 

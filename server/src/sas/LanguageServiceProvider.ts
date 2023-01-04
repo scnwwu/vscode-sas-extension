@@ -28,7 +28,8 @@ export const legend = {
     "namelit",
     "hex",
     "numeric",
-    "format", //, 'text', 'blank'
+    "format",
+    "text", // 'blank'
   ],
   tokenModifiers: [],
 };

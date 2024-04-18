@@ -1,4 +1,4 @@
-# Choose connection type
+# Choose Connection Type
 
 ```mermaid
 flowchart LR;

@@ -48,6 +48,11 @@ const config: Config = {
   ],
 
   themeConfig: {
+    docs: {
+      sidebar: {
+        hideable: true,
+      },
+    },
     navbar: {
       title: "SAS Extension for Visual Studio Code Documentation",
       logo: {

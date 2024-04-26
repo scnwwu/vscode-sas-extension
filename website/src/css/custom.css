@@ -24,3 +24,8 @@
 .navbar__search-input:hover {
   box-shadow: 0 0 0 2px var(--ifm-navbar-link-hover-color);
 }
+
+[data-theme="light"] img[src$="#gh-dark-mode-only"],
+[data-theme="dark"] img[src$="#gh-light-mode-only"] {
+  display: none;
+}

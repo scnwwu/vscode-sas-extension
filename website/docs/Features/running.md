@@ -1,27 +1,29 @@
 # Running SAS Code
 
-After configuring the SAS extension for your SAS environment, run your SAS program and view the log and results. The connection set up and process is different for SAS Viya and SAS 9. Each is explained in detail below.
+After you configure the SAS extension for your SAS environment, you can run your SAS program and view the log and results. The steps to connect to SAS and run your program are different for SAS Viya and SAS 9.
 
 ## SAS Viya
 
-To run a SAS program connection to a SAS Viya instance:
+To run a SAS program with a SAS Viya connection:
 
-1. Click the running man icon in the upper right corner of your SAS program window.
-2. For a secure connection to SAS Viya we use an authorization code for authentication. Complete these steps to connect.
+1. Click the ![running person](../../../icons/light/submitSASCode.svg#gh-light-mode-only)![running person](../../../icons/dark/submitSASCode.svg#gh-dark-mode-only) icon in the upper right corner of your SAS program window.
+2. For a secure connection to SAS Viya, you must connect with an authorization code:
 
-   2.1. VS Code may prompt you that the extension wants to sign in. Click 'Allow'.
+   2.1. If VS Code prompts you to sign in using SAS, click 'Allow'.
 
-   2.2. VS Code may prompt you about opening an external web site. Click 'Open'.
+   2.2. If VS Code prompts you to open an external website, click 'Open'. A new browser window opens so that you can log on to SAS.
 
-   2.3. This will take you to a SAS Logon prompt. Log in with your SAS credentials.
+   2.3. Log on with your SAS credentials.
 
    2.4. SAS returns an authorization code. Copy this code.
 
-   2.5. Paste the authorization code in VS Code where indicated at the top of the screen.
+   2.5. Paste the authorization code in the authorization box at the top of the VS Code application.
 
 3. VS Code connects to SAS and runs the code.
 
-4. The results are displayed in the application. 5. The SAS output log and error information are displayed in the applicaiton.
+4. The results are displayed in the application.
+
+5. The SAS output log and error information are displayed in the application.
 
 ![runCode2](/images/runCode2.png)
 
@@ -33,21 +35,19 @@ Your sign in status will persist in VS Code. You can view it and sign out from V
 
 ## SAS 9.4
 
-1. Click the running man icon in the upper right corner of your SAS program window.
+1. Click the ![running person](../../../icons/light/submitSASCode.svg#gh-light-mode-only)![running person](../../../icons/dark/submitSASCode.svg#gh-dark-mode-only) icon in the upper right corner of your SAS program window.
 
 2. VS Code connects to SAS and runs the code.
 
-3. The results are displayed in the application.
-
-4. The SAS output log and error information are displayed in the applicaiton.
+3. The results, log, and error status are displayed in the application.
 
 ## Additional notes
 
-To run a piece of SAS code:
+To run a selection of SAS code:
 
-- The `Run Selected or All SAS Code` command (`F3`) will automatically run selected code when there's a selection, and run all code when there's no selection.
-- When there're multiple selections, The `Run Selected or All SAS Code` command will combine the code from the selections in the order in which they were selected, and then submits the combined code.
-- The `Run All SAS Code` command (`F8`) will always run all code regardless of selection.
+- The `Run Selected or All SAS Code` command (`F3`) will automatically run selected code when you have selected lines of code in a program. If you have not selected any lines of code, SAS runs the entire program.
+- If you have selected multiple sections of code, the `Run Selected or All SAS Code` command combines the code from the selections in the order in which they were selected, and then submits the combined code.
+- The `Run All SAS Code` command (`F8`) always runs the entire program.
 
 **Notes**:
 

@@ -1,10 +1,11 @@
 # SAS Log
 
-Its possible to customize when the SAS log gets shown in the bottom panel by using the following extension settings. These settings will apply to all connection profiles:
-| Name | Description | Additional Notes |
-| ---------------------------------| --------------------------------------- | ----------------------------- |
-| **SAS.log.showOnExecutionStart** | Show SAS log on start of execution | default: true |
-| **SAS.log.showOnExecutionFinish**| Show SAS log on end of execution | default: true |
+You can customize when the SAS log is displayed in the bottom panel by using the following extension settings. These settings apply to all connection profiles:
+
+| Name                            | Description                        | Additional Notes |
+| ------------------------------- | ---------------------------------- | ---------------- |
+| `SAS.log.showOnExecutionStart`  | Show SAS log on start of execution | default: `true`  |
+| `SAS.log.showOnExecutionFinish` | Show SAS log on end of execution   | default: `true`  |
 
 Example
 

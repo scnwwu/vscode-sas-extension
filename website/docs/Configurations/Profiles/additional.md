@@ -1,15 +1,10 @@
-# Additional settings in a profile
+# Additional Profile Settings
 
-| Name                     | Supported Connection Types                                                    | Description                                 | Additional Notes                                 |
-| ------------------------ | ----------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------ |
-| **SAS Options Settings** | SAS Viya, SAS 9.4 (local)\*, SAS 9.4 (remote - IOM)\*, SAS 9.4 (remote - SSH) | SAS options to apply to the SAS session     | \* local startup options currently not supported |
-| **AutoExec Settings**    | SAS Viya                                                                      | SAS code to execute once at session startup |                                                  |
+## SAS Options Settings Examples
 
-## SAS Options Settings
+SAS system options can be set for each connection profile. Changes to the SAS system options do not take effect until you close and restart your SAS session. See the following examples of the required formats for the supported connection profile types.
 
-SAS System Options can be set per connection profile. Changes made to SAS Options require closing and reopening the session to take effect. See the following examples below for required formats for supported connection profile types.
-
-- SAS Viya Example:
+- SAS Viya:
 
   ```json
   {
@@ -72,7 +67,7 @@ SAS System Options can be set per connection profile. Changes made to SAS Option
 
 ## AutoExec Settings
 
-For Viya connection profiles, it's possible to setup AutoExec lines that will execute once per session startup. Changes made to the autoexec require closing and reopening the session to take effect. The AutoExec option supports different modes for how to define the SAS lines that should run:
+For SAS Viya connection profiles, you can set up autoexec code that executes each time you start a new session. Changes to the autoexec code do not take effect until you close and restart your SAS session. The AutoExec option supports different modes for how to define the SAS lines that should run:
 
 - Line Mode: embed lines directly into the connection profile JSON. This mode is useful if only a few lines are needed to run on session startup. Note that standard JSON escaping rules apply.
 

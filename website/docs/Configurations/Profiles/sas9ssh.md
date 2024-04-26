@@ -2,25 +2,22 @@
 sidebar_position: 4
 ---
 
-# Profile: SAS 9.4 (remote - SSH)
+# SAS 9.4 (remote - SSH) Connection Profile
 
-For a secure connection to SAS 9.4 remote server, a public / private ssh key pair is required. The socket defined in the environment variable `SSH_AUTH_SOCK` is used to communicate with ssh-agent to authenticate the ssh session. The private key must be registered with the ssh-agent. The steps for configuring ssh follow.
+For a secure connection to SAS 9.4 (remote - SSH) server, a public / private SSH key pair is required. The socket defined in the environment variable `SSH_AUTH_SOCK` is used to communicate with ssh-agent to authenticate the SSH session. The private key must be registered with the ssh-agent. The steps for configuring SSH follow.
 
 ## Profile Anatomy
 
-The parameters listed below make up the profile settings for configuring a connection to a remote SAS 9.4 instance.
+A SAS 9.4 (remote – SSH) connection profile includes the following parameters:
 
-| Name         | Description                          | Additional Notes                                                     |
-| ------------ | ------------------------------------ | -------------------------------------------------------------------- |
-| **Name**     | Name of the profile                  | This will display on the status bar                                  |
-| **Host**     | SSH Server Host                      | This will appear when hovering over the status bar                   |
-| **Username** | SSH Server Username                  | A username to use when establishing the SSH connection to the server |
-| **Port**     | SSH Server Port                      | The ssh port of the SSH server. Default value is 22                  |
-| **SAS Path** | Path to SAS Executable on the server | Must be a fully qualified path on the SSH server to a SAS executable |
+`"connectionType": "ssh"`
 
-## Add New SAS 9.4 (remote - SSH) Profile
-
-Open the command palette (`F1`, or `Ctrl+Shift+P` on Windows or Linux, or `Shift+CMD+P` on OSX). After executing the `SAS.addProfile` command, select the SAS 9.4 (remote - SSH) connection type and complete the prompts (using values from the preceeding table) to create a new profile.
+| Name       | Description                          | Additional Notes                                                           |
+| ---------- | ------------------------------------ | -------------------------------------------------------------------------- |
+| `host`     | SSH Server Host                      | Appears when hovering over the status bar.                                 |
+| `username` | SSH Server Username                  | The username to establish the SSH connection to the server.                |
+| `port`     | SSH Server Port                      | The SSH port of the SSH server. The default value is 22.                   |
+| `saspath`  | Path to SAS Executable on the server | Must be a fully qualified path on the SSH server to a SAS executable file. |
 
 ## Required setup for connection to SAS 9.4 (remote - SSH)
 
@@ -28,26 +25,28 @@ In order to configure the connection between VS Code and SAS 9, you must configu
 
 ### Windows
 
-1. Enable openssh client optional feature; [instructions found here](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse?tabs=gui).
+1. Enable OpenSSH for Windows using these [instructions](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse?tabs=gui).
 
-2. [Create an environment variable](https://phoenixnap.com/kb/windows-set-environment-variable) SSH_AUTH_SOCK with value //./pipe/openssh-ssh-agent (windows uses a named pipe for the auth sock).
+2. [Create an environment variable](https://phoenixnap.com/kb/windows-set-environment-variable) named SSH_AUTH_SOCK with value `//./pipe/openssh-ssh-agent`
+   (Windows uses a named pipe for the auth sock).
+
    **Note**: An attempt to create the varible using Powershell command line did not register; suggest using these GUI instructions.
 
-3. Ensure ssh-agent service is running and set startup type to automatic; commands found in [this link](https://dev.to/aka_anoop/how-to-enable-openssh-agent-to-access-your-github-repositories-on-windows-powershell-1ab8)
+3. Ensure that the ssh-agent service is running and set the Startup type to Automatic using [these instructions](https://dev.to/aka_anoop/how-to-enable-openssh-agent-to-access-your-github-repositories-on-windows-powershell-1ab8)
 
-4. [Generate ed25519 keys](https://medium.com/risan/upgrade-your-ssh-key-to-ed25519-c6e8d60d3c54) with the following command (email address is not binding; use any):
+4. [Generate ed25519 keys](https://medium.com/risan/upgrade-your-ssh-key-to-ed25519-c6e8d60d3c54) with the following command (email address is not binding; you can use any email address):
 
 ```sh
 ssh-keygen -o -a 100 -t ed25519 -f ~/.ssh/id_ed25519 -C "youremail@company.com"
 ```
 
-5. You’ll be asked a series of questions. First, if you didn not provide a path, a default one is provided. Also, if you wish to add a passphrase enter it. Pressing the ‘Enter’ key for each question accepts the default key name and does not password protect your key.
+5. You are prompted to enter additional information. If you did not enter a path, a default path is provided for you. You can also specify a passphrase. If you do not specify a passphrase, your key is not password-protected. Press Enter to accept the default value for each prompt.
 
    - Enter a file in which to save the key (/c/Users/you/.ssh/id_ed25519):[Press enter]
    - Enter passphrase (empty for no passphrase): [Type a passphrase]
    - Enter same passphrase again: [Type passphrase again]
 
-6. Define an entry in ~/.ssh/config of the form:
+6. Define an entry in ~/.ssh/config using the following format:
 
 ```
 Host host.machine.name
@@ -59,7 +58,7 @@ Note: if ~/.ssh/config does not exist, run the following Powershell command to c
 
 7. Add the private key to ssh-agent: ssh-add /path/to/private/key/with/passphrase
 
-8. In VS Code, define a connection profile (see detailed instructions below in the [Add New SAS 9.4 (remote - SSH) Profile](#add-new-sas-94-remote---ssh-profile) section). The connection for the remote server is stored in the settings.json file.
+8. In VS Code, define a connection profile (see detailed instructions in the [Add New Connection Profile](./index.md#add-new-connection-profile) section). The connection for the remote server is stored in the settings.json file.
 
 ```json
 "ssh_test": {
@@ -100,7 +99,7 @@ Host host.machine.name
 
 4. Add the private key to ssh-agent: ssh-add /path/to/private/key/with/passphrase
 
-5. Define a connection profile in settings.json for a remote server (see detailed instructions below in the [Add New SAS 9.4 (remote - SSH) Profile](#add-new-sas-94-remote---ssh-profile) section):
+5. Define a connection profile in settings.json for a remote server (see detailed instructions in the [Add New Connection Profile](./index.md#add-new-connection-profile) section):
 
 ```json
 "ssh_test": {

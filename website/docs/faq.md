@@ -39,7 +39,7 @@ SAS administrator can refers to this [documentation](https://go.documentation.sa
 
 The client ID needs `authorization_code` grant type. If you want it to automatically refresh access token, it also need `refresh_token` grant type.
 
-### I got `unable to verify the first certificate` error when run
+### I got `unable to verify the first certificate` or `self-signed certificate in certificate chain` error when run
 
 You'll have to manually trust your server's certificate, with below steps:
 

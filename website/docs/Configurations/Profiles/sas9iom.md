@@ -14,6 +14,8 @@ If you do not already have ITCLIENT installed on the client machine, you can ins
 
 ITCLIENT is backwards compatible, so any version of ITCLIENT will allow you to connect to the same or earlier version V9 SAS server. For example, if you have 9.4M8 ITCLIENT, you will be able to connect to SAS 9.4M8, 9.4M7, 9.4M6, or earlier SAS 9.4 servers. If you have 9.4M7 ITCLIENT, you will be able to connect to SAS 9.4M7, 9.4M6, or earlier SAS 9.4 servers.
 
+**Note**: If you are using a SAS 9.4 (remote - IOM) connection profile, you can use SAS Grid Manager to balance your workload across multiple servers.
+
 ## Profile Anatomy
 
 A SAS 9.4 (remote – IOM) connection profile includes the following parameters:

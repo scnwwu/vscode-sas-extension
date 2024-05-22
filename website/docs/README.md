@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # SAS Extension for Visual Studio Code
 
-Welcome to the SAS Extension for Visual Studio Code! The SAS extension is lightweight, runs anywhere, and allows you to integrate SAS with other languages. You can connect directly to SAS Viya and SAS 9 and run code.
+Welcome to the SAS Extension for Visual Studio Code! The SAS extension is lightweight, runs anywhere, and allows you to integrate SAS with other languages.
 
 The SAS extension includes the following features:
 

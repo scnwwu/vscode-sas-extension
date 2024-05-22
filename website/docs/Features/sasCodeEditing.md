@@ -1,3 +1,7 @@
+---
+sidebar_position: 3
+---
+
 # SAS Code Editing Features
 
 ## SAS Syntax Highlighting

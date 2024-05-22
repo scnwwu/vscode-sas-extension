@@ -1,3 +1,7 @@
+---
+sidebar_position: 1
+---
+
 # Accessing SAS Content
 
 After you configure the SAS extension for a SAS Viya environment, you can access SAS Content.

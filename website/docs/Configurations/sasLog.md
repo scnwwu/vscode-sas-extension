@@ -7,6 +7,8 @@ You can customize when the SAS log is displayed in the bottom panel by using the
 | `SAS.log.showOnExecutionStart`  | Show SAS log on start of execution | default: `true`  |
 | `SAS.log.showOnExecutionFinish` | Show SAS log on end of execution   | default: `true`  |
 
+To access the SAS settings, select `File > Preferences > Settings`. Search for "sas" and then click SAS in the search results to view the SAS extension settings. You can edit the settings directly in the `settings.json` file by clicking `Edit in settings.json`.
+
 Example
 
 ```json title="settings.json"

@@ -74,6 +74,10 @@ Please specify the correct protocol. For example, if your Viya server is on http
 
 Then restart VS Code
 
+### I got `Setup error: Retrieving the COM class factory`... error when connecting to SAS 9.4 (remote-IOM)
+
+Please confirm if SAS Integration Technologies Client is successfully installed. Refer to the [documentation](./Configurations/Profiles/sas9iom) for details.
+
 ### I got `See console log for more details` error. Where to see the console log?
 
 Click `Help > Toggle Developer Tools` from the top menu bar.

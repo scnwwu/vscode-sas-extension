@@ -8,6 +8,7 @@
 /** @typedef {import('webpack').Configuration} WebpackConfig **/
 
 const path = require("path");
+const { ProvidePlugin, DefinePlugin } = require("webpack");
 
 /** @type WebpackConfig */
 const browserClientConfig = {
@@ -72,7 +73,17 @@ const browserServerConfig = {
     alias: {
       "../node": path.resolve(__dirname, "server/src/browser"),
     },
-    fallback: {},
+    fallback: {
+      path: require.resolve("path-browserify"),
+      os: false,
+      crypto: false,
+      // buffer: require.resolve("buffer/"),
+      stream: false,
+      child_process: false,
+      fs: false,
+      assert: false,
+      util: false,
+    },
   },
   module: {
     rules: [
@@ -94,11 +105,20 @@ const browserServerConfig = {
   },
   externals: {
     vscode: "commonjs vscode", // ignored because it doesn't exist
+    fsevents: "commonjs2 fsevents",
   },
   performance: {
     hints: false,
   },
   devtool: "source-map",
+  plugins: [
+    new DefinePlugin({
+      process: "{ env: {}, execArgv: [], cwd: () => '/' }",
+    }),
+    new ProvidePlugin({
+      Buffer: ["buffer", "Buffer"],
+    }),
+  ],
 };
 
 module.exports = [browserClientConfig, browserServerConfig];

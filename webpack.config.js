@@ -72,6 +72,10 @@ const browserServerConfig = {
     extensions: [".ts", ".js"], // support ts-files and js-files
     alias: {
       "../node": path.resolve(__dirname, "server/src/browser"),
+      "./common/realFileSystem": path.resolve(
+        __dirname,
+        "server/src/python/fakeFileSystem",
+      ),
     },
     fallback: {
       path: require.resolve("path-browserify"),
@@ -93,6 +97,17 @@ const browserServerConfig = {
         use: [
           {
             loader: "ts-loader",
+          },
+        ],
+      },
+      {
+        test: /python[\\|/]typeShed\.ts$/,
+        use: [
+          {
+            loader: path.resolve(
+              __dirname,
+              "server/src/python/typeshed-loader",
+            ),
           },
         ],
       },

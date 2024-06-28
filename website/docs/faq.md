@@ -83,3 +83,37 @@ Click `Help > Toggle Developer Tools` from the top menu bar.
 ### Why am I getting blank errors?
 
 Restart your VS Code session.
+
+## Using the Problems Panel
+
+### How do I use the Problems panel?
+
+The messages in the Problems panel are generated from the SAS log when you run a program. When you update your code, the messages in the Problems panel are not cleared or updated immediately. Messages in the Problems panel are updated only after you rerun the code. To highlight the code that is associated with a message in the Problems panel, click the appropriate message in the Problems panel.
+
+### Can I change the sort order of the messages in the Problems panel?
+
+No, you cannot change the order in which the messages are displayed in the Problems panel. The items are sorted first by severity and then by order of their appearance in the log.
+
+### What does the Show Infos option in the Filters menu do?
+
+The Show Infos option is not implemented in the SAS Extension.
+
+### How do I access the Problems panel toolbar options when I am displaying a second panel side-by-side?
+
+If the options on the Problems panel toolbar are not visible, you can display the options by clicking the Problems panel to make it the active panel or by hovering your mouse pointer over the Problems panel toolbar.
+
+### How do I use the Quick Fix option?
+
+Errors and warnings in the Problems panel are not cleared until you rerun the code. The Quick Fix option enables you to remove items from the Problems panel without rerunning the code.
+
+To access the Quick Fix options:
+
+- Click a message in the Problems panel and then click the corresponding `Show Code Actions` icon in the code editor.
+
+- Click the Show fixes button for the appropriate message in the Problems panel.
+
+![Quick Fix](/images/quickFix.png)
+
+### Can I control whether errors and warnings from my SAS log are displayed in the Problems panel?
+
+Yes. The `SAS.problems.log` setting controls whether problems from the SAS log are displayed in the Problems panel. This option is enabled by default. To access this option, select `File > Preferences > Settings`, and search for "sas problems".

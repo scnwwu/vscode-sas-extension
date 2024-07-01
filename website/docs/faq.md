@@ -96,9 +96,9 @@ No, you cannot change the order in which the messages are displayed in the Probl
 
 ### What does the Show Infos option in the Filters menu do?
 
-The Show Infos option is not implemented in the SAS Extension.
+The Show Infos option is not implemented in the SAS extension.
 
-### How do I access the Problems panel toolbar options when I am displaying a second panel side-by-side?
+### How do I access the toolbar options on the Problems panel when I am displaying a second panel side-by-side?
 
 If the options on the Problems panel toolbar are not visible, you can display the options by clicking the Problems panel to make it the active panel or by hovering your mouse pointer over the Problems panel toolbar.
 
@@ -110,7 +110,7 @@ To access the Quick Fix options:
 
 - Click a message in the Problems panel and then click the corresponding `Show Code Actions` icon in the code editor.
 
-- Click the Show fixes button for the appropriate message in the Problems panel.
+- Click the `Show fixes` button for the appropriate message in the Problems panel.
 
 ![Quick Fix](/images/quickFix.png)
 

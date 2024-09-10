@@ -22,6 +22,7 @@ import { SASCodeDocument } from "../components/utils/SASCodeDocument";
 import { getCodeDocumentConstructionParameters } from "../components/utils/SASCodeDocumentHelper";
 import { isOutputHtmlEnabled } from "../components/utils/settings";
 import { ErrorRepresentation, getSession } from "../connection";
+import { ITCSession } from "../connection/itc";
 import { useRunStore } from "../store";
 import { profileConfig, switchProfile } from "./profile";
 
@@ -128,6 +129,12 @@ async function runCode(selected?: boolean, uri?: Uri) {
         if (outputHtml && results.html5) {
           showResult(results.html5, uri);
         }
+        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+        (session as ITCSession)
+          .query("select * from sashelp.buy")
+          .then((result) => {
+            console.log(result);
+          });
       });
     },
   );

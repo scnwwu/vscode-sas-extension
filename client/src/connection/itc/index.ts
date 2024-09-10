@@ -22,6 +22,8 @@ import { Session } from "../session";
 import { extractOutputHtmlFileName } from "../util";
 import { LineParser } from "./LineParser";
 import {
+  DATA_END_TAG,
+  DATA_START_TAG,
   ERROR_END_TAG,
   ERROR_START_TAG,
   WORK_DIR_END_TAG,
@@ -65,6 +67,7 @@ export class ITCSession extends Session {
     | undefined;
   private _errorParser: LineParser;
   private _workDirectoryParser: LineParser;
+  private _dataParser: LineParser;
 
   constructor() {
     super();
@@ -76,6 +79,12 @@ export class ITCSession extends Session {
       WORK_DIR_START_TAG,
       WORK_DIR_END_TAG,
       false,
+    );
+    this._dataParser = new LineParser(
+      DATA_START_TAG,
+      DATA_END_TAG,
+      false,
+      "\n",
     );
   }
 
@@ -242,6 +251,21 @@ export class ITCSession extends Session {
       await this.fetchLog(skipPageHeaders);
     });
 
+    return runPromise;
+  };
+
+  public query = async (query: string) => {
+    const runPromise = new Promise<string>((resolve, reject) => {
+      this._runResolve = resolve;
+      this._runReject = reject;
+    });
+    const queryStr = `$query=\n@'\n${query}\n'@\n\n`;
+    this._shellProcess.stdin.write(queryStr);
+    this._shellProcess.stdin.write(`$runner.Query($query)\n`, async (error) => {
+      if (error) {
+        this._runReject(error);
+      }
+    });
     return runPromise;
   };
 
@@ -412,6 +436,7 @@ export class ITCSession extends Session {
    */
   private onShellStdOut = (data: Buffer): void => {
     const output = data.toString();
+    console.log(output);
     const outputLines = output.split(/\n|\r\n/);
 
     outputLines.forEach((line: string) => {
@@ -432,6 +457,15 @@ export class ITCSession extends Session {
             updateStatusBarItem(true);
             return;
           }
+        }
+
+        const queryResult = this._dataParser.processLine(line);
+        if (this._dataParser.isCapturingLine()) {
+          return;
+        }
+        if (queryResult !== undefined) {
+          this._runResolve(queryResult);
+          return;
         }
 
         this._html5FileName = extractOutputHtmlFileName(

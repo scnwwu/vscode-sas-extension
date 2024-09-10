@@ -1,6 +1,6 @@
 // Copyright © 2024, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { commands, l10n } from "vscode";
+import { commands } from "vscode";
 
 import { ChildProcessWithoutNullStreams } from "child_process";
 
@@ -13,6 +13,7 @@ import {
 } from "../../components/LibraryNavigator/types";
 import { Column, ColumnCollection } from "../rest/api/compute";
 import { runCode } from "./CodeRunner";
+import { query } from "./QueryRunner";
 import { Config } from "./types";
 
 class ItcLibraryAdapter implements LibraryAdapter {
@@ -46,19 +47,13 @@ class ItcLibraryAdapter implements LibraryAdapter {
 
   public async getColumns(item: LibraryItem): Promise<ColumnCollection> {
     const sql = `
-      %let OUTPUT;
-      proc sql;
-        select catx(',', name, type, varnum) as column into: OUTPUT separated by '~'
+      select catx(',', name, type, varnum)
         from sashelp.vcolumn
         where libname='${item.library}' and memname='${item.name}'
-        order by varnum;
-      quit;
-      %put <COLOUTPUT> &OUTPUT; %put </COLOUTPUT>;
+        order by varnum
     `;
 
-    const columnLines = processQueryRows(
-      await this.runCode(sql, "<COLOUTPUT>", "</COLOUTPUT>"),
-    );
+    const columnLines = processQueryRows(await this.query(sql));
 
     const columns = columnLines.map((lineText): Column => {
       const [name, type, index] = lineText.split(",");
@@ -80,18 +75,8 @@ class ItcLibraryAdapter implements LibraryAdapter {
     items: LibraryItem[];
     count: number;
   }> {
-    const sql = `
-      %let OUTPUT;
-      proc sql;
-        select catx(',', libname, readonly) as libname_target into: OUTPUT separated by '~'
-        from sashelp.vlibnam order by libname asc;
-      quit;
-      %put <LIBOUTPUT> &OUTPUT; %put </LIBOUTPUT>;
-    `;
-
-    const libNames = processQueryRows(
-      await this.runCode(sql, "<LIBOUTPUT>", "</LIBOUTPUT>"),
-    );
+    const sql = `select catx(',', libname, readonly) from sashelp.vlibnam order by libname asc`;
+    const libNames = processQueryRows(await this.query(sql));
 
     const libraries = libNames.map((lineText): LibraryItem => {
       const [libName, readOnlyValue] = lineText.split(",");
@@ -160,14 +145,9 @@ class ItcLibraryAdapter implements LibraryAdapter {
   public async getTableRowCount(
     item: LibraryItem,
   ): Promise<{ rowCount: number; maxNumberOfRowsToRead: number }> {
-    const code = `
-      proc sql;
-        SELECT COUNT(1) into: COUNT FROM  ${item.library}.${item.name};
-      quit;
-      %put <Count>&COUNT</Count>;
-    `;
+    const code = `SELECT COUNT(1) FROM ${item.library}.${item.name}`;
 
-    const output = await this.runCode(code, "<Count>", "</Count>");
+    const output = processQueryRows(await this.query(code))[0];
     const rowCount = parseInt(output.replace(/[^0-9]/g, ""), 10);
 
     return { rowCount, maxNumberOfRowsToRead: 100 };
@@ -178,19 +158,12 @@ class ItcLibraryAdapter implements LibraryAdapter {
     count: number;
   }> {
     const sql = `
-      %let OUTPUT;
-      proc sql;
-        select memname into: OUTPUT separated by '~'
-        from sashelp.vtable
+      select memname from sashelp.vtable
         where libname='${item.name!}'
-        order by memname asc;
-      quit;
-      %put <TABLEOUTPUT> &OUTPUT; %put </TABLEOUTPUT>;
+        order by memname asc
     `;
 
-    const tableNames = processQueryRows(
-      await this.runCode(sql, "<TABLEOUTPUT>", "</TABLEOUTPUT>"),
-    );
+    const tableNames = processQueryRows(await this.query(sql));
 
     const tables = tableNames.map((lineText): LibraryItem => {
       const [table] = lineText.split(",");
@@ -213,54 +186,18 @@ class ItcLibraryAdapter implements LibraryAdapter {
     start: number,
     limit: number,
   ): Promise<{ rows: Array<string[]>; count: number }> {
-    const maxTableNameLength = 32;
-    const tempTable = `${item.name}${hms()}${start}`.substring(
-      0,
-      maxTableNameLength,
-    );
-    const code = `
-      options nonotes nosource nodate nonumber;
-      %let COUNT;
-      proc sql;
-        SELECT COUNT(1) into: COUNT FROM  ${item.library}.${item.name};
-      quit;
-      data work.${tempTable};
-        set ${item.library}.${item.name};
-        if ${start + 1} <= _N_ <= ${start + limit} then output;
-      run;
+    const count = await this.getTableRowCount(item);
+    const sql = `select * from ${item.library}.${item.name}(firstobs=${start + 1} obs=${start + 1 + limit})`;
 
-      filename out temp;
-      proc json nokeys out=out pretty; export work.${tempTable}; run;
+    const output = await this.query(sql);
 
-      %put <TABLEDATA>;
-      %put <Count>&COUNT</Count>;
-      data _null_; infile out; input; put _infile_; run;
-      %put </TABLEDATA>;
-      proc datasets library=work nolist nodetails; delete ${tempTable}; run;
-      options notes source date number;
-    `;
-
-    let output = await this.runCode(code, "<TABLEDATA>", "</TABLEDATA>");
-
-    // Extract result count
-    const countRegex = /<Count>(.*)<\/Count>/;
-    const countMatches = output.match(countRegex);
-    const count = parseInt(countMatches[1].replace(/\s|\n/gm, ""), 10);
-    output = output.replace(countRegex, "");
-
-    const rows = output.replace(/\n|\t/gm, "").slice(output.indexOf("{"));
-    try {
-      const tableData = JSON.parse(rows);
-      return { rows: tableData[`SASTableData+${tempTable}`], count };
-    } catch (e) {
-      console.warn("Failed to load table data with error", e);
-      console.warn("Raw output", rows);
-      throw new Error(
-        l10n.t(
-          "An error was encountered when loading table data. This usually happens when a table is too large or the data couldn't be processed. See console for more details.",
-        ),
-      );
+    const [columnCountStr, ...rows] = output.trim().split("\n");
+    const columnCount = parseInt(columnCountStr, 10);
+    const result = [];
+    for (let i = 0; i * columnCount < rows.length; i++) {
+      result[i] = rows.slice(i * columnCount, i * columnCount + columnCount);
     }
+    return { rows: result, count: count.rowCount };
   }
 
   protected async runCode(
@@ -276,22 +213,26 @@ class ItcLibraryAdapter implements LibraryAdapter {
       return "";
     }
   }
+
+  protected async query(code: string): Promise<string> {
+    try {
+      return await query(code);
+    } catch (e) {
+      onRunError(e);
+      commands.executeCommand("setContext", "SAS.librariesDisplayed", false);
+      return "";
+    }
+  }
 }
 
 const processQueryRows = (response: string): string[] => {
-  const processedResponse = response.trim().replace(/\n|\t/gm, "");
+  const processedResponse = response.trim();
   if (!processedResponse) {
     return [];
   }
 
-  return processedResponse
-    .split("~")
-    .filter((value, index, array) => array.indexOf(value) === index);
-};
-
-const hms = () => {
-  const date = new Date();
-  return `${date.getHours()}${date.getMinutes()}${date.getSeconds()}`;
+  const [, ...rows] = processedResponse.split("\n");
+  return rows.filter((value, index, array) => array.indexOf(value) === index);
 };
 
 export default ItcLibraryAdapter;

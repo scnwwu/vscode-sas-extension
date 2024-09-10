@@ -9,6 +9,7 @@ export class LineParser {
     protected startTag: string,
     protected endTag: string,
     protected returnNonProcessedLines: boolean,
+    protected delimiter = "",
   ) {}
 
   public processLine(line: string): string | undefined {
@@ -27,7 +28,7 @@ export class LineParser {
   protected processedLine(): string {
     this.capturingLine = false;
     const fullError = this.processedLines
-      .join("")
+      .join(this.delimiter)
       .replace(this.startTag, "")
       .replace(this.endTag, "");
     this.processedLines = [];

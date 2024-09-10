@@ -1,6 +1,8 @@
 // Copyright © 2023, SAS Institute Inc., Cary, NC, USA.  All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import {
+  DATA_END_TAG,
+  DATA_START_TAG,
   ERROR_END_TAG,
   ERROR_START_TAG,
   WORK_DIR_END_TAG,
@@ -11,6 +13,8 @@ import { LineCodes } from "./types";
 export const scriptContent = `
 class SASRunner{
   [System.__ComObject] $objSAS
+  [System.__ComObject] $objOK
+  [System.__ComObject] $objConn
 
   [void]ResolveSystemVars(){
     try {
@@ -46,6 +50,14 @@ class SASRunner{
             $username,
             $password
         )
+
+        # Add the new workspace object to the ObjectKeeper
+        $this.objOK = New-Object -ComObject SASObjectManager.ObjectKeeper
+        $this.objOK.AddObject(1, "WorkspaceObject", $this.objSAS)
+
+        # Open a connection to the workspace by using its UniqueIdentifier, which is generated automatically
+        $this.objConn = New-Object -ComObject ADODB.Connection
+        $this.objConn.Open("Provider=sas.iomprovider; Data Source=iom-id://"+$this.objSAS.UniqueIdentifier)
 
         Write-Host "${LineCodes.SessionCreatedCode}"
     } catch {
@@ -97,6 +109,33 @@ class SASRunner{
     return $physicalName.Value[0]
   }
 
+  [void]Query([string]$query) {
+    try{
+      $objRecordSet = New-Object -ComObject ADODB.Recordset
+      $objRecordSet.ActiveConnection = $this.objConn
+      $objRecordSet.Properties("SAS Formats") = "_ALL_"
+      $objRecordSet.Open($query)
+
+      $count = $objRecordSet.Fields.Count;
+      if ($count -gt 0) {
+        $objRecordSet.MoveFirst()
+
+        Write-Host "${DATA_START_TAG}"
+        Write-Host $count
+        while(!$objRecordSet.EOF) {
+          for ($i = 0; $i -lt $count; $i++) {
+            Write-Host $objRecordSet.Fields.Item($i).Value
+          }
+          $objRecordSet.MoveNext()
+        }
+        Write-Host "${DATA_END_TAG}"
+      }
+      #$objRecordSet.Close()
+    }catch{
+      Write-Error "${ERROR_START_TAG}Query error: $_${ERROR_END_TAG}"
+    }
+  }
+
   [void]Run([string]$code) {
     try{
         $this.objSAS.LanguageService.Reset()
@@ -108,7 +147,9 @@ class SASRunner{
   }
 
   [void]Close(){
-  try{
+    try{
+        #$this.objConn.Close()
+        $this.objOK.RemoveObject($this.objSAS)
         $this.objSAS.Close()
     }catch{
       Write-Error "${ERROR_START_TAG}Close error: $_${ERROR_END_TAG}"
